@@ -1,0 +1,7 @@
+<PUBLIC:COMPONENT lightWeight="true">
+    <script type="text/javascript">
+        (function(){
+            window.hsfSelectorCollection.push(element);
+        })();
+    </script>
+</PUBLIC:COMPONENT>
