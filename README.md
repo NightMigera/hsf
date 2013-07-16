@@ -3,14 +3,14 @@ HSF
 
 Hight Speed Functions <br/> Высокоскоростные функции
 ---
-
+### Оглавление
  - [Введение](#Введение)
  - [Array](#array)
  - [Fucntion](#function)
  - [String](#string)
 
   ---
-Введение
+Введение [↑](#Оглавление)
 ---
   Данные функции были разработаны специально для максимально всокоскоростной работы в браузерах от IE 6, FF 3.5, 
   Opera 10.5, Chrome 1.0, Safari 3.5 и до самых последних версий с учётом различных "аномалий", которые возникают.
@@ -38,7 +38,7 @@ Hight Speed Functions <br/> Высокоскоростные функции
   
   ---
 
-### Array ###
+### Array  [↑](#Оглавление) ###
   `Number array.indexOf (value[, Number startIndex])` <br />
   [MDN array.indexOf](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/indexIf) <br />
   Внедряется в прототип только, когда такого метода нет. 
@@ -59,12 +59,12 @@ Hight Speed Functions <br/> Высокоскоростные функции
   Внедрется в прототип всегда.
   Удаляет из массива `array` элемент с индексом `index` и возвращает массив `array`. 
   <b>Важно:</b> защит от дурака нет.
-### Function ###
+### Function  [↑](#Оглавление) ###
   `Function function.bind(Object scope[, arg1[, arg2[, ...]]])`<br />
   [MDN function.bind](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/bind)
   Внедряется в прототип только, когда такого метода нет. 
   Возвращает функцию `function2`, с предустановленным контекстом `scope` и аргументами `arg1`, `arg2`, `...`. Аргументы, переданные в функцию  `function2`, будут вызваны после аргументов, переданных в `bind`.
-### String ###
+### String  [↑](#Оглавление) ###
   `String string.trim()` <br />
   [MDN string.trim](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/trim) <br />
   Внедряется в прототип только, когда такого метода нет. 
