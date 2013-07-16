@@ -1,17 +1,17 @@
 HSF
 ===
 
-###Hight Speed Functions <br/> Высокоскоростные функции
+Hight Speed Functions <br/> Высокоскоростные функции
+---
 
- - [Введение](#intro)
+ - [Введение](#Введение)
  - [Array](#array)
-  - [Array.indexOf](#arrayIndexOf)
-  - [Array.forEach](#arrayForEach)
-  - [Array.take](#arrayTake)
-  - [Array.del](#arrayDel)
+ - [Fucntion](#function)
+ - [String](#string)
 
   ---
-#####<a id="intro"></a>Введение
+Введение
+---
   Данные функции были разработаны специально для максимально всокоскоростной работы в браузерах от IE 6, FF 3.5, 
   Opera 10.5, Chrome 1.0, Safari 3.5 и до самых последних версий с учётом различных "аномалий", которые возникают.
   
@@ -38,37 +38,33 @@ HSF
   
   ---
 
-#####<a id="array"></a>Array
-  <a id="arrayIndexOf"></a>
+### Array ###
   `Number array.indexOf (value[, Number startIndex])` <br />
   [MDN array.indexOf](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/indexIf) <br />
   Внедряется в прототип только, когда такого метода нет. 
   Работает, как стандартный метод: возвращает индекс элемента, равного `value`, от позиции `startIndex` или -1, если он не обнаружен. `startIndex` по умолчанию равен 0. Если он отрицательный, то смещение сщитается от конца массива. 
-  
-  <a id="arrayForEach"></a>
+
   `void array.forEach (Function callback[, Object scope])` <br>
   [MDN array.forEach](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/forEach)<br />
   Внедряется в прототип только, когда такого метода нет. 
   Работает, как стандартный метод: перебирает все элементы массива `array` вызывая `callback` в контексте `scope` и передавая в него три аргумента: значение элемента, его индекс, сам массив.
   <b>Важно:</b> защит от дурака нет.
-  
-  <a id="arrayTake"></a>
+
   `Array array.take (Array|List|Collection secondArray)` <br />
   Внедряется в прототип всегда.
   Присоединяет все элементы из массива `secondArray` к массиву array. В качестве `secondArray` могут выступать массивы, списки или коллекции. Главное условие, чтобы индексы элементов были положительными, целочисленными, шли подряд и у `secondArray` должен быть `length`. 
   <b>Важно:</b> защит от дурака нет.
-  
-  <a id="arrayВуд"></a>
+
   `Array array.del (Number index)` <br />
   Внедрется в прототип всегда.
   Удаляет из массива `array` элемент с индексом `index` и возвращает массив `array`. 
   <b>Важно:</b> защит от дурака нет.
-#####Function
+### Function ###
   `Function function.bind(Object scope[, arg1[, arg2[, ...]]])`<br />
   [MDN function.bind](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/bind)
   Внедряется в прототип только, когда такого метода нет. 
   Возвращает функцию `function2`, с предустановленным контекстом `scope` и аргументами `arg1`, `arg2`, `...`. Аргументы, переданные в функцию  `function2`, будут вызваны после аргументов, переданных в `bind`.
-#####String
+### String ###
   `String string.trim()` <br />
   [MDN string.trim](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/trim) <br />
   Внедряется в прототип только, когда такого метода нет. 
