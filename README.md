@@ -4,10 +4,10 @@ HSF
 Hight Speed Functions <br/> Высокоскоростные функции
 ---
 ### Оглавление
- - [Введение](#Введение)
- - [Array](#array)
- - [Fucntion](#function)
- - [String](#string)
+ - [Введение](#Введение-)
+ - [Array](#array--)
+ - [Fucntion](#function--)
+ - [String](#string--)
 
 Введение [↑](#Оглавление)
 ---
