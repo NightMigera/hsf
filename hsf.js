@@ -490,7 +490,7 @@
       if (!("trim" in String)) {
         /**
          * Добавляет функцию trim в String там, где этого нет (IE)
-         * @return {String}
+         * @return String
         */
 
         String.prototype.trim = function() {
@@ -532,7 +532,7 @@
       /**
        * Присоединяет значения объекта к текущему массиву
        * @param {Array|NodeList|HTMLCollection} array любой массивоподобный объект
-       * @return {Array}
+       * @return Array
       */
 
       Array.prototype.take = function(array) {
@@ -543,7 +543,7 @@
       /**
        * Удаляем элемент из массива
        * @param {Number} index индекс элемента
-       * @return {Array}
+       * @return Array
       */
 
       Array.prototype.del = function(index) {
@@ -554,8 +554,8 @@
         /**
          * Получаем элемент в массиве или -1, если его нет. Фикс для старых браузеров
          * @param {*} item элемент массива
-         * @param {Number} [startIndex = 0] начальный индекс
-         * @return {Number}
+         * @param {Number} [startIndex] = 0 начальный индекс
+         * @return Number
         */
 
         Array.prototype.indexOf = function(item, startIndex) {
@@ -613,7 +613,7 @@
 
     /**
      * Получает строку для обращения из глобальной области видимости для inline функций
-     * @return {String}
+     * @return String
     */
 
 
@@ -636,7 +636,7 @@
      * кросс-браузерная версия для получения элементов по имени класса classname внутри node
      * @param {String} classname
      * @param {Element} [node] = document
-     * @return {Array|NodeList}
+     * @return Array|NodeList
     */
 
 
@@ -672,7 +672,7 @@
      * синоним для node.getElementsByTagName
      * @param {String} tagName
      * @param {Node} [node] = document
-     * @return {NodeList}
+     * @return NodeList
      * @constructor
     */
 
@@ -790,7 +790,7 @@
     /**
      * получается позиция объекта в документе. Некоторые баги в ИЕ
      * @param {Element} el
-     * @return {Object} {x:(number),y:(number)}
+     * @return Object {x:(number),y:(number)}
     */
 
 
@@ -852,7 +852,7 @@
     /**
      * получается позиция event-a
      * @param {Event} e
-     * @return {Object} {x:(number),y:(number)}
+     * @return Object {x:(number),y:(number)}
     */
 
 
@@ -974,6 +974,7 @@
      * получаем значение стиля элемента по его DOM-имени
      * @param {Element} el
      * @param {String} styleName
+     * @return String
     */
 
 
@@ -1022,7 +1023,7 @@
      * Получает индекс элемента у родительского элемента.
      * @param {Element} el
      * @param {Boolean} node = false считать ли среди всех дочерних элементов или только среди тэгов (по умолчанию)
-     * @return {Number}
+     * @return Number
     */
 
 
@@ -1096,7 +1097,7 @@
      * @param {String} prop properties
      * @param {String} val value of properties
      * @param {String} nameSpace = 'HSF' name space, of our params
-     * @return {Element} el
+     * @return Element
     */
 
 
@@ -1166,7 +1167,7 @@
      *
      * @param {Element} el
      * @param {String} nameSpace = 'HSF'
-     * @return {Boolean}
+     * @return Boolean
     */
 
 
@@ -1184,7 +1185,7 @@
     /**
      * Возвращает свойства объекта, преобразованные в строку.
      * Расширение класса происходит только там, где нет этого метода
-     * @return {String}
+     * @return String
     */
 
 
@@ -1599,7 +1600,7 @@
      * @param {Function} [func]
      * @param {String} [data|err]
      * @param {String} [data]
-     * @return {String|XMLHttpRequest|ActiveXObject}
+     * @return String|XMLHttpRequest|ActiveXObject
     */
 
 
@@ -1751,7 +1752,7 @@
      * @param {Number} [w] = 300
      * @param {Number} [h] = 200
      * @param {Object} [options] см выше
-     * @return {*}
+     * @return Boolean|HSF
     */
 
 
@@ -1928,21 +1929,20 @@
             hght = bubbleContainer.children[0].offsetHeight + bubble.children[0].offsetHeight + 20;
             h = hght > h ? hght : h;
             bubble.style.top = "" + ((ws.h - h) / 2) + "px";
-            return bubble.style.height = h + 'px';
+            bubble.style.height = h + 'px';
           } else {
             bubble.style.height = "" + (bgh - 20) + "px";
             bubble.style.top = '10px';
-            return bubbleContainer.style.overflowY = 'scroll';
+            bubbleContainer.style.overflowY = 'scroll';
           }
         }
       }
+      return this;
     };
-
-    HSF;
 
     /**
      * закрывает бабл
-     * @return {Boolean|Element}
+     * @return Boolean|Element
     */
 
 
@@ -1955,7 +1955,7 @@
 
     /**
      * Возвращает бабл, если он есть или null
-     * @return {Element|NULL}
+     * @return Element|NULL
     */
 
 
@@ -1967,7 +1967,7 @@
      * Создаёт бабл, который появляется при загрузке.
      * TODO: сделать так, чтобы в качестве img можно было передавать Element
      * @param {string} img
-     * @return {*}
+     * @return Boolean|HSF
     */
 
 
@@ -1983,7 +1983,7 @@
     /**
      * аналог alert, но не блокирует все скрипты.
      * @param {String} text путь к картинке
-     * @return {*}
+     * @return Boolean|HSF
     */
 
 
@@ -2006,7 +2006,7 @@
     /**
      * md5 сумму подсчитывает по строке.
      * @param {String} str
-     * @return {String}
+     * @return String
     */
 
 
@@ -2207,7 +2207,7 @@
     /**
      * Функция кодирует в utf8 нужна для md5
      * @param {String} str_data
-     * @return {String}
+     * @return String
     */
 
 
@@ -2240,7 +2240,7 @@
      * @param {String} tag [tagName][#tagId][.tagClass1][.tagClass2][...]
      * @param {Object} [option] ограничение на вложенные свойство. Не распространяется на style
      * @param {Element} [parent]
-     * @return {Element}
+     * @return Element
     */
 
 
@@ -2288,7 +2288,7 @@
      * Если el строка, то это равносильно parent.innerHTML += el, но не ломается DOM-модель
      * @param {Element} parent
      * @param {Element|String} el
-     * @return {Array} массив элементов
+     * @return Array массив элементов
     */
 
 
@@ -2364,7 +2364,7 @@
      * @param   {Element}           el
      * @param   {String}            name имя в стиле borderRadius
      * @param   {String|Number}     value
-     * @return  {Boolean}
+     * @return  Boolean
     */
 
 
@@ -2406,7 +2406,7 @@
      * Устанавливает, есть ли в элементе el потомок child
      * @param   {Element}   el
      * @param   {Element}   child
-     * @return  {Boolean}
+     * @return  Boolean
     */
 
 
@@ -2433,7 +2433,7 @@
     /**
      * Возвращает количество свойств объекта
      * @param {Object} obj
-     * @return {Number}
+     * @return Number
     */
 
 
@@ -2454,7 +2454,7 @@
     /**
      * Возвращает ключи объекта
      * @param {Object} obj
-     * @return {Array}
+     * @return Array
     */
 
 
@@ -2478,7 +2478,7 @@
      * Если объект активируется повторно и нет funcName, то использыется прежняяфункция
      * @param {Element} el элемент
      * @param {Function} [funcName] callback фенкция, вызываемая при изменении размеров
-     * @return {Number|Boolean}
+     * @return Number|Boolean
     */
 
 
@@ -2558,7 +2558,7 @@
     /**
      * Выключает таймер по позиции, которая возвращалась в setOnResize
      * @param {Number} pos
-     * @return {Object}
+     * @return Object
     */
 
 
@@ -2589,7 +2589,7 @@
      * Добавляет к элементу название класса
      * @param {Element} el
      * @param {String} className
-     * @return {Element}
+     * @return Element
     */
 
 
@@ -2604,7 +2604,7 @@
      * Определяет, имеет ли документ определённый класс
      * @param {Element} el
      * @param {String} className
-     * @return {Boolean}
+     * @return Boolean
     */
 
 
@@ -2616,7 +2616,7 @@
      * Удаляет у элемента название класса
      * @param {Element} el
      * @param {String}  className
-     * @return {Element}
+     * @return Element
     */
 
 
@@ -2631,7 +2631,7 @@
      * синоним для removeClassName
      * @param   {Element} el
      * @param   {String}  className
-     * @return  {Element}
+     * @return  Element
     */
 
 
@@ -2643,7 +2643,7 @@
      * Получить родителя по тэгу
      * @param   {Element} el
      * @param   {String}  tagName
-     * @return  {Element|Null}
+     * @return  Element|Null
     */
 
 
@@ -2670,7 +2670,7 @@
      * Получить родителя по имени класса
      * @param   {Element} el
      * @param   {String}  className
-     * @return  {Element|Null}
+     * @return  Element|Null
     */
 
 
@@ -2692,7 +2692,7 @@
      * @param   {String}  string
      * @param   {Number}  len
      * @param   {String}  [after] что ставится после обрезанной строки
-     * @return  {String}
+     * @return  String
     */
 
 
@@ -2714,7 +2714,7 @@
      * @param   {Number}  dMax
      * @param   {Number}  uMax
      * @param   {String}  [after]
-     * @return  {String}
+     * @return  String
     */
 
 
@@ -2784,7 +2784,7 @@
      * @param   {Number} [fs]    =  11
      * @param   {String} [ff]    =  "Tahoma"
      * @param   {String} [chart] =  "m"
-     * @return  {Number}
+     * @return  Number
     */
 
 
@@ -2818,7 +2818,7 @@
      * Добавление сообщения в лог
      * @param   {String}    message
      * @param   {String}    [type] = 'log'
-     * @return  {Boolean}
+     * @return  Boolean
     */
 
 
@@ -2889,7 +2889,7 @@
     /**
        * Работает аналогично time в linux: считает кол-во мс, которое тратит на себя функция
        * @param   {String}    message
-       * @return  {Boolean}
+       * @return  Boolean
     */
 
 
@@ -2911,7 +2911,7 @@
     /**
      * Выводит лог на экран в виде линии событий и времён
      * TODO: сделать наведение более логичным и не зависящим от общей длины шкалы времени
-     * @return {Boolean}
+     * @return Boolean
     */
 
 
@@ -2946,7 +2946,7 @@
     /**
      * Выделяет определённую строку при наведении на строчку
      * @param   {Element}  el
-     * @return  {Boolean}
+     * @return  Boolean
      * @private
     */
 
@@ -2977,7 +2977,7 @@
     /**
      * Снимает выделение с определённой строки
      * @param   {Element}  el
-     * @return  {Boolean}
+     * @return  Boolean
      * @private
     */
 
@@ -3008,7 +3008,7 @@
     /**
      * Парсит JSON строку в JS объект по RFC 4627 или "родными" средствами
      * @param   {String} text
-     * @return  {Object|Array|Boolean|Number|String|Null}
+     * @return  Object|Array|Boolean|Number|String|Null
     */
 
 
@@ -3022,7 +3022,7 @@
     /**
      * Преобразует объект в JSON строку
      * @param   {Object|Array|Boolean|Number|String|Null} obj
-     * @return  {String}
+     * @return  String
     */
 
 
@@ -3096,7 +3096,7 @@
     /**
      * получает внешнюю обёртку тэга более кроссбраузерно, чем обращение к outerHTML
      * @param {Element} el
-     * @return {String|Boolean}
+     * @return String|Boolean
     */
 
 
@@ -3108,7 +3108,7 @@
      * заполняет спереди нулями number до длины width
      * @param   {Number}  number
      * @param   {Number}  width
-     * @return  {String}
+     * @return  String
     */
 
 
@@ -3123,7 +3123,7 @@
     /**
      * блокирует выполнение действия по умолчанию в браузере, включая такие, как ctrl+s и др.
      * @param {Event} event
-     * @return {Boolean}
+     * @return Boolean
     */
 
 
@@ -3151,7 +3151,7 @@
      *   max:   {Number} максимальное значение
      * @param   {Element}   el
      * @param   {Object}    opt
-     * @return  {Boolean}
+     * @return  Boolean
     */
 
 
@@ -3279,7 +3279,7 @@
      * @param   {Boolean}   [ctrl]  =   false
      * @param   {Boolean}   [shift] =   false
      * @param   {Boolean}   [alt]   =   false
-     * @return  {Boolean}
+     * @return  Boolean
     */
 
 
@@ -3384,7 +3384,7 @@
     /**
      * Добавляет функцию, которая выполнится при наступлении события построения dom модели
      * @param   {Function} func callback
-     * @return  {Boolean}
+     * @return  Boolean
     */
 
 
@@ -3405,7 +3405,7 @@
 
     /**
      * Запускает цепочку функций
-     * @return {*}
+     * @return *
      * @private
     */
 
@@ -3422,7 +3422,7 @@
 
     /**
      * Подготавливает (расставляет слшателей событий) к загрузке документа
-     * @return {Boolean}
+     * @return Boolean
     */
 
 
@@ -3466,7 +3466,7 @@
      * @param {Function}    funcChecker     функция проверки
      * @param {Function}    funcDragStart   вызывается в начале перетаскивания
      * @param {Function}    funcDragStop    вызывается при окончании перетаскивания (отпускании)
-     * @return {*}
+     * @return HSF
     */
 
 
@@ -3621,8 +3621,9 @@
         return false;
       };
       try {
-        return f.addEvent(element, 'touchstart', element.onmousedown);
+        f.addEvent(element, 'touchstart', element.onmousedown);
       } catch (_error) {}
+      return this;
     };
 
     /**
@@ -3663,7 +3664,7 @@
      *
      * @param {Date}    date
      * @param {String}  format
-     * @return {String}
+     * @return String
     */
 
 
@@ -3842,7 +3843,7 @@
      * Вставляет элемент el после элемента exist
      * @param   {Node} el который вставляем
      * @param   {Node} exist после которого вставляем
-     * @return  {Node}
+     * @return  Node
     */
 
 
@@ -3863,7 +3864,7 @@
      * Вставляет элемент el перед элементом exist
      * @param   {Node} el который вставляем
      * @param   {Node} exist перед которым вставляем
-     * @return  {Node}
+     * @return  Node
     */
 
 
@@ -3876,7 +3877,7 @@
      * Получает рендомное число от min до max включительно
      * @param   {Number} min минимальное значение
      * @param   {Number} max максимальное значение
-     * @return  {Number}
+     * @return  Number
     */
 
 
@@ -3888,7 +3889,7 @@
        * Замена jQuery селектору и универсализация querySelectorAll
        * @param   {String} queryString селектор
        * @param   {Element} context = document контекст, в котором ищем
-       * @return  {Array}
+       * @return  Array
     */
 
 
@@ -3947,7 +3948,7 @@
 
     /**
      * Получение ширины скроллбара. Взято из MooTools
-     * @return  {Number}
+     * @return  Number
     */
 
 
@@ -3975,7 +3976,7 @@
      * если нужно создать третий объект (не трогать obj1) из двух надо использовать f.merge(f.merge({},obj1), obj2)
      * @param {Object} obj1 модифицируемый объект
      * @param {Object} obj2 модифицирующий объект
-     * @return  {Object}
+     * @return  Object
     */
 
 
@@ -4002,7 +4003,7 @@
      * преобразует данные формы в строку. Нет типа файл из-за проблем с кроссбраузерностью
      * @param {HTMLFormElement} form форма
      * @param {Boolean} isGet является ли запрос get-запросом
-     * @return  {String}
+     * @return  String
     */
 
 
@@ -4046,7 +4047,7 @@
 
     /**
      * Создаёт системный стиль. Если количество стилей зашкаливает (31+), то приклеивается к последнему стилю.
-     * @return  {HSF}
+     * @return  HSF
     */
 
 
@@ -4077,7 +4078,7 @@
 
     /**
      * Обновляет индекс стилей или создаёт его
-     * @return  {HSF}
+     * @return  HSF
     */
 
 
@@ -4143,7 +4144,7 @@
      * @param {String} selector селектор, имена тегов в нижнем регистре. Иначе поведение непредопределено.
      * @param {String|Object} prop название свойства или объект свойств
      * @param {String|NULL} [value] = null значение
-     * @return  {HSF}
+     * @return  HSF
     */
 
 
@@ -4251,7 +4252,7 @@
     /**
      * Удалает CSS правило из системного styleSheet-та по селектору
      * @param {String} selector селектор, имена тегов в нижнем регистре. Иначе поведение непредопределено.
-     * @return  {HSF}
+     * @return  HSF
     */
 
 

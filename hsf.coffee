@@ -289,7 +289,7 @@ class HSF
     unless "trim" of String
       ###*
        * Добавляет функцию trim в String там, где этого нет (IE)
-       * @return {String}
+       * @return String
        ###
       String::trim = ->
         @replace(/^\s\s*/, '').replace(/\s\s*$/, '') #прикол, но это быстрее, чем \s+
@@ -324,7 +324,7 @@ class HSF
     ###*
      * Присоединяет значения объекта к текущему массиву
      * @param {Array|NodeList|HTMLCollection} array любой массивоподобный объект
-     * @return {Array}
+     * @return Array
      ###
     Array::take = (array) ->
       `for (var i = 0, j = this.length, l= array.length; i < l; i++, j++) {
@@ -334,7 +334,7 @@ class HSF
     ###*
      * Удаляем элемент из массива
      * @param {Number} index индекс элемента
-     * @return {Array}
+     * @return Array
      ###
     Array::del = (index) ->
       @.splice(index,1)
@@ -344,8 +344,8 @@ class HSF
       ###*
        * Получаем элемент в массиве или -1, если его нет. Фикс для старых браузеров
        * @param {*} item элемент массива
-       * @param {Number} [startIndex = 0] начальный индекс
-       * @return {Number}
+       * @param {Number} [startIndex] = 0 начальный индекс
+       * @return Number
        ###
       Array::indexOf = (item, startIndex = 0) ->
         l = @length
@@ -384,7 +384,7 @@ class HSF
 
   ###*
    * Получает строку для обращения из глобальной области видимости для inline функций
-   * @return {String}
+   * @return String
    ###
   getThis: ->
     "_HSF.get('#{@_id}')"
@@ -401,7 +401,7 @@ class HSF
    * кросс-браузерная версия для получения элементов по имени класса classname внутри node
    * @param {String} classname
    * @param {Element} [node] = document
-   * @return {Array|NodeList}
+   * @return Array|NodeList
    ###
   GBC: (classname, node = document) ->
     if 'getElementsByClassName' of node # use native implementation if available
@@ -427,7 +427,7 @@ class HSF
    * синоним для node.getElementsByTagName
    * @param {String} tagName
    * @param {Node} [node] = document
-   * @return {NodeList}
+   * @return NodeList
    * @constructor
    ###
   GBT: (tagName, node = document) ->
@@ -504,7 +504,7 @@ class HSF
   ###*
    * получается позиция объекта в документе. Некоторые баги в ИЕ
    * @param {Element} el
-   * @return {Object} {x:(number),y:(number)}
+   * @return Object {x:(number),y:(number)}
    ###
   getPos: (el, parent = document.body) ->
     return false if not @hasElement(parent, el)
@@ -545,7 +545,7 @@ class HSF
   ###*
    * получается позиция event-a
    * @param {Event} e
-   * @return {Object} {x:(number),y:(number)}
+   * @return Object {x:(number),y:(number)}
    ###
   getMousePos: (e) ->
     unless e
@@ -642,6 +642,7 @@ class HSF
    * получаем значение стиля элемента по его DOM-имени
    * @param {Element} el
    * @param {String} styleName
+   * @return String
    ###
   getStyle: (el, styleName) ->
     if @browser().name is "msie"
@@ -668,7 +669,7 @@ class HSF
    * Получает индекс элемента у родительского элемента.
    * @param {Element} el
    * @param {Boolean} node = false считать ли среди всех дочерних элементов или только среди тэгов (по умолчанию)
-   * @return {Number}
+   * @return Number
    ###
   getIndexElement: (el, node = false) ->
     if node is true
@@ -727,7 +728,7 @@ class HSF
    * @param {String} prop properties
    * @param {String} val value of properties
    * @param {String} nameSpace = 'HSF' name space, of our params
-   * @return {Element} el
+   * @return Element
    ###
   setMem: (el, prop, val, nameSpace = 'HSF') ->
     if nameSpace
@@ -767,7 +768,7 @@ class HSF
    *
    * @param {Element} el
    * @param {String} nameSpace = 'HSF'
-   * @return {Boolean}
+   * @return Boolean
    ###
   clearMem: (el, nameSpace = 'HSF') ->
     return false unless nameSpace
@@ -777,7 +778,7 @@ class HSF
   ###*
    * Возвращает свойства объекта, преобразованные в строку.
    * Расширение класса происходит только там, где нет этого метода
-   * @return {String}
+   * @return String
    ###
   toSource: (o) ->
     return o.toSource() if 'toSource' of o
@@ -1027,7 +1028,7 @@ class HSF
    * @param {Function} [func]
    * @param {String} [data|err]
    * @param {String} [data]
-   * @return {String|XMLHttpRequest|ActiveXObject}
+   * @return String|XMLHttpRequest|ActiveXObject
    ###
   load: (url, func, err, data) ->
     if typeof url is 'object'
@@ -1129,7 +1130,7 @@ class HSF
    * @param {Number} [w] = 300
    * @param {Number} [h] = 200
    * @param {Object} [options] см выше
-   * @return {*}
+   * @return Boolean|HSF
    ###
   createBubble: (html, w = 300, h = 200, options = {}) ->
     return false  unless html
@@ -1285,11 +1286,11 @@ class HSF
           bubble.style.height = "#{bgh-20}px"
           bubble.style.top = '10px'
           bubbleContainer.style.overflowY = 'scroll'
-  @
+    @
 
   ###*
    * закрывает бабл
-   * @return {Boolean|Element}
+   * @return Boolean|Element
    ###
   closeBubble: ->
     @GBI("bubbleItem").close()  if @GBI("bubbleItem")
@@ -1297,7 +1298,7 @@ class HSF
 
   ###*
    * Возвращает бабл, если он есть или null
-   * @return {Element|NULL}
+   * @return Element|NULL
    ###
   getBubble: ->
     @GBI("bubbleItem")|| null
@@ -1306,7 +1307,7 @@ class HSF
    * Создаёт бабл, который появляется при загрузке.
    * TODO: сделать так, чтобы в качестве img можно было передавать Element
    * @param {string} img
-   * @return {*}
+   * @return Boolean|HSF
    ###
   createLoaderBubble: (img = @_defaultLoader) ->
     @createBubble "<div style='text-align:center;margin-top:50px;'><img src='#{img}' alt='ajax-loader'/></div>", 0, 0, {loader: true}
@@ -1314,7 +1315,7 @@ class HSF
   ###*
    * аналог alert, но не блокирует все скрипты.
    * @param {String} text путь к картинке
-   * @return {*}
+   * @return Boolean|HSF
    ###
   createAlertBubble: (text, option = {}) ->
     option.resize = true
@@ -1330,7 +1331,7 @@ class HSF
   ###*
    * md5 сумму подсчитывает по строке.
    * @param {String} str
-   * @return {String}
+   * @return String
    ###
   md5: (str) ->
     RotateLeft = (lValue, iShiftBits) ->
@@ -1512,7 +1513,7 @@ class HSF
   ###*
    * Функция кодирует в utf8 нужна для md5
    * @param {String} str_data
-   * @return {String}
+   * @return String
    ###
   utf8_encode: (str_data) ->
     str_data = str_data.replace(/\r\n/g, "\n")
@@ -1539,7 +1540,7 @@ class HSF
    * @param {String} tag [tagName][#tagId][.tagClass1][.tagClass2][...]
    * @param {Object} [option] ограничение на вложенные свойство. Не распространяется на style
    * @param {Element} [parent]
-   * @return {Element}
+   * @return Element
    ###
   createElement: (tag, option = {}, parent) ->
     if /^\w+$/.test tag
@@ -1563,7 +1564,7 @@ class HSF
    * Если el строка, то это равносильно parent.innerHTML += el, но не ломается DOM-модель
    * @param {Element} parent
    * @param {Element|String} el
-   * @return {Array} массив элементов
+   * @return Array массив элементов
    ###
   appendChild: (parent, el) ->
     if typeof el is 'string'
@@ -1620,7 +1621,7 @@ class HSF
    * @param   {Element}           el
    * @param   {String}            name имя в стиле borderRadius
    * @param   {String|Number}     value
-   * @return  {Boolean}
+   * @return  Boolean
    ###
   setUniversalStyle: (el, name, value) ->
     name = name.toLowerCase()
@@ -1643,7 +1644,7 @@ class HSF
    * Устанавливает, есть ли в элементе el потомок child
    * @param   {Element}   el
    * @param   {Element}   child
-   * @return  {Boolean}
+   * @return  Boolean
    ###
   hasElement: (el, child) ->
     return true if el is child
@@ -1658,7 +1659,7 @@ class HSF
   ###*
    * Возвращает количество свойств объекта
    * @param {Object} obj
-   * @return {Number}
+   * @return Number
    ###
   oSize: (obj) ->
     return Object.keys(obj).length  if "keys" of Object
@@ -1669,7 +1670,7 @@ class HSF
   ###*
    * Возвращает ключи объекта
    * @param {Object} obj
-   * @return {Array}
+   * @return Array
    ###
   oKeys: (obj) ->
     return Object.keys(obj) if "keys" of Object
@@ -1684,7 +1685,7 @@ class HSF
    * Если объект активируется повторно и нет funcName, то использыется прежняяфункция
    * @param {Element} el элемент
    * @param {Function} [funcName] callback фенкция, вызываемая при изменении размеров
-   * @return {Number|Boolean}
+   * @return Number|Boolean
    ###
   setOnResize: (el, funcName) ->
     pos = @getMem el, "resizePos"
@@ -1744,7 +1745,7 @@ class HSF
   ###*
    * Выключает таймер по позиции, которая возвращалась в setOnResize
    * @param {Number} pos
-   * @return {Object}
+   * @return Object
    ###
   offOnResize: (pos) ->
     col = @_onResizeCollection[pos]
@@ -1764,7 +1765,7 @@ class HSF
    * Добавляет к элементу название класса
    * @param {Element} el
    * @param {String} className
-   * @return {Element}
+   * @return Element
    ###
   addClassName: (el, className) ->
     el.className += " #{className.trim()}" unless @hasClassName(el, className)
@@ -1774,7 +1775,7 @@ class HSF
    * Определяет, имеет ли документ определённый класс
    * @param {Element} el
    * @param {String} className
-   * @return {Boolean}
+   * @return Boolean
    ###
   hasClassName: (el, className) ->
     not (" #{el.className} ".indexOf(" #{className.trim()} ") < 0)
@@ -1783,7 +1784,7 @@ class HSF
    * Удаляет у элемента название класса
    * @param {Element} el
    * @param {String}  className
-   * @return {Element}
+   * @return Element
    ###
   removeClassName: (el, className) ->
     el.className = (" #{el.className} ").replace(" #{className.trim()} ", " ").trim()  if @hasClassName(el, className)
@@ -1793,7 +1794,7 @@ class HSF
    * синоним для removeClassName
    * @param   {Element} el
    * @param   {String}  className
-   * @return  {Element}
+   * @return  Element
    ###
   delClassName: (el, className) =>
     @removeClassName el, className
@@ -1802,7 +1803,7 @@ class HSF
    * Получить родителя по тэгу
    * @param   {Element} el
    * @param   {String}  tagName
-   * @return  {Element|Null}
+   * @return  Element|Null
    ###
   GPT: (el, tagName) ->
     tagName = tagName.toLowerCase()
@@ -1816,7 +1817,7 @@ class HSF
    * Получить родителя по имени класса
    * @param   {Element} el
    * @param   {String}  className
-   * @return  {Element|Null}
+   * @return  Element|Null
    ###
   GPC: (el, className) ->
     return null if not el
@@ -1830,7 +1831,7 @@ class HSF
    * @param   {String}  string
    * @param   {Number}  len
    * @param   {String}  [after] что ставится после обрезанной строки
-   * @return  {String}
+   * @return  String
    ###
   truncateStringMin: (string, len, after = '...') ->
     return string.substr(0, len - after.length) + after if len < string.length
@@ -1844,7 +1845,7 @@ class HSF
    * @param   {Number}  dMax
    * @param   {Number}  uMax
    * @param   {String}  [after]
-   * @return  {String}
+   * @return  String
    ###
   truncateString: (string, dMax, uMax, after = '...') ->
     newStr = ""
@@ -1900,7 +1901,7 @@ class HSF
    * @param   {Number} [fs]    =  11
    * @param   {String} [ff]    =  "Tahoma"
    * @param   {String} [chart] =  "m"
-   * @return  {Number}
+   * @return  Number
    ###
   getCharWidthMax: (fs, ff, chart) ->
     ff = ff or "Tahoma"
@@ -1921,7 +1922,7 @@ class HSF
    * Добавление сообщения в лог
    * @param   {String}    message
    * @param   {String}    [type] = 'log'
-   * @return  {Boolean}
+   * @return  Boolean
    ###
   log: (message, type = 'log') ->
     str = ((new Date()).getTime() - @_startLogDate).toString()
@@ -1957,7 +1958,7 @@ class HSF
   ###*
      * Работает аналогично time в linux: считает кол-во мс, которое тратит на себя функция
      * @param   {String}    message
-     * @return  {Boolean}
+     * @return  Boolean
      ###
   time: (func, renderAfter) ->
     @log 'start time'
@@ -1974,7 +1975,7 @@ class HSF
   ###*
    * Выводит лог на экран в виде линии событий и времён
    * TODO: сделать наведение более логичным и не зависящим от общей длины шкалы времени
-   * @return {Boolean}
+   * @return Boolean
    ###
   printLog: ->
     lenTime = 8
@@ -1997,7 +1998,7 @@ class HSF
   ###*
    * Выделяет определённую строку при наведении на строчку
    * @param   {Element}  el
-   * @return  {Boolean}
+   * @return  Boolean
    * @private
    ###
   selectLogPoint: (el) ->
@@ -2020,7 +2021,7 @@ class HSF
   ###*
    * Снимает выделение с определённой строки
    * @param   {Element}  el
-   * @return  {Boolean}
+   * @return  Boolean
    * @private
    ###
   unselectLogPoint: (el) ->
@@ -2043,7 +2044,7 @@ class HSF
   ###*
    * Парсит JSON строку в JS объект по RFC 4627 или "родными" средствами
    * @param   {String} text
-   * @return  {Object|Array|Boolean|Number|String|Null}
+   * @return  Object|Array|Boolean|Number|String|Null
    ###
   parseJSON: (text) ->
     return JSON.parse(text)  if "JSON" of window and "parse" of JSON
@@ -2052,7 +2053,7 @@ class HSF
   ###*
    * Преобразует объект в JSON строку
    * @param   {Object|Array|Boolean|Number|String|Null} obj
-   * @return  {String}
+   * @return  String
    ###
   varToJSON: (obj) ->
     return JSON.stringify(obj) if "JSON" of window and "stringify" of JSON
@@ -2101,7 +2102,7 @@ class HSF
   ###*
    * получает внешнюю обёртку тэга более кроссбраузерно, чем обращение к outerHTML
    * @param {Element} el
-   * @return {String|Boolean}
+   * @return String|Boolean
    ###
   outerHTML: (el) ->
     return el.outerHTML or ('XMLSerializer' of window and new XMLSerializer().serializeToString(el)) or false;
@@ -2110,7 +2111,7 @@ class HSF
    * заполняет спереди нулями number до длины width
    * @param   {Number}  number
    * @param   {Number}  width
-   * @return  {String}
+   * @return  String
    ###
   zeroFill: (number, width) ->
     width -= number.toString().length
@@ -2121,7 +2122,7 @@ class HSF
   ###*
    * блокирует выполнение действия по умолчанию в браузере, включая такие, как ctrl+s и др.
    * @param {Event} event
-   * @return {Boolean}
+   * @return Boolean
    ###
   blockEvent: (event = window.event) ->
     if(event.stopPropagation)
@@ -2141,7 +2142,7 @@ class HSF
    *   max:   {Number} максимальное значение
    * @param   {Element}   el
    * @param   {Object}    opt
-   * @return  {Boolean}
+   * @return  Boolean
    ###
   numberInputReplace: (el, opt = {}) ->
     width = el.offsetWidth
@@ -2227,7 +2228,7 @@ class HSF
    * @param   {Boolean}   [ctrl]  =   false
    * @param   {Boolean}   [shift] =   false
    * @param   {Boolean}   [alt]   =   false
-   * @return  {Boolean}
+   * @return  Boolean
    ###
   keyListener: (key, func, ctrl = false, shift = false, alt = false) ->
     return false if typeof func isnt 'function'
@@ -2276,7 +2277,7 @@ class HSF
   ###*
    * Добавляет функцию, которая выполнится при наступлении события построения dom модели
    * @param   {Function} func callback
-   * @return  {Boolean}
+   * @return  Boolean
    ###
   onDomReady: (func) -> # функция добавления события
     oldonload = @_funcDomReady
@@ -2290,7 +2291,7 @@ class HSF
 
   ###*
    * Запускает цепочку функций
-   * @return {*}
+   * @return *
    * @private
    ###
   initOnDomReady: ->
@@ -2302,7 +2303,7 @@ class HSF
 
   ###*
    * Подготавливает (расставляет слшателей событий) к загрузке документа
-   * @return {Boolean}
+   * @return Boolean
    ###
   prepareOnDocumentReady: ->
     # для Mozilla/Firefox/Opera 9
@@ -2339,7 +2340,7 @@ class HSF
    * @param {Function}    funcChecker     функция проверки
    * @param {Function}    funcDragStart   вызывается в начале перетаскивания
    * @param {Function}    funcDragStop    вызывается при окончании перетаскивания (отпускании)
-   * @return {*}
+   * @return HSF
    ###
   setDrag: (element, opt) ->
     empty = ->
@@ -2441,6 +2442,7 @@ class HSF
       false
     try
       f.addEvent(element, 'touchstart', element.onmousedown)
+    @
 
   ###*
    * Форматирует дату в строку по шаблону. Все одиночные % должны быть экранированы %%, иначе результат непредсказуем
@@ -2480,7 +2482,7 @@ class HSF
    *
    * @param {Date}    date
    * @param {String}  format
-   * @return {String}
+   * @return String
    ###
   dateToFormat: (date, format) ->
     percentEcran = false
@@ -2606,7 +2608,7 @@ class HSF
    * Вставляет элемент el после элемента exist
    * @param   {Node} el который вставляем
    * @param   {Node} exist после которого вставляем
-   * @return  {Node}
+   * @return  Node
    ###
   insertAfter: (el, exist) ->
     parent = exist.parentNode
@@ -2621,7 +2623,7 @@ class HSF
    * Вставляет элемент el перед элементом exist
    * @param   {Node} el который вставляем
    * @param   {Node} exist перед которым вставляем
-   * @return  {Node}
+   * @return  Node
    ###
   insertBefore: (el, exist) ->
     exist.parentNode.insertBefore(el, exist)
@@ -2631,7 +2633,7 @@ class HSF
    * Получает рендомное число от min до max включительно
    * @param   {Number} min минимальное значение
    * @param   {Number} max максимальное значение
-   * @return  {Number}
+   * @return  Number
    ###
   random: (min, max) ->
     Math.floor(Math.random() * (max - min + 1)) + min;
@@ -2640,7 +2642,7 @@ class HSF
      * Замена jQuery селектору и универсализация querySelectorAll
      * @param   {String} queryString селектор
      * @param   {Element} context = document контекст, в котором ищем
-     * @return  {Array}
+     * @return  Array
      ###
   qsa: (queryString, context = document) ->
     if 'querySelectorAll' of context
@@ -2679,7 +2681,7 @@ class HSF
       return window.hsfSelectorCollection
   ###*
    * Получение ширины скроллбара. Взято из MooTools
-   * @return  {Number}
+   * @return  Number
    ###
   getScrollBarWidth: ->
     if @_scrollBarWidth < 0
@@ -2700,7 +2702,7 @@ class HSF
    * если нужно создать третий объект (не трогать obj1) из двух надо использовать f.merge(f.merge({},obj1), obj2)
    * @param {Object} obj1 модифицируемый объект
    * @param {Object} obj2 модифицирующий объект
-   * @return  {Object}
+   * @return  Object
    ###
   merge: (obj1, obj2) ->
     for own p of obj2
@@ -2719,7 +2721,7 @@ class HSF
    * преобразует данные формы в строку. Нет типа файл из-за проблем с кроссбраузерностью
    * @param {HTMLFormElement} form форма
    * @param {Boolean} isGet является ли запрос get-запросом
-   * @return  {String}
+   * @return  String
    ###
   formToData: (form, isGet) ->
     q = ''
@@ -2745,7 +2747,7 @@ class HSF
 
   ###*
    * Создаёт системный стиль. Если количество стилей зашкаливает (31+), то приклеивается к последнему стилю.
-   * @return  {HSF}
+   * @return  HSF
    ###
   createStyleSheet: ->
     return @ if @_systemStyleSheet?
@@ -2766,7 +2768,7 @@ class HSF
 
   ###*
    * Обновляет индекс стилей или создаёт его
-   * @return  {HSF}
+   * @return  HSF
    ###
   updateStyleSheetIndex: ->
     sumaryStyle = []
@@ -2810,7 +2812,7 @@ class HSF
    * @param {String} selector селектор, имена тегов в нижнем регистре. Иначе поведение непредопределено.
    * @param {String|Object} prop название свойства или объект свойств
    * @param {String|NULL} [value] = null значение
-   * @return  {HSF}
+   * @return  HSF
    ###
   setCSS: (selector, prop, value) ->
     selectors = selector.split ','
@@ -2884,7 +2886,7 @@ class HSF
   ###*
    * Удалает CSS правило из системного styleSheet-та по селектору
    * @param {String} selector селектор, имена тегов в нижнем регистре. Иначе поведение непредопределено.
-   * @return  {HSF}
+   * @return  HSF
    ###
   remCSS: (selector) ->
     return @ unless @_systemStyleSheet?

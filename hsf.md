@@ -5,35 +5,6 @@
 Созданный класс вносит корректировки в прототипы базовых классов и сильно
 расширяет базовый функционал, позволяя использовать функии со скоростью превосходящей jQuery,
 но уступающей по кросбраузерности
-+getScrollBarWidth
-+random
-+qsa
-+insertAfter, +insertBefore
-+clearElement #todo утечка памяти
-~setDrag add dragOver, gragOut, drop and change arguments mix
-~openWin add callback
-+formToData
-+removeElement
-~appendChild
-+setStyle
-+getIndexElement
-~createLoaderBubble
-~setMem,buttonClick,hover (return this)
-~retTempStyle
-~load
-~setDrag add touch
-+setCSSS
-+remCSSS
-+updateStyleSheetIndex
-+createStyleSheet
-+Function::bind
-~openWin
-~load
-~log, printLog
-~qsa
-~updateStyleSheetIndex
-~addEvent
-
 
 HSF(options)
 ------------
@@ -53,6 +24,10 @@ trim()
 ------
 Добавляет функцию trim в String там, где этого нет (IE)
 
+
+**Returns**
+
+String
 
 forEach(fn, \[scope\])
 ----------------------
@@ -77,6 +52,10 @@ take(array)
 
 **array**:  *Array|NodeList|HTMLCollection*,  любой массивоподобный объект
 
+**Returns**
+
+Array
+
 del(index)
 ----------
 Удаляем элемент из массива
@@ -86,8 +65,12 @@ del(index)
 
 **index**:  *Number*,  индекс элемента
 
-indexOf(item, \[startIndex)
----------------------------
+**Returns**
+
+Array
+
+indexOf(item, \[startIndex\])
+-----------------------------
 Получаем элемент в массиве или -1, если его нет. Фикс для старых браузеров
 
 
@@ -95,12 +78,20 @@ indexOf(item, \[startIndex)
 
 **item**:  ***,  элемент массива
 
-**[startIndex**:  *Number*,  = 0] начальный индекс
+**[startIndex]**:  *Number*,  = 0 начальный индекс
+
+**Returns**
+
+Number
 
 getThis()
 ---------
 Получает строку для обращения из глобальной области видимости для inline функций
 
+
+**Returns**
+
+String
 
 GBI(el)
 -------
@@ -128,6 +119,10 @@ GBC(classname, \[node\])
 
 **[node]**:  *Element*,  = document
 
+**Returns**
+
+Array|NodeList
+
 GBT(tagName, \[node\])
 ----------------------
 синоним для node.getElementsByTagName
@@ -139,6 +134,10 @@ GBT(tagName, \[node\])
 
 
 **[node]**:  *Node*,  = document
+
+**Returns**
+
+NodeList
 
 openWin(url, \[title\], \[width\], \[height\], \[option\])
 ----------------------------------------------------------
@@ -174,10 +173,6 @@ getPos(el)
 
 **el**:  *Element*,  
 
-
-**Returns**
-
-*Object*,  {x:(number),y:(number)}
 
 getMousePos(e, e)
 -----------------
@@ -238,6 +233,10 @@ getStyle(el, styleName)
 **styleName**:  *String*,  
 
 
+**Returns**
+
+String
+
 setStyle(el, style)
 -------------------
 Выставляет стиль, в основном призвын перебирать стили в объекте
@@ -267,6 +266,10 @@ getIndexElement(el, node)
 
 **node**:  *Boolean*,  = false считать ли среди всех дочерних элементов или только среди тэгов (по умолчанию)
 
+**Returns**
+
+Number
+
 browser()
 ---------
 определяет название браузера и версию
@@ -292,7 +295,7 @@ setMem(el, prop, val, nameSpace)
 
 **Returns**
 
-*Element*,  el
+Element
 
 getMem(el, prop, nameSpace)
 ---------------------------
@@ -344,11 +347,19 @@ clearMem(el, nameSpace)
 
 **nameSpace**:  *String*,  = 'HSF'
 
+**Returns**
+
+Boolean
+
 toSource()
 ----------
 Возвращает свойства объекта, преобразованные в строку.
 Расширение класса происходит только там, где нет этого метода
 
+
+**Returns**
+
+String
 
 toInt(value)
 ------------
@@ -517,6 +528,10 @@ header: Object вида {header1Name: header1Value[, headerXName: headerXValue].
 **[data]**:  *String*,  
 
 
+**Returns**
+
+String|XMLHttpRequest|ActiveXObject
+
 createBubble(html, \[w\], \[h\], \[options\])
 ---------------------------------------------
 Создаём бабл в центре экрана с шириной w и высотой h, с содержимым html
@@ -538,15 +553,27 @@ TODO: сделать, чтобы в html можно было передать El
 
 **[options]**:  *Object*,  см выше
 
+**Returns**
+
+Boolean|HSF
+
 closeBubble()
 -------------
 закрывает бабл
 
 
+**Returns**
+
+Boolean|Element
+
 getBubble()
 -----------
 Возвращает бабл, если он есть или null
 
+
+**Returns**
+
+Element|NULL
 
 createLoaderBubble(img)
 -----------------------
@@ -559,6 +586,10 @@ TODO: сделать так, чтобы в качестве img можно бы�
 **img**:  *string*,  
 
 
+**Returns**
+
+Boolean|HSF
+
 createAlertBubble(text)
 -----------------------
 аналог alert, но не блокирует все скрипты.
@@ -567,6 +598,10 @@ createAlertBubble(text)
 **Parameters**
 
 **text**:  *String*,  путь к картинке
+
+**Returns**
+
+Boolean|HSF
 
 md5(str)
 --------
@@ -578,6 +613,10 @@ md5 сумму подсчитывает по строке.
 **str**:  *String*,  
 
 
+**Returns**
+
+String
+
 utf8_encode(str_data)
 ---------------------
 Функция кодирует в utf8 нужна для md5
@@ -587,6 +626,10 @@ utf8_encode(str_data)
 
 **str_data**:  *String*,  
 
+
+**Returns**
+
+String
 
 createElement(tag, \[option\], \[parent\])
 ------------------------------------------
@@ -602,6 +645,10 @@ createElement(tag, \[option\], \[parent\])
 
 **[parent]**:  *Element*,  
 
+
+**Returns**
+
+Element
 
 appendChild(parent, el)
 -----------------------
@@ -619,7 +666,7 @@ appendChild(parent, el)
 
 **Returns**
 
-*Array*,  массив элементов
+Array массив элементов
 
 removeElement(el)
 -----------------
@@ -670,6 +717,10 @@ setUniversalStyle(el, name, value)
 **value**:  *String|Number*,  
 
 
+**Returns**
+
+Boolean
+
 hasElement(el, child)
 ---------------------
 Устанавливает, есть ли в элементе el потомок child
@@ -683,6 +734,10 @@ hasElement(el, child)
 **child**:  *Element*,  
 
 
+**Returns**
+
+Boolean
+
 oSize(obj)
 ----------
 Возвращает количество свойств объекта
@@ -693,6 +748,10 @@ oSize(obj)
 **obj**:  *Object*,  
 
 
+**Returns**
+
+Number
+
 oKeys(obj)
 ----------
 Возвращает ключи объекта
@@ -702,6 +761,10 @@ oKeys(obj)
 
 **obj**:  *Object*,  
 
+
+**Returns**
+
+Array
 
 setOnResize(el, \[funcName\])
 -----------------------------
@@ -715,6 +778,10 @@ setOnResize(el, \[funcName\])
 **el**:  *Element*,  элемент
 
 **[funcName]**:  *Function*,  callback фенкция, вызываемая при изменении размеров
+
+**Returns**
+
+Number|Boolean
 
 resizeObjects()
 ---------------
@@ -731,6 +798,10 @@ offOnResize(pos)
 **pos**:  *Number*,  
 
 
+**Returns**
+
+Object
+
 addClassName(el, className)
 ---------------------------
 Добавляет к элементу название класса
@@ -743,6 +814,10 @@ addClassName(el, className)
 
 **className**:  *String*,  
 
+
+**Returns**
+
+Element
 
 hasClassName(el, className)
 ---------------------------
@@ -757,6 +832,10 @@ hasClassName(el, className)
 **className**:  *String*,  
 
 
+**Returns**
+
+Boolean
+
 removeClassName(el, className)
 ------------------------------
 Удаляет у элемента название класса
@@ -769,6 +848,10 @@ removeClassName(el, className)
 
 **className**:  *String*,  
 
+
+**Returns**
+
+Element
 
 delClassName(el, className)
 ---------------------------
@@ -783,6 +866,10 @@ delClassName(el, className)
 **className**:  *String*,  
 
 
+**Returns**
+
+Element
+
 GPT(el, tagName)
 ----------------
 Получить родителя по тэгу
@@ -796,6 +883,10 @@ GPT(el, tagName)
 **tagName**:  *String*,  
 
 
+**Returns**
+
+Element|Null
+
 GPC(el, className)
 ------------------
 Получить родителя по имени класса
@@ -808,6 +899,10 @@ GPC(el, className)
 
 **className**:  *String*,  
 
+
+**Returns**
+
+Element|Null
 
 truncateStringMin(string, len, \[after\])
 -----------------------------------------
@@ -823,6 +918,10 @@ truncateStringMin(string, len, \[after\])
 
 
 **[after]**:  *String*,  что ставится после обрезанной строки
+
+**Returns**
+
+String
 
 truncateString(string, dMax, uMax, \[after\])
 ---------------------------------------------
@@ -845,6 +944,10 @@ TODO: могут быть не только пробелы, а любые раз
 **[after]**:  *String*,  
 
 
+**Returns**
+
+String
+
 getCharWidthMax(\[fs\], \[ff\], \[chart\])
 ------------------------------------------
 получает ширину символа chart размера fs и шрифта ff
@@ -859,6 +962,10 @@ getCharWidthMax(\[fs\], \[ff\], \[chart\])
 
 **[chart]**:  *String*,  =  "m"
 
+**Returns**
+
+Number
+
 log(message, \[type\])
 ----------------------
 Добавление сообщения в лог
@@ -871,6 +978,10 @@ log(message, \[type\])
 
 **[type]**:  *String*,  = 'log'
 
+**Returns**
+
+Boolean
+
 time(message)
 -------------
 Работает аналогично time в linux: считает кол-во мс, которое тратит на себя функция
@@ -881,11 +992,19 @@ time(message)
 **message**:  *String*,  
 
 
+**Returns**
+
+Boolean
+
 printLog()
 ----------
 Выводит лог на экран в виде линии событий и времён
 TODO: сделать наведение более логичным и не зависящим от общей длины шкалы времени
 
+
+**Returns**
+
+Boolean
 
 selectLogPoint(el)
 ------------------
@@ -897,6 +1016,10 @@ selectLogPoint(el)
 **el**:  *Element*,  
 
 
+**Returns**
+
+Boolean
+
 unselectLogPoint(el)
 --------------------
 Снимает выделение с определённой строки
@@ -906,6 +1029,10 @@ unselectLogPoint(el)
 
 **el**:  *Element*,  
 
+
+**Returns**
+
+Boolean
 
 parseJSON(text)
 ---------------
@@ -917,6 +1044,10 @@ parseJSON(text)
 **text**:  *String*,  
 
 
+**Returns**
+
+Object|Array|Boolean|Number|String|Null
+
 varToJSON(obj)
 --------------
 Преобразует объект в JSON строку
@@ -927,6 +1058,10 @@ varToJSON(obj)
 **obj**:  *Object|Array|Boolean|Number|String|Null*,  
 
 
+**Returns**
+
+String
+
 outerHTML(el)
 -------------
 получает внешнюю обёртку тэга более кроссбраузерно, чем обращение к outerHTML
@@ -936,6 +1071,10 @@ outerHTML(el)
 
 **el**:  *Element*,  
 
+
+**Returns**
+
+String|Boolean
 
 zeroFill(number, width)
 -----------------------
@@ -950,6 +1089,10 @@ zeroFill(number, width)
 **width**:  *Number*,  
 
 
+**Returns**
+
+String
+
 blockEvent(event)
 -----------------
 блокирует выполнение действия по умолчанию в браузере, включая такие, как ctrl+s и др.
@@ -959,6 +1102,10 @@ blockEvent(event)
 
 **event**:  *Event*,  
 
+
+**Returns**
+
+Boolean
 
 numberInputReplace(el, opt)
 ---------------------------
@@ -977,6 +1124,10 @@ max:   {Number} максимальное значение
 **opt**:  *Object*,  
 
 
+**Returns**
+
+Boolean
+
 keyListener(key, func, \[ctrl\], \[shift\], \[alt\])
 ----------------------------------------------------
 Добавляет слушателя клавиатуры и прерывает действия по умолчанию, если функции не возвращают true
@@ -994,6 +1145,10 @@ keyListener(key, func, \[ctrl\], \[shift\], \[alt\])
 
 **[alt]**:  *Boolean*,  =   false
 
+**Returns**
+
+Boolean
+
 onDomReady(func)
 ----------------
 Добавляет функцию, которая выполнится при наступлении события построения dom модели
@@ -1003,15 +1158,27 @@ onDomReady(func)
 
 **func**:  *Function*,  callback
 
+**Returns**
+
+Boolean
+
 initOnDomReady()
 ----------------
 Запускает цепочку функций
 
 
+**Returns**
+
+*
+
 prepareOnDocumentReady()
 ------------------------
 Подготавливает (расставляет слшателей событий) к загрузке документа
 
+
+**Returns**
+
+Boolean
 
 setDrag(element, funcChecker, funcDragStart, funcDragStop)
 ----------------------------------------------------------
@@ -1030,6 +1197,10 @@ setDrag(element, funcChecker, funcDragStart, funcDragStop)
 **funcDragStart**:  *Function*,  вызывается в начале перетаскивания
 
 **funcDragStop**:  *Function*,  вызывается при окончании перетаскивания (отпускании)
+
+**Returns**
+
+HSF
 
 dateToFormat(date, format)
 --------------------------
@@ -1078,6 +1249,10 @@ z порядковый номер дня
 **format**:  *String*,  
 
 
+**Returns**
+
+String
+
 insertAfter(el, exist)
 ----------------------
 Вставляет элемент el после элемента exist
@@ -1088,6 +1263,10 @@ insertAfter(el, exist)
 **el**:  *Node*,  который вставляем
 
 **exist**:  *Node*,  после которого вставляем
+
+**Returns**
+
+Node
 
 insertBefore(el, exist)
 -----------------------
@@ -1100,6 +1279,10 @@ insertBefore(el, exist)
 
 **exist**:  *Node*,  перед которым вставляем
 
+**Returns**
+
+Node
+
 random(min, max)
 ----------------
 Получает рендомное число от min до max включительно
@@ -1110,6 +1293,10 @@ random(min, max)
 **min**:  *Number*,  минимальное значение
 
 **max**:  *Number*,  максимальное значение
+
+**Returns**
+
+Number
 
 qsa(queryString, context)
 -------------------------
@@ -1122,10 +1309,18 @@ qsa(queryString, context)
 
 **context**:  *Element*,  = document контекст, в котором ищем
 
+**Returns**
+
+Array
+
 getScrollBarWidth()
 -------------------
 Получение ширины скроллбара. Взято из MooTools
 
+
+**Returns**
+
+Number
 
 merge(obj1, obj2)
 -----------------
@@ -1139,6 +1334,10 @@ merge(obj1, obj2)
 
 **obj2**:  *Object*,  модифицирующий объект
 
+**Returns**
+
+Object
+
 formToData(form, isGet)
 -----------------------
 преобразует данные формы в строку. Нет типа файл из-за проблем с кроссбраузерностью
@@ -1150,15 +1349,27 @@ formToData(form, isGet)
 
 **isGet**:  *Boolean*,  является ли запрос get-запросом
 
+**Returns**
+
+String
+
 createStyleSheet()
 ------------------
 Создаёт системный стиль. Если количество стилей зашкаливает (31+), то приклеивается к последнему стилю.
 
 
+**Returns**
+
+HSF
+
 updateStyleSheetIndex()
 -----------------------
 Обновляет индекс стилей или создаёт его
 
+
+**Returns**
+
+HSF
 
 setCSS(selector, prop, \[value\])
 ---------------------------------
@@ -1177,6 +1388,10 @@ value только строка и учитывается только, когд
 
 **[value]**:  *String|NULL*,  = null значение
 
+**Returns**
+
+HSF
+
 remCSS(selector)
 ----------------
 Удалает CSS правило из системного styleSheet-та по селектору
@@ -1185,4 +1400,8 @@ remCSS(selector)
 **Parameters**
 
 **selector**:  *String*,  селектор, имена тегов в нижнем регистре. Иначе поведение непредопределено.
+
+**Returns**
+
+HSF
 
