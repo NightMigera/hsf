@@ -480,7 +480,7 @@
           fToBind = this;
           fNOP = function() {};
           fBound = function() {
-            return fToBind.apply((this instanceof fNOP && oThis ? this : oThis), aArgs.concat(Array.prototype.slice.call(arguments)));
+            return fToBind.apply((this instanceof fNOP && oThis ? this : oThis), aArgs.take(arguments));
           };
           fNOP.prototype = this.prototype;
           fBound.prototype = new fNOP();
@@ -511,41 +511,24 @@
           }
         };
       }
-      /**
-       * расширяет класс Array и добавляет перебор элементов.
-       *
-       * Example:
-       *   Обычный вызов:
-       *     f.addClassName(el, 'class');
-       *   Новый вызов:
-       *     [el1,el2,el3].each(f.addClassName, ['','class'], 0)
-       *
-       * @param {Function} func функция, которая выполнится, при работе, с каждым элементом массива
-       * @param {Array} [args] = [] массив аргументов.
-       * <b>ВАЖНО!</b> наместе аргемента, в который передаётся элемент должно быть что-либо.
-       * @param {Number} [elPos] = 0 позиция аргумета, где передаётся элемент
-       * @return {Array}
-      */
+      if (!Array.prototype.forEach) {
+        /**
+           * forEach executes the provided callback once for each element of
+           * the array with an assigned value. It is not invoked for indexes
+           * which have been deleted or which have been initialized to undefined.
+           *
+           * @param {Function} fn Function to execute for each element.
+           * @param {Object} [scope] Object to use as this when executing callback.
+        */
 
-      Array.prototype.each = function(func, args, elPos, context) {
-        var el, _j, _len;
-
-        if (args == null) {
-          args = [];
-        }
-        if (elPos == null) {
-          elPos = 0;
-        }
-        if (!context) {
-          context = this;
-        }
-        for (_j = 0, _len = this.length; _j < _len; _j++) {
-          el = this[_j];
-          args[elPos] = el;
-          func.apply(context, args);
-        }
-        return this;
-      };
+        Array.prototype.forEach = function(fn, scope) {
+          for(var i = 0, len = this.length; i < len; ++i) {
+          if (i in this) {
+            fn.call(scope, this[i], i, this);
+          }
+        };
+        };
+      }
       /**
        * Присоединяет значения объекта к текущему массиву
        * @param {Array|NodeList|HTMLCollection} array любой массивоподобный объект
@@ -571,14 +554,18 @@
         /**
          * Получаем элемент в массиве или -1, если его нет. Фикс для старых браузеров
          * @param {*} item элемент массива
+         * @param {Number} [startIndex = 0] начальный индекс
          * @return {Number}
         */
 
-        Array.prototype.indexOf = function(item) {
+        Array.prototype.indexOf = function(item, startIndex) {
           var i, l;
 
-          i = 0;
+          if (startIndex == null) {
+            startIndex = 0;
+          }
           l = this.length;
+          i = startIndex > 0 ? startIndex | 0 : l - (startIndex | 0);
           while (i < l) {
             if (i in this && this[i] === item) {
               return i;

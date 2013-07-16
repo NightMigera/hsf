@@ -281,7 +281,7 @@ class HSF
         fToBind = @
         fNOP = ->
         fBound = ->
-          fToBind.apply (if @ instanceof fNOP and oThis then @ else oThis), aArgs.concat(Array::slice.call(arguments))
+          fToBind.apply (if @ instanceof fNOP and oThis then @ else oThis), aArgs.take(arguments)
         fNOP:: = @::
         fBound:: = new fNOP()
         fBound
@@ -305,27 +305,22 @@ class HSF
         else
           @replaceOld new RegExp(string.replaceOld(/([\/\,\!\\\^\$\{\}\[\]\(\)\.\*\+\?\|\<\>\-\&])/g, "\\$&"), flags), (if (typeof newValue is "string") then newValue.replaceOld(/\$/g, "$$$$") else newValue)
 
-    ###*
-     * расширяет класс Array и добавляет перебор элементов.
-     *
-     * Example:
-     *   Обычный вызов:
-     *     f.addClassName(el, 'class');
-     *   Новый вызов:
-     *     [el1,el2,el3].each(f.addClassName, ['','class'], 0)
-     *
-     * @param {Function} func функция, которая выполнится, при работе, с каждым элементом массива
-     * @param {Array} [args] = [] массив аргументов.
-     * <b>ВАЖНО!</b> наместе аргемента, в который передаётся элемент должно быть что-либо.
-     * @param {Number} [elPos] = 0 позиция аргумета, где передаётся элемент
-     * @return {Array}
-     ###
-    Array::each = (func, args = [], elPos = 0, context) ->
-      context = this unless context
-      for el in @
-        args[elPos] = el
-        func.apply context, args
-      @
+    unless Array::forEach
+      ###*
+         * forEach executes the provided callback once for each element of
+         * the array with an assigned value. It is not invoked for indexes
+         * which have been deleted or which have been initialized to undefined.
+         *
+         * @param {Function} fn Function to execute for each element.
+         * @param {Object} [scope] Object to use as this when executing callback.
+       ###
+      Array::forEach = (fn, scope) ->
+        `for(var i = 0, len = this.length; i < len; ++i) {
+          if (i in this) {
+            fn.call(scope, this[i], i, this);
+          }
+        }`
+        return
     ###*
      * Присоединяет значения объекта к текущему массиву
      * @param {Array|NodeList|HTMLCollection} array любой массивоподобный объект
@@ -349,11 +344,12 @@ class HSF
       ###*
        * Получаем элемент в массиве или -1, если его нет. Фикс для старых браузеров
        * @param {*} item элемент массива
+       * @param {Number} [startIndex = 0] начальный индекс
        * @return {Number}
        ###
-      Array::indexOf = (item) ->
-        i = 0
+      Array::indexOf = (item, startIndex = 0) ->
         l = @length
+        i = if startIndex > 0 then startIndex|0 else l - (startIndex|0)
         while i < l
           return i  if i of this and this[i] is item
           i++
@@ -937,7 +933,7 @@ class HSF
    * @return Boolean|Function функция для удаления эвента или false
    ###
   addEvent: (elem, evType, fn) ->
-    evType = evType.replace(/^on/,'')
+    evType = evType.replace /^on/, ''
     if 'addEventListener' of elem
       elem.addEventListener evType, fn, false
     else
