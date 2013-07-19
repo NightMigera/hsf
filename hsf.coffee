@@ -229,10 +229,10 @@ class HSF
 
   ###*
    * Параметры:
-   *    debug: true|false режим отладки
-   *    ajaxPoolLength: {numeric} длина пула ajax
-   *    counter: (bool) включено ли добавление параметра, защищающего от кешированного ответа
-   *    dateNames: (Object) Названия месяцев и недель в календарях
+   * - debug: true|false режим отладки
+   * - ajaxPoolLength: {numeric} длина пула ajax
+   * - counter: (bool) включено ли добавление параметра, защищающего от кешированного ответа
+   * - dateNames: (Object) Названия месяцев и недель в календарях
    * @param {Object} options
    * @constructor
    ###
