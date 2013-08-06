@@ -14,7 +14,7 @@
    *  +random
    *  +qsa
    *  +insertAfter, +insertBefore
-   *  +clearElement #todo утечка памяти
+   *  +clearElement
    *  ~setDrag add dragOver, gragOut, drop and change arguments mix
    *  ~openWin add callback
    * @changeLog: by 0.2
@@ -395,10 +395,10 @@
 
     /**
      * Параметры:
-     *    debug: true|false режим отладки
-     *    ajaxPoolLength: {numeric} длина пула ajax
-     *    counter: (bool) включено ли добавление параметра, защищающего от кешированного ответа
-     *    dateNames: (Object) Названия месяцев и недель в календарях
+     * - debug: true|false режим отладки
+     * - ajaxPoolLength: {numeric} длина пула ajax
+     * - counter: (bool) включено ли добавление параметра, защищающего от кешированного ответа
+     * - dateNames: (Object) Названия месяцев и недель в календарях
      * @param {Object} options
      * @constructor
     */
@@ -469,7 +469,7 @@
           _this._initIeStorage();
         }
       });
-      if (!Function.prototype.bind) {
+      if (!('bind' in Function.prototype)) {
         Function.prototype.bind = function(oThis) {
           var aArgs, fBound, fNOP, fToBind;
 
@@ -487,7 +487,7 @@
           return fBound;
         };
       }
-      if (!("trim" in String)) {
+      if (!("trim" in String.prototype)) {
         /**
          * Добавляет функцию trim в String там, где этого нет (IE)
          * @return String
@@ -511,7 +511,7 @@
           }
         };
       }
-      if (!Array.prototype.forEach) {
+      if (!('forEach' in Array.prototype)) {
         /**
            * forEach executes the provided callback once for each element of
            * the array with an assigned value. It is not invoked for indexes
@@ -550,7 +550,7 @@
         this.splice(index, 1);
         return this;
       };
-      if (!('indexOf' in Array)) {
+      if (!('indexOf' in Array.prototype)) {
         /**
          * Получаем элемент в массиве или -1, если его нет. Фикс для старых браузеров
          * @param {*} item элемент массива
@@ -565,7 +565,7 @@
             startIndex = 0;
           }
           l = this.length;
-          i = startIndex > 0 ? startIndex | 0 : l - (startIndex | 0);
+          i = startIndex >= 0 ? startIndex | 0 : l - (startIndex | 0);
           while (i < l) {
             if (i in this && this[i] === item) {
               return i;
@@ -575,10 +575,10 @@
           return -1;
         };
       }
-      if (!window.setImmediate) {
+      if (!('setImmediate' in window)) {
         head = {};
         tail = head;
-        ID = Math.random() * 10000000 | 0 + '';
+        ID = (Math.random() * 10000000 | 0) + '';
         onmessage = function(e) {
           var func;
 
@@ -592,10 +592,8 @@
         };
         if (window.addEventListener) {
           window.addEventListener("message", onmessage, false);
-        } else {
-          window.attachEvent("onmessage", onmessage);
         }
-        if (window.postMessage) {
+        if (window.postMessage && this.browser().name !== 'msie') {
           window.setImmediate = function(func) {
             tail = tail.next = {
               func: func
@@ -719,7 +717,7 @@
       try {
         left = ((screen.availWidth || screen.width) / 2) - (width / 2) + (screen.availLeft || 0);
         top = ((screen.availHeight || screen.height) / 2) - (height / 2) + (screen.availTop || 0);
-        link = "width=" + width + ",height=" + height + ",left=" + left + ", top=" + top;
+        link = "width=" + (parseInt(width)) + ",height=" + (parseInt(height)) + ",left=" + left + ", top=" + top;
         _ref = ['resizable', 'scrollbars', 'menubar', 'toolbar', 'status'];
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
           name = _ref[_i];
@@ -741,7 +739,7 @@
         };
         w.blocked = !!w.document.getElementById;
         if (w) {
-          w.onfocus();
+          w.focus();
         }
       } catch (_error) {
         err = _error;
@@ -1212,10 +1210,19 @@
 
 
     HSF.prototype.toInt = function(value) {
-      if (typeof value === 'boolean') {
-        return +value;
+      switch (typeof value) {
+        case 'boolean':
+          return +value;
+        case 'string':
+          if (/^\d+(\.\d+)?([eE][\+-]\d+)?$/.test(value)) {
+            return eval(value | 0);
+          } else {
+            return parseInt(value) | 0;
+          }
+          break;
+        default:
+          return parseInt(value) | 0;
       }
-      return parseInt(value) | 0;
     };
 
     /**
@@ -1685,21 +1692,16 @@
         this._rPool[active].ajax.onreadystatechange = function() {
           var xhr;
 
-          xhr = {};
+          xhr = null;
           var xhr = this;
-          try {
-            if (xhr.readyState === 4) {
-              active = xhr["active"];
-              if (xhr.status === 200 || (xhr.status === 0 && xhr.responseText.length > 0)) {
-                _this._rPool[active].func(xhr.responseText, xhr.getAllResponseHeaders());
-              } else {
-                _this._rPool[active].err(xhr.statusText);
-              }
-              _this._rPool[active].state = 0;
+          if (xhr.readyState === 4) {
+            active = xhr["active"];
+            if (xhr.status === 200 || (xhr.status === 0 && xhr.responseText.length > 0)) {
+              _this._rPool[active].func(xhr.responseText, xhr.getAllResponseHeaders());
+            } else {
+              _this._rPool[active].err(xhr.statusText);
             }
-          } catch (_error) {
-            e = _error;
-            _this.log(e.message + "\n" + e.toSource());
+            _this._rPool[active].state = 0;
           }
           return true;
         };
@@ -1747,7 +1749,6 @@
      *   close: function наступает при закрытии окна
      *   resize: Boolean определяет, подгонять ли высоту по содержимому, если не умещается внутри
      *
-     * TODO: сделать, чтобы в html можно было передать Element
      * @param {string} html
      * @param {Number} [w] = 300
      * @param {Number} [h] = 200
@@ -1757,7 +1758,7 @@
 
 
     HSF.prototype.createBubble = function(html, w, h, options) {
-      var bc, bg, bgh, bodyChildrens, bubble, bubbleContainer, closeBtn, hght, i, img, l, t, ws, zIndex, zi,
+      var bc, bg, bgh, bodyChildrens, bubble, bubbleContainer, closeBtn, height, hght, i, img, l, t, top, ws, zIndex, zi,
         _this = this;
 
       if (w == null) {
@@ -1826,7 +1827,7 @@
         bg.style.zIndex = zIndex;
         bubble = this.createElement("#bubbleItem.bubbleItem", {
           style: {
-            position: 'fixed'
+            position: 'absolute'
           },
           close: function() {
             var func;
@@ -1934,6 +1935,23 @@
             bubble.style.height = "" + (bgh - 20) + "px";
             bubble.style.top = '10px';
             bubbleContainer.style.overflowY = 'scroll';
+          }
+        }
+      }
+      top = parseInt(bubble.style.top);
+      height = parseInt(bubble.style.height);
+      if (ws.s > 0) {
+        if (ws.sh < ws.s + top + height) {
+          if (ws.sh > top + height) {
+            bubble.style.top = (top + (ws.sh - height)) + 'px';
+          } else {
+
+          }
+        } else {
+          if (ws.h < height) {
+            bubble.style.top = ws.s + 'px';
+          } else {
+            bubble.style.top = top + ws.s + 'px';
           }
         }
       }
@@ -2353,7 +2371,6 @@
       i = childs.length;
       while (i--) {
         el.removeChild(childs[i]);
-        delete childs[i];
       }
       return this;
     };
@@ -2410,24 +2427,33 @@
     */
 
 
-    HSF.prototype.hasElement = function(el, child) {
-      var html, parent;
+    HSF.prototype.hasElement = function(el, child, childOnly) {
+      var e, html, parent;
 
-      if (el === child) {
-        return true;
+      if (childOnly == null) {
+        childOnly = false;
       }
-      parent = child.parentNode;
-      if (!parent || !parent.parentNode) {
-        return false;
-      }
-      html = document.getElementsByTagName('html')[0];
-      while (parent !== el) {
-        if (parent === html || parent.parentNode === html) {
+      try {
+        if (el === child && !childOnly) {
+          return true;
+        }
+        parent = child.parentNode;
+        if (!parent || !parent.parentNode) {
           return false;
         }
-        parent = parent.parentNode;
+        html = document.getElementsByTagName('html')[0];
+        while (parent !== el) {
+          if ((parent == null) || parent === html) {
+            return false;
+          }
+          parent = parent.parentNode;
+        }
+        return true;
+      } catch (_error) {
+        e = _error;
+        this.log('hasElement' + e.message, 'warn');
+        return false;
       }
-      return true;
     };
 
     /**
@@ -3640,10 +3666,10 @@
      * - F Полное наименование месяца (из настроек)
      * - Y последние 2 числа года
      * - y год полностью
-     *
+     * - &nbsp;
      * - a am/pm в нижнем регистре
      * - A AM/PM в верхнем регистре
-     *
+     * - &nbsp;
      * - g Часы в 12-часовом формате с ведущими нулями
      * - G Часы в 12-часовом формате без ведущих нулей
      * - h Часы в 24-часовом формате с ведущими нулями
@@ -3654,10 +3680,10 @@
      * - S секунды без ведущих нулей
      * - p милисекунды с ведущими нулями
      * - P милисекунды без ведущих нулей
-     *
+     * - &nbsp;
      * - u количество секунд с началы эпохи юникс (1 января 1970, 00:00:00 GMT)
      * - U количество милисекунд с началы эпохи юникс
-     *
+     * - &nbsp;
      * - c Дата в формате ISO 8601
      * - r Дата по rfc 2822
      * - O Разница с временем по Гринвичу в часах
@@ -4386,3 +4412,7 @@
   });
 
 }).call(this);
+
+/*
+//@ sourceMappingURL=hsf.map
+*/

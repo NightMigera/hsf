@@ -12,7 +12,7 @@
  *  +random
  *  +qsa
  *  +insertAfter, +insertBefore
- *  +clearElement #todo утечка памяти
+ *  +clearElement
  *  ~setDrag add dragOver, gragOut, drop and change arguments mix
  *  ~openWin add callback
  * @changeLog: by 0.2
@@ -273,7 +273,7 @@ class HSF
       return
     )
 
-    unless Function::bind
+    unless 'bind' of Function::
       Function::bind = (oThis) ->
         if typeof this isnt "function"
           throw new TypeError("Function.prototype.bind - what is trying to be bound is not callable")
@@ -286,7 +286,7 @@ class HSF
         fBound:: = new fNOP()
         fBound
 
-    unless "trim" of String
+    unless "trim" of String::
       ###*
        * Добавляет функцию trim в String там, где этого нет (IE)
        * @return String
@@ -305,7 +305,7 @@ class HSF
         else
           @replaceOld new RegExp(string.replaceOld(/([\/\,\!\\\^\$\{\}\[\]\(\)\.\*\+\?\|\<\>\-\&])/g, "\\$&"), flags), (if (typeof newValue is "string") then newValue.replaceOld(/\$/g, "$$$$") else newValue)
 
-    unless Array::forEach
+    unless 'forEach' of Array::
       ###*
          * forEach executes the provided callback once for each element of
          * the array with an assigned value. It is not invoked for indexes
@@ -321,6 +321,7 @@ class HSF
           }
         }`
         return
+
     ###*
      * Присоединяет значения объекта к текущему массиву
      * @param {Array|NodeList|HTMLCollection} array любой массивоподобный объект
@@ -340,7 +341,7 @@ class HSF
       @.splice(index,1)
       @
 
-    unless 'indexOf' of Array
+    unless 'indexOf' of Array::
       ###*
        * Получаем элемент в массиве или -1, если его нет. Фикс для старых браузеров
        * @param {*} item элемент массива
@@ -349,16 +350,16 @@ class HSF
        ###
       Array::indexOf = (item, startIndex = 0) ->
         l = @length
-        i = if startIndex > 0 then startIndex|0 else l - (startIndex|0)
+        i = if startIndex >= 0 then startIndex|0 else l - (startIndex|0)
         while i < l
           return i  if i of this and this[i] is item
           i++
         -1
 
-    unless window.setImmediate
+    unless 'setImmediate' of window
       head = {}
       tail = head
-      ID = Math.random()*10000000|0+''
+      ID = (Math.random()*10000000|0)+''
       onmessage = (e) ->
         return  unless e.data is ID # не наше сообщение
         head = head.next
@@ -367,9 +368,7 @@ class HSF
         func()
       if window.addEventListener # IE9+, другие браузеры
         window.addEventListener "message", onmessage, false
-      else # IE8
-        window.attachEvent "onmessage", onmessage
-      if window.postMessage
+      if window.postMessage and @browser().name isnt 'msie' # ie go to setTimeout everythink, becous postMessage is inline
         window.setImmediate = (func)->
           tail = tail.next = func: func
           window.postMessage(ID, "*")
@@ -448,7 +447,7 @@ class HSF
     try
       left = ((screen.availWidth ||screen.width) / 2) - (width / 2) + (screen.availLeft || 0)
       top = ((screen.availHeight || screen.height) / 2) - (height / 2) + (screen.availTop || 0)
-      link = "width=#{width},height=#{height},left=#{left}, top=#{top}"
+      link = "width=#{parseInt(width)},height=#{parseInt(height)},left=#{left}, top=#{top}"
       for name in ['resizable','scrollbars','menubar','toolbar','status']
         link += ",#{name}=" + (if name of option then (if option[name] then 1 else 0) else map[name])
       w = window.open(url, title, link)
@@ -462,7 +461,7 @@ class HSF
           @log('success win open')
         true
       w.blocked = !!(w.document.getElementById)
-      w.onfocus() if w
+      w.focus() if w
     catch err
       alert "Ошибка открытия окна - #{title}"
     w || false
@@ -792,9 +791,16 @@ class HSF
    * @return Number
    ###
   toInt: (value) ->
-    if typeof value is 'boolean'
-      return +value
-    parseInt(value)|0
+    switch typeof value
+      when 'boolean'
+        return +value
+      when 'string'
+        if /^\d+(\.\d+)?([eE][\+-]\d+)?$/.test value
+          return eval value | 0
+        else
+          return parseInt(value)|0
+      else
+        return parseInt(value)|0
 
   ###*
    * Берёт логарифм от a по основанию b. По умолчанию натуральный.
@@ -1079,19 +1085,19 @@ class HSF
       else
         @_rPool[active].ajax = if 'XMLHttpRequest' of window then new XMLHttpRequest() else new ActiveXObject("Microsoft.XMLHTTP")
       @_rPool[active].ajax.onreadystatechange = =>
-        xhr = {}
+        xhr = null
         `var xhr = this`
-        try
-          if xhr.readyState is 4
-            active = xhr["active"]
-            # для статуса "OK"
-            if xhr.status is 200 || (xhr.status is 0 and xhr.responseText.length > 0) #в windows при открытии локальных файлов статус 0, но текст есть
-              @_rPool[active].func xhr.responseText, xhr.getAllResponseHeaders()
-            else
-              @_rPool[active].err xhr.statusText
-            @_rPool[active].state = 0
-        catch e
-          @log e.message + "\n" + e.toSource()
+        if xhr.readyState is 4
+          active = xhr["active"]
+          # для статуса "OK"
+          if xhr.status is 200 || (xhr.status is 0 and xhr.responseText.length > 0) #в windows при открытии локальных файлов статус 0, но текст есть
+            @_rPool[active].func xhr.responseText, xhr.getAllResponseHeaders()
+          else
+            @_rPool[active].err xhr.statusText
+          @_rPool[active].state = 0
+#        try
+#        catch e
+#          @log e.message + "\n" + @toSource(e)
         true
     else if errorTex isnt ''
       @_rPool[active]["state"] = 0
@@ -1125,7 +1131,6 @@ class HSF
    *   close: function наступает при закрытии окна
    *   resize: Boolean определяет, подгонять ли высоту по содержимому, если не умещается внутри
    *
-   * TODO: сделать, чтобы в html можно было передать Element
    * @param {string} html
    * @param {Number} [w] = 300
    * @param {Number} [h] = 200
@@ -1194,7 +1199,7 @@ class HSF
       #создаём сам бабл
       bubble = @createElement("#bubbleItem.bubbleItem", {
         style:
-          position: 'fixed'
+          position: 'absolute'
         close: =>
           bg.style.display = "none"
           bubble.style.display = "none"
@@ -1286,6 +1291,19 @@ class HSF
           bubble.style.height = "#{bgh-20}px"
           bubble.style.top = '10px'
           bubbleContainer.style.overflowY = 'scroll'
+    top = parseInt(bubble.style.top)
+    height = parseInt(bubble.style.height)
+    if ws.s > 0 # if scrolled page
+      if ws.sh < ws.s + top + height # if big bubble
+        if ws.sh > top + height # if  bubble ineer into scrollHeight
+          bubble.style.top = (top + (ws.sh - height)) + 'px'
+        else
+          # nothink, top = 0
+      else
+        if ws.h < height
+          bubble.style.top = ws.s + 'px'
+        else
+          bubble.style.top = top + ws.s + 'px'
     @
 
   ###*
@@ -1612,7 +1630,6 @@ class HSF
     i = childs.length
     while i--
       el.removeChild(childs[i])
-      delete childs[i]
     @
 
   ###*
@@ -1646,15 +1663,19 @@ class HSF
    * @param   {Element}   child
    * @return  Boolean
    ###
-  hasElement: (el, child) ->
-    return true if el is child
-    parent = child.parentNode;
-    return false if not parent or not parent.parentNode
-    html = document.getElementsByTagName('html')[0]
-    while(parent isnt el)
-      return false if parent is html or parent.parentNode is html
-      parent = parent.parentNode
-    true
+  hasElement: (el, child, childOnly = false) ->
+    try
+      return true if el is child and not childOnly
+      parent = child.parentNode;
+      return false if not parent or not parent.parentNode
+      html = document.getElementsByTagName('html')[0]
+      while(parent isnt el)
+        return false if not parent? or parent is html
+        parent = parent.parentNode
+      return true
+    catch e
+      @log 'hasElement' + e.message, 'warn'
+      return false
 
   ###*
    * Возвращает количество свойств объекта
