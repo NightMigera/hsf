@@ -273,7 +273,7 @@ class HSF
       return
     )
 
-    unless 'bind' of Function::
+    unless 'bind' of Function.prototype # I know, i can write Function::, BUT in IDE it is error(
       Function::bind = (oThis) ->
         if typeof this isnt "function"
           throw new TypeError("Function.prototype.bind - what is trying to be bound is not callable")
@@ -286,7 +286,7 @@ class HSF
         fBound:: = new fNOP()
         fBound
 
-    unless "trim" of String::
+    unless "trim" of String.prototype
       ###*
        * Добавляет функцию trim в String там, где этого нет (IE)
        * @return String
@@ -300,12 +300,12 @@ class HSF
     if o isnt "desd"
       String::replaceOld = String::replace
       String::replace = (string, newValue, flags) ->
-        unless flags
+        if not flags or typeof string is 'object'
           @replaceOld string, newValue
         else
           @replaceOld new RegExp(string.replaceOld(/([\/\,\!\\\^\$\{\}\[\]\(\)\.\*\+\?\|\<\>\-\&])/g, "\\$&"), flags), (if (typeof newValue is "string") then newValue.replaceOld(/\$/g, "$$$$") else newValue)
 
-    unless 'forEach' of Array::
+    unless 'forEach' of Array.prototype
       ###*
          * forEach executes the provided callback once for each element of
          * the array with an assigned value. It is not invoked for indexes
@@ -332,6 +332,7 @@ class HSF
         this[j] = array[i];
       }`
       @
+
     ###*
      * Удаляем элемент из массива
      * @param {Number} index индекс элемента
@@ -341,7 +342,7 @@ class HSF
       @.splice(index,1)
       @
 
-    unless 'indexOf' of Array::
+    unless 'indexOf' of Array.prototype
       ###*
        * Получаем элемент в массиве или -1, если его нет. Фикс для старых браузеров
        * @param {*} item элемент массива
@@ -1664,6 +1665,8 @@ class HSF
    * @return  Boolean
    ###
   hasElement: (el, child, childOnly = false) ->
+    if 'contains' of el
+      return if childOnly then el.contains(child) else el is child or el.contains(child)
     try
       return true if el is child and not childOnly
       parent = child.parentNode;
