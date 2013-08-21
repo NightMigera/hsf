@@ -1,0 +1,50 @@
+b {
+    font-weight: bold;
+}
+#help {
+    margin: 20px;
+}
+#help p {
+    margin: 10px 0;
+}
+.testList {
+    margin: 0 20px;
+}
+.testList > li {
+    border-bottom: 1px dashed #2f4f4f;
+    clear: both;
+    font-family: "Courier New", "Nimbus Mono L", monospace;
+    font-size: 16px;
+    overflow: hidden;
+    line-height: 20px;
+    cursor: default;
+}
+.testList > li:hover {
+    font-weight: bold;
+    background-color: #fff5e5;
+}
+.testNumber {
+    float: left;
+    width: 50px;
+    text-align: right;
+}
+.testName {
+    float: left;
+    width: 700px;
+    margin-left: 10px;
+}
+.testResult {
+    float: left;
+    margin-left: 10px;
+}
+.success {
+    font-weight: bold;
+    color: green;
+}
+.fail {
+    font-weight: normal;
+    color: red;
+}
+#testBlock {
+    display: none;
+}

@@ -1,12 +1,37 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
     <title>Tests of hsf</title>
     <link rel="stylesheet" type="text/css" href="reset.css" media="all">
-    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+    <link rel="stylesheet" type="text/css" href="style.css" media="all">
 </head>
 <body>
+<div id="help">
+    <p>Тесты находятся в ктегориях (могут более, чем в одной):</p>
+    <ul>
+        <li><b>0</b> тесты библиотеки тестирования</li>
+        <li><b>1</b> тесты функций элементов</li>
+        <li><b>2</b> тесты функций переменных</li>
+        <li><b>3</b> тесты функций интерфейса</li>
+    </ul>
+    <p>Так же тесты подразделяются на тесты не</p>
+    <ul>
+        <li><b>a</b> требующие человеческого вмешательства (non-user)</li>
+        <li><b>b</b> требующие проверки человеком (check-by-user)</li>
+        <li><b>c</b> полностью автономные тесты (without-user)</li>
+    </ul>
+    <p>Условное название теста и функции должно начинаться с цифр(ы) буквенного обозначения</p>
 
+    <p class="example">Например 12a, это тест, преобразующий переменные, элементы и не требует человеческого
+        вмешательства, но возможна доппроверка человеком.</p>
+</div>
+<div id="testBlock" class="testBlock">
+    <s class="sTest"></s><s class="sTest"></s><s class="sTest"></s>
+    <i><i><i class="nic"><i id="testItalic"></i></i></i></i>
+</div>
 <script type="text/javascript" src="../hsf.js"></script>
+<script type="text/javascript" src="tests.js"></script>
+<script type="text/javascript" src="case.js"></script>
 </body>
 </html>
