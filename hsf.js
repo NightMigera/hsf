@@ -64,6 +64,7 @@
 
   /**
    * Базовый класс содержит методы и переменные
+   * @class HSF
    * @type {HSF}
   */
 
@@ -406,9 +407,9 @@
 
     function HSF(options) {
       this.delClassName = __bind(this.delClassName, this);
+      this.GMP = __bind(this.GMP, this);
       var ID, ajaxPoolLength, head, k, o, onmessage, s, tail, v, _i, _ref,
         _this = this;
-
       ajaxPoolLength = 'ajaxPoolLength' in options ? options.ajaxPoolLength : 5;
       for (_i = 0; 0 <= ajaxPoolLength ? _i <= ajaxPoolLength : _i >= ajaxPoolLength; 0 <= ajaxPoolLength ? _i++ : _i--) {
         this._rPool.push({
@@ -437,7 +438,6 @@
       this.onDomReady(function() {
         return document.onkeypress = document.onkeydown = function(e) {
           var list, result, shortcut, _j, _len, _ref1;
-
           e = e || window.event;
           result = true;
           list = _this._keyListMap[e.keyCode] || [];
@@ -472,7 +472,6 @@
       if (!('bind' in Function.prototype)) {
         Function.prototype.bind = function(oThis) {
           var aArgs, fBound, fNOP, fToBind;
-
           if (typeof this !== "function") {
             throw new TypeError("Function.prototype.bind - what is trying to be bound is not callable");
           }
@@ -504,7 +503,7 @@
       if (o !== "desd") {
         String.prototype.replaceOld = String.prototype.replace;
         String.prototype.replace = function(string, newValue, flags) {
-          if (!flags) {
+          if (!flags || typeof string === 'object') {
             return this.replaceOld(string, newValue);
           } else {
             return this.replaceOld(new RegExp(string.replaceOld(/([\/\,\!\\\^\$\{\}\[\]\(\)\.\*\+\?\|\<\>\-\&])/g, "\\$&"), flags), (typeof newValue === "string" ? newValue.replaceOld(/\$/g, "$$$$") : newValue));
@@ -530,8 +529,12 @@
         };
       }
       /**
-       * Присоединяет значения объекта к текущему массиву
-       * @param {Array|NodeList|HTMLCollection} array любой массивоподобный объект
+       * Присоединяет значения массива или списка к текущему массиву
+       * Если ничего не переданно, равно как и null, то будет ошибка.
+       * Если будет переданн посторонний объект без свойства `length`, то массив изменён не будет,
+       * если же у объекта будет `length` то будет прибавденно `length` элементов в конец массива
+       *
+       * @param {Array|String||NodeList|HTMLCollection} array любой массивоподобный объект
        * @return Array
       */
 
@@ -560,7 +563,6 @@
 
         Array.prototype.indexOf = function(item, startIndex) {
           var i, l;
-
           if (startIndex == null) {
             startIndex = 0;
           }
@@ -581,7 +583,6 @@
         ID = (Math.random() * 10000000 | 0) + '';
         onmessage = function(e) {
           var func;
-
           if (e.data !== ID) {
             return;
           }
@@ -611,7 +612,7 @@
 
     /**
      * Получает строку для обращения из глобальной области видимости для inline функций
-     * @return String
+     * @return {String}
     */
 
 
@@ -620,9 +621,332 @@
     };
 
     /**
+     * Возвращает структуру объекта `o` с глубиной рекурсии `level`.
+     *
+     * @method toSource
+     * @param {Object} o объект, который отображаем
+     * @param {Number} [level] глубина рекурсивного перебора, по умолчанию 0
+     * @return {String} структура объекта
+    */
+
+
+    HSF.prototype.toSource = function(o, level) {
+      var i, isArray, source, space, val, _i, _len;
+      if (level == null) {
+        level = 0;
+      }
+      space = arguments[2] || '  ';
+      switch (typeof o) {
+        case 'object':
+          isArray = o instanceof Array;
+          if (isArray) {
+            source = "[\n";
+            for (_i = 0, _len = o.length; _i < _len; _i++) {
+              val = o[_i];
+              if (typeof val === 'object' && level > 0) {
+                source += "" + space + (this.toSource(val, level - 1, space + '  ')) + ",\n";
+              } else {
+                if (typeof val === "string") {
+                  val = '"' + val + '"';
+                }
+                source += "" + space + val + ",\n";
+              }
+            }
+          } else {
+            source = "{\n";
+            for (i in o) {
+              if (!__hasProp.call(o, i)) continue;
+              val = o[i];
+              if (typeof val === 'object' && level > 0) {
+                source += "" + space + i + ": " + (this.toSource(val, level - 1, space + '  ')) + ",\n";
+              } else {
+                if (typeof val === "string") {
+                  val = '"' + val + '"';
+                }
+                source += "" + space + i + ": " + val + ",\n";
+              }
+            }
+          }
+          if (source.length > 2) {
+            source = source.substr(0, source.length - 2) + '\n';
+          }
+          source += "" + (space.replace('  ', ''));
+          if (isArray) {
+            source += "]";
+          } else {
+            source += "}";
+          }
+          break;
+        case 'function':
+          source = ('' + o) || 'function(){...}';
+          break;
+        case 'string':
+          source = '"' + o + '"';
+          break;
+        case 'number':
+        case 'boolean':
+          source = '' + o;
+          break;
+        default:
+          source = 'undefined';
+      }
+      return source;
+    };
+
+    /**
+     * Возвращает количество свойств и методов или длину объекта `o`
+     *
+     * @method oSize
+     * @param {Object|Array|String} o
+     * @return {Number} длина объекта
+    */
+
+
+    HSF.prototype.oSize = function(o) {
+      var k, s;
+      if (o instanceof String || typeof o === 'string') {
+        return o.length;
+      }
+      if (typeof o !== 'object') {
+        throw new Error('argument not object');
+      }
+      if ("keys" in Object) {
+        return Object.keys(o).length;
+      }
+      s = 0;
+      for (k in o) {
+        if (!__hasProp.call(o, k)) continue;
+        s++;
+      }
+      return s;
+    };
+
+    /**
+     * Возвращает ключи объекта `o`
+     *
+     * @method oKeys
+     * @param {Object|Array|String} o
+     * @return {Array} массив ключей
+    */
+
+
+    HSF.prototype.oKeys = function(o) {
+      var k, res;
+      if (o instanceof String || typeof o === 'string') {
+        return this.oKeys([].take(o));
+      }
+      if (typeof o !== 'object') {
+        throw new Error('argument not object');
+      }
+      if ("keys" in Object) {
+        return Object.keys(o);
+      }
+      res = [];
+      for (k in o) {
+        if (!__hasProp.call(o, k)) continue;
+        res[res.length] = k;
+      }
+      return res;
+    };
+
+    /**
+     * накладывает объект obj2 на объект obj1
+     * если нужно создать третий объект (не трогать obj1) из двух надо использовать f.merge(f.merge({},obj1), obj2) <br />
+     * (!) Нет защиты от дурака. Если аргументы не объекты, то результат не предсказуем и может быть ошибка.
+     *
+     * @method merge
+     * @param {Object|Array} to модифицируемый объект
+     * @param {Object|Array} from модифицирующий объект
+     * @return {Object} изменённый to
+    */
+
+
+    HSF.prototype.merge = function(to, from) {
+      var e, p;
+      for (p in from) {
+        if (!__hasProp.call(from, p)) continue;
+        try {
+          if (typeof from[p] === 'object') {
+            to[p] = this.merge(to[p], from[p]);
+          } else {
+            to[p] = from[p];
+          }
+        } catch (_error) {
+          e = _error;
+          to[p] = from[p];
+        }
+      }
+      return to;
+    };
+
+    /**
+     * Парсит JSON строку в JS объект по RFC 4627 или "родными" средствами
+     *
+     * @method parseJSON
+     * @param   {String} text
+     * @return  {Object|Array|Boolean|Number|String|Null}
+    */
+
+
+    HSF.prototype.parseJSON = function(text) {
+      if ("JSON" in window && "parse" in JSON) {
+        return JSON.parse(text);
+      }
+      return !(/[^,:{}\[\]0-9.\-+Eaeflnr-u \n\r\t]/.test(text.replace(/"(\\.|[^"\\])*"/g, ""))) && eval("(" + text + ")");
+    };
+
+    /**
+     * Преобразует объект в JSON строку
+     *
+     * @method varToJSON
+     * @param   {Object|Array|Boolean|Number|String|Null} o
+     * @return  {String} строка в формате JSON
+    */
+
+
+    HSF.prototype.varToJSON = function(o) {
+      var el, i, _a, _i, _len, _ret, _ret2;
+      if ("JSON" in window && "stringify" in JSON) {
+        return JSON.stringify(o);
+      }
+      _ret = "";
+      _a = "";
+      switch (typeof o) {
+        case "string":
+          return '"' + o + '"';
+        case "number":
+        case "boolean":
+          return o.toString();
+        case "object":
+          if (o instanceof Array) {
+            _ret = "[";
+            i = 0;
+            for (_i = 0, _len = o.length; _i < _len; _i++) {
+              el = o[_i];
+              switch (typeof el) {
+                case "string":
+                  _ret += _a + '"' + el + '"';
+                  break;
+                case "boolean":
+                case "number":
+                  _ret += _a + el;
+                  break;
+                case "object":
+                  _ret += _a + varToJSON(el);
+              }
+              _a = ",";
+              i++;
+            }
+            _ret += "]";
+          } else if (o === null) {
+            return "null";
+          } else {
+            _ret = "{";
+            for (i in o) {
+              if (!__hasProp.call(o, i)) continue;
+              if (!o.hasOwnProperty(i)) {
+                continue;
+              }
+              _ret2 = null;
+              switch (typeof o[i]) {
+                case "string":
+                  _ret2 = '"' + o[i] + '"';
+                  break;
+                case "boolean":
+                case "number":
+                  _ret2 = o[i];
+                  break;
+                case "object":
+                  _ret2 = varToJSON(o[i]);
+              }
+              if (_ret2 != null) {
+                _ret += _a + '"' + i + '":' + _ret2;
+                _a = ",";
+              }
+            }
+            _ret += "}";
+          }
+      }
+      return _ret;
+    };
+
+    /**
+     * возвращает целое число или 0 (вместо NaN), так же может работать с числами вида 12.3768E+21
+     *
+     * @method toInt
+     * @param {*} value
+     * @return {Number} Integer
+    */
+
+
+    HSF.prototype.toInt = function(value) {
+      switch (typeof value) {
+        case 'boolean':
+          return +value;
+        case 'string':
+          if (/^\d+(\.\d+)?([eE][\+-]?\d+)?$/.test(value)) {
+            return eval(value | 0);
+          } else {
+            return parseInt(value, 10) | 0;
+          }
+          break;
+        default:
+          return parseInt(value, 10) | 0;
+      }
+    };
+
+    /**
+     * возвращает число с плавающей точкой или 0 (вместо NaN), так же может работать с числами вида 12.3768E+21
+     *
+     * @method toFloat
+     * @param {*} value
+     * @return {Number} Float
+    */
+
+
+    HSF.prototype.toFloat = function(value) {
+      var r;
+      switch (typeof value) {
+        case 'boolean':
+          return +value;
+        case 'string':
+          if (/^\d+(\.\d+)?([eE][\+-]?\d+)?$/.test(value)) {
+            return eval(value);
+          } else {
+            r = parseFloat(value, 10);
+          }
+          break;
+        default:
+          r = parseFloat(value, 10);
+      }
+      if (isNaN(r)) {
+        return 0;
+      } else {
+        return r;
+      }
+    };
+
+    /**
+     * Берёт логарифм от a по основанию b. Если основания не указано, то логарифм натуральный.
+     *
+     * @method mLog
+     * @param {Number} a
+     * @param {Number} b = Math.E
+     * @return Number
+    */
+
+
+    HSF.prototype.mLog = function(a, b) {
+      if (b == null) {
+        b = Math.E;
+      }
+      return 1000 * Math.log(a) / (1000 * Math.log(b));
+    };
+
+    /**
      * синоним для document.getElementById
      * @param {String} el
-     * @return Element
+     * @return {Element}
     */
 
 
@@ -647,7 +971,6 @@
       } else {
         return (function(searchClass, node) {
           var classElements, els, elsLen, i, j, pattern;
-
           classElements = [];
           els = node.getElementsByTagName("*");
           elsLen = els.length;
@@ -697,7 +1020,6 @@
     HSF.prototype.openWin = function(url, title, width, height, option, callback) {
       var err, left, link, map, name, top, w, _i, _len, _ref,
         _this = this;
-
       if (width == null) {
         width = 902;
       }
@@ -750,7 +1072,6 @@
 
     HSF.prototype.getSelection = function(el) {
       var end, endRange, len, normalizedValue, range, start, textInputRange;
-
       start = 0;
       end = 0;
       if (typeof el.selectionStart === "number" && typeof el.selectionEnd === "number") {
@@ -788,13 +1109,13 @@
     /**
      * получается позиция объекта в документе. Некоторые баги в ИЕ
      * @param {Element} el
+     * @param {Element} parent=document
      * @return Object {x:(number),y:(number)}
     */
 
 
     HSF.prototype.getPos = function(el, parent) {
       var body, box, clientLeft, clientTop, docElem, left, s, scrollLeft, scrollTop, top;
-
       if (parent == null) {
         parent = document.body;
       }
@@ -856,7 +1177,6 @@
 
     HSF.prototype.getMousePos = function(e) {
       var posx, posy;
-
       if (!e) {
         throw new Error('event is empty');
       }
@@ -882,7 +1202,9 @@
     */
 
 
-    HSF.prototype.GMP = HSF.getMousePos;
+    HSF.prototype.GMP = function(e) {
+      return this.getMousePos(e);
+    };
 
     /**
      * получается позиция объекта на экране.
@@ -893,7 +1215,6 @@
 
     HSF.prototype.getScreenPos = function(el) {
       var body, box, clientLeft, clientTop, docElem, s, scrollLeft, scrollTop;
-
       s = {
         x: 0,
         y: 0
@@ -930,7 +1251,6 @@
 
     HSF.prototype.getSize = function() {
       var ret;
-
       ret = {
         w: 0,
         h: 0,
@@ -978,7 +1298,6 @@
 
     HSF.prototype.getStyle = function(el, styleName) {
       var ret;
-
       if (this.browser().name === "msie") {
         if (styleName in el.currentStyle) {
           return el.currentStyle[styleName];
@@ -1002,7 +1321,6 @@
 
     HSF.prototype.setStyle = function(el, style) {
       var k, s;
-
       switch (typeof style) {
         case 'string':
           el.style.cssText += ";" + style;
@@ -1044,7 +1362,6 @@
 
     HSF.prototype.browser = function() {
       var chrome, nav, safari, start, v;
-
       if (this._browser.version !== 0) {
         return this._browser;
       }
@@ -1181,66 +1498,6 @@
     };
 
     /**
-     * Возвращает свойства объекта, преобразованные в строку.
-     * Расширение класса происходит только там, где нет этого метода
-     * @return String
-    */
-
-
-    HSF.prototype.toSource = function(o) {
-      var i, source, val;
-
-      if ('toSource' in o) {
-        return o.toSource();
-      }
-      source = "{\n";
-      for (i in o) {
-        if (!__hasProp.call(o, i)) continue;
-        val = o[i];
-        source += "  " + i + ": " + val + "\n";
-      }
-      return source + "\n}";
-    };
-
-    /**
-     * возвращает число или 0 (вместо NaN)
-     * @param {*} value
-     * @return Number
-    */
-
-
-    HSF.prototype.toInt = function(value) {
-      switch (typeof value) {
-        case 'boolean':
-          return +value;
-        case 'string':
-          if (/^\d+(\.\d+)?([eE][\+-]\d+)?$/.test(value)) {
-            return eval(value | 0);
-          } else {
-            return parseInt(value) | 0;
-          }
-          break;
-        default:
-          return parseInt(value) | 0;
-      }
-    };
-
-    /**
-     * Берёт логарифм от a по основанию b. По умолчанию натуральный.
-     * @param {Number} a
-     * @param {Number} b = Math.E
-     * @return Number
-    */
-
-
-    HSF.prototype.mLog = function(a, b) {
-      if (b == null) {
-        b = Math.E;
-      }
-      return 1000 * Math.log(a) / (1000 * Math.log(b));
-    };
-
-    /**
      * Описываем, что в кнопке должно измениться и какие функции произойти, когда на неё нажимают,
      * прописываем функцию, срабатывающую при отпускании.
      * @param {Element} el
@@ -1253,7 +1510,6 @@
     HSF.prototype.buttonClick = function(el, props, opt) {
       var md, mu,
         _this = this;
-
       if (opt == null) {
         opt = {};
       }
@@ -1294,13 +1550,11 @@
     HSF.prototype.hover = function(el, props, opt) {
       var mout, mover,
         _this = this;
-
       if (opt == null) {
         opt = {};
       }
       mover = function(e) {
         var src;
-
         e = e || window.event;
         src = e.toElement || document.body;
         if (e.type !== 'mouseenter' && _this.hasElement(el, src) && _this.getMem(el, 'hover')) {
@@ -1315,7 +1569,6 @@
       };
       mout = function(e) {
         var src;
-
         e = e || window.event;
         src = e.toElement || document.body;
         if (e.type !== 'mouseleave' && _this.hasElement(el, src) && el !== src) {
@@ -1369,7 +1622,6 @@
 
     HSF.prototype.setTempStyle = function(el, props, state) {
       var k, oldState, touch, v;
-
       touch = this.getMem(el, 'touch');
       if (!touch) {
         oldState = 'originStyle';
@@ -1400,7 +1652,6 @@
 
     HSF.prototype.retTempStyle = function(el, state) {
       var index, k, oldState, oldStyle, props, touch, v, _ref;
-
       props = this.getMemList(el, "oldStyle" + state);
       if (!props) {
         return this;
@@ -1452,7 +1703,6 @@
     HSF.prototype.addEvent = function(elem, evType, fn) {
       var bVersion, collectByType, eventElem, func, hashChangeCorrect, oldHash, oldHref, onEvType,
         _this = this;
-
       evType = evType.replace(/^on/, '');
       if ('addEventListener' in elem) {
         elem.addEventListener(evType, fn, false);
@@ -1513,7 +1763,6 @@
         }
         func = function(e) {
           var _i, _len, _ref;
-
           e = e || window.event;
           e.target = e.target || e.srcElement;
           _ref = _this.getMem(elem, evType, 'eventsListener');
@@ -1567,7 +1816,6 @@
 
     HSF.prototype.removeEvent = function(elem, evType, fn) {
       var collectByType, fns, func, nfns, val, _i, _j, _len, _len1;
-
       evType = evType.replace(/^on/, '');
       if (elem.addEventListener) {
         elem.removeEventListener(evType, fn, false);
@@ -1614,7 +1862,6 @@
     HSF.prototype.load = function(url, func, err, data) {
       var active, d, e, errorTex, header, i, label, method, value,
         _this = this;
-
       if (typeof url === 'object') {
         if ('scs' in url) {
           func = url.scs;
@@ -1691,7 +1938,6 @@
         }
         this._rPool[active].ajax.onreadystatechange = function() {
           var xhr;
-
           xhr = null;
           var xhr = this;
           if (xhr.readyState === 4) {
@@ -1760,7 +2006,6 @@
     HSF.prototype.createBubble = function(html, w, h, options) {
       var bc, bg, bgh, bodyChildrens, bubble, bubbleContainer, closeBtn, height, hght, i, img, l, t, top, ws, zIndex, zi,
         _this = this;
-
       if (w == null) {
         w = 300;
       }
@@ -1831,10 +2076,9 @@
           },
           close: function() {
             var func;
-
             bg.style.display = "none";
             bubble.style.display = "none";
-            bubbleContainer.innerHTML = "";
+            _this.clearElement(bubbleContainer);
             func = _this.getMem(bubble, "func");
             if (func !== null) {
               func();
@@ -1851,11 +2095,9 @@
         bubbleContainer = this.createElement(".bubbleContainer", {}, bubble);
         this.setOnResize(bg, function() {
           var l, t;
-
-          bubble = _this.GBI("bubbleItem");
           ws = _this.getSize();
           l = (ws.w - parseInt(bubble.style.width)) / 2;
-          t = (ws.h - parseInt(bubble.style.height)) / 2;
+          t = (ws.h - parseInt(bubble.style.height)) / 2 + _this.getMem(bubble, 's');
           if (l < 0) {
             l = 0;
           } else {
@@ -1896,7 +2138,7 @@
       if (typeof html === "string") {
         bubbleContainer.innerHTML = html;
       } else if (typeof html === "object" && "nodeType" in html) {
-        bubbleContainer.innerHTML = "";
+        this.clearElement(bubbleContainer);
         bubbleContainer.appendChild(html);
       } else {
         return false;
@@ -1940,6 +2182,7 @@
       }
       top = parseInt(bubble.style.top);
       height = parseInt(bubble.style.height);
+      this.setMem(bubble, 's', ws.s);
       if (ws.s > 0) {
         if (ws.sh < ws.s + top + height) {
           if (ws.sh > top + height) {
@@ -2030,13 +2273,11 @@
 
     HSF.prototype.md5 = function(str) {
       var AA, AddUnsigned, BB, CC, ConvertToWordArray, DD, F, FF, G, GG, H, HH, I, II, RotateLeft, S11, S12, S13, S14, S21, S22, S23, S24, S31, S32, S33, S34, S41, S42, S43, S44, WordToHex, a, b, c, d, k, temp, x;
-
       RotateLeft = function(lValue, iShiftBits) {
         return (lValue << iShiftBits) | (lValue >>> (32 - iShiftBits));
       };
       AddUnsigned = function(lX, lY) {
         var lResult, lX4, lX8, lY4, lY8;
-
         lX8 = lX & 0x80000000;
         lY8 = lY & 0x80000000;
         lX4 = lX & 0x40000000;
@@ -2085,7 +2326,6 @@
       };
       ConvertToWordArray = function(str) {
         var lByteCount, lBytePosition, lMessageLength, lNumberOfWords, lNumberOfWords_temp1, lNumberOfWords_temp2, lWordArray, lWordCount;
-
         lMessageLength = str.length;
         lNumberOfWords_temp1 = lMessageLength + 8;
         lNumberOfWords_temp2 = (lNumberOfWords_temp1 - (lNumberOfWords_temp1 % 64)) / 64;
@@ -2108,7 +2348,6 @@
       };
       WordToHex = function(lValue) {
         var WordToHexValue, WordToHexValue_temp, lByte, lCount;
-
         WordToHexValue = "";
         WordToHexValue_temp = "";
         lCount = 0;
@@ -2231,7 +2470,6 @@
 
     HSF.prototype.utf8_encode = function(str_data) {
       var c, n, utftext;
-
       str_data = str_data.replace(/\r\n/g, "\n");
       utftext = "";
       n = 0;
@@ -2264,7 +2502,6 @@
 
     HSF.prototype.createElement = function(tag, option, parent) {
       var el, key, regRes, tagName, val, _ref;
-
       if (option == null) {
         option = {};
       }
@@ -2312,7 +2549,6 @@
 
     HSF.prototype.appendChild = function(parent, el) {
       var div, elems, i, l;
-
       if (typeof el === 'string') {
         div = document.createElement('div');
         div.innerHTML = el;
@@ -2366,7 +2602,6 @@
 
     HSF.prototype.clearElement = function(el) {
       var childs, i;
-
       childs = el.childNodes;
       i = childs.length;
       while (i--) {
@@ -2387,7 +2622,6 @@
 
     HSF.prototype.setUniversalStyle = function(el, name, value) {
       var index, style, styleName, webkitName, _i, _len, _ref, _ref1;
-
       name = name.toLowerCase();
       if (!(name in this._setUniversalStyleCascade)) {
         this._setUniversalStyleCascade[name] = [];
@@ -2429,9 +2663,15 @@
 
     HSF.prototype.hasElement = function(el, child, childOnly) {
       var e, html, parent;
-
       if (childOnly == null) {
         childOnly = false;
+      }
+      if ('contains' in el) {
+        if (childOnly) {
+          return el.contains(child);
+        } else {
+          return el === child || el.contains(child);
+        }
       }
       try {
         if (el === child && !childOnly) {
@@ -2457,48 +2697,6 @@
     };
 
     /**
-     * Возвращает количество свойств объекта
-     * @param {Object} obj
-     * @return Number
-    */
-
-
-    HSF.prototype.oSize = function(obj) {
-      var k, s;
-
-      if ("keys" in Object) {
-        return Object.keys(obj).length;
-      }
-      s = 0;
-      for (k in obj) {
-        if (!__hasProp.call(obj, k)) continue;
-        s++;
-      }
-      return s;
-    };
-
-    /**
-     * Возвращает ключи объекта
-     * @param {Object} obj
-     * @return Array
-    */
-
-
-    HSF.prototype.oKeys = function(obj) {
-      var k, res;
-
-      if ("keys" in Object) {
-        return Object.keys(obj);
-      }
-      res = [];
-      for (k in obj) {
-        if (!__hasProp.call(obj, k)) continue;
-        res[res.length] = k;
-      }
-      return res;
-    };
-
-    /**
      * Устанавливает отслеживание изменение размеров элементов в документе.
      * Работает через единый таймер или через onresize
      * Если объект активируется повторно и нет funcName, то использыется прежняяфункция
@@ -2511,7 +2709,6 @@
     HSF.prototype.setOnResize = function(el, funcName) {
       var col, pos,
         _this = this;
-
       pos = this.getMem(el, "resizePos");
       if (pos !== null) {
         col = this._onResizeCollection[pos];
@@ -2565,7 +2762,6 @@
 
     HSF.prototype.resizeObjects = function() {
       var el, oh, ow, position, _i, _len, _ref;
-
       _ref = this._onResizeArray;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         position = _ref[_i];
@@ -2590,7 +2786,6 @@
 
     HSF.prototype.offOnResize = function(pos) {
       var col, na, position, _i, _len, _ref;
-
       col = this._onResizeCollection[pos];
       if (col.type === 1) {
         col.action();
@@ -2675,21 +2870,20 @@
 
     HSF.prototype.GPT = function(el, tagName) {
       var _ref;
-
-      tagName = tagName.toLowerCase();
-      if (tagName === "html" || tagName === "body") {
-        return document.getElementsByTagName(tagName)[0] || null;
+      if ((tagName == null) || tagName === '') {
+        return null;
       }
+      tagName = tagName.toLowerCase();
       if (!el || !el.parentNode) {
         return null;
       }
-      while (((el != null ? (_ref = el.parentNode) != null ? _ref.tagName : void 0 : void 0) != null) && el.parentNode.tagName.toLowerCase() !== tagName && el.parentNode.tagName.toLowerCase() !== 'html') {
+      while ((el != null ? (_ref = el.parentNode) != null ? _ref.tagName : void 0 : void 0) != null) {
         el = el.parentNode;
+        if (el.tagName.toLowerCase() === tagName) {
+          return el;
+        }
       }
-      if (!("parentNode" in el) || el.tagName.toLowerCase() === 'html' || el.parentNode.tagName.toLowerCase() === 'html') {
-        return null;
-      }
-      return el.parentNode;
+      return null;
     };
 
     /**
@@ -2704,10 +2898,19 @@
       if (!el) {
         return null;
       }
-      while (el && el.parentNode) {
-        el = el.parentNode;
-        if (this.hasClassName(el, className)) {
-          return el;
+      if (className !== '') {
+        while ((el != null ? el.parentNode : void 0) != null) {
+          el = el.parentNode;
+          if (this.hasClassName(el, className)) {
+            return el;
+          }
+        }
+      } else {
+        while ((el != null ? el.parentNode : void 0) != null) {
+          el = el.parentNode;
+          if (!el.className) {
+            return el;
+          }
         }
       }
       return null;
@@ -2746,7 +2949,6 @@
 
     HSF.prototype.truncateString = function(string, dMax, uMax, after) {
       var criticalMinChars, dSpace, i, j, minChars, newStr, uSpace;
-
       if (after == null) {
         after = '...';
       }
@@ -2816,7 +3018,6 @@
 
     HSF.prototype.getCharWidthMax = function(fs, ff, chart) {
       var charEl;
-
       ff = ff || "Tahoma";
       fs = fs || 11;
       chart = chart || "m";
@@ -2850,7 +3051,6 @@
 
     HSF.prototype.log = function(message, type) {
       var console, func, str;
-
       if (type == null) {
         type = 'log';
       }
@@ -2921,7 +3121,6 @@
 
     HSF.prototype.time = function(func, renderAfter) {
       var start, t;
-
       this.log('start time');
       start = (new Date()).getTime();
       func();
@@ -2943,7 +3142,6 @@
 
     HSF.prototype.printLog = function() {
       var height, html, lenTime, n, str, time, timeString, tl, tl0, _i, _j, _len, _ref, _ref1;
-
       lenTime = 8;
       html = '<table id="printLog" cellpadding="0" cellspacing="0" style="border:0;"><tr><td valign="top" align="left" style="width:40px">';
       tl = '';
@@ -2979,7 +3177,6 @@
 
     HSF.prototype.selectLogPoint = function(el) {
       var res, secEl;
-
       res = el.id.match(/(.*)LogPoint(.*)/);
       if (!res) {
         return false;
@@ -3010,7 +3207,6 @@
 
     HSF.prototype.unselectLogPoint = function(el) {
       var res, secEl;
-
       res = el.id.match(/(.*)LogPoint(.*)/);
       if (!res) {
         return false;
@@ -3029,94 +3225,6 @@
         el.style.textDecoration = 'none';
       }
       return true;
-    };
-
-    /**
-     * Парсит JSON строку в JS объект по RFC 4627 или "родными" средствами
-     * @param   {String} text
-     * @return  Object|Array|Boolean|Number|String|Null
-    */
-
-
-    HSF.prototype.parseJSON = function(text) {
-      if ("JSON" in window && "parse" in JSON) {
-        return JSON.parse(text);
-      }
-      return !(/[^,:{}\[\]0-9.\-+Eaeflnr-u \n\r\t]/.test(text.replace(/"(\\.|[^"\\])*"/g, ""))) && eval("(" + text + ")");
-    };
-
-    /**
-     * Преобразует объект в JSON строку
-     * @param   {Object|Array|Boolean|Number|String|Null} obj
-     * @return  String
-    */
-
-
-    HSF.prototype.varToJSON = function(obj) {
-      var el, i, _a, _i, _len, _ret, _ret2;
-
-      if ("JSON" in window && "stringify" in JSON) {
-        return JSON.stringify(obj);
-      }
-      _ret = "";
-      _a = "";
-      switch (typeof obj) {
-        case "string":
-          return '"' + obj + '"';
-        case "number":
-        case "boolean":
-          return obj.toString();
-        case "object":
-          if (obj instanceof Array) {
-            _ret = "[";
-            i = 0;
-            for (_i = 0, _len = obj.length; _i < _len; _i++) {
-              el = obj[_i];
-              switch (typeof el) {
-                case "string":
-                  _ret += _a + '"' + el + '"';
-                  break;
-                case "boolean":
-                case "number":
-                  _ret += _a + el;
-                  break;
-                case "object":
-                  _ret += _a + varToJSON(el);
-              }
-              _a = ",";
-              i++;
-            }
-            _ret += "]";
-          } else if (obj === null) {
-            return "null";
-          } else {
-            _ret = "{";
-            for (i in obj) {
-              if (!__hasProp.call(obj, i)) continue;
-              if (!obj.hasOwnProperty(i)) {
-                continue;
-              }
-              _ret2 = null;
-              switch (typeof obj[i]) {
-                case "string":
-                  _ret2 = '"' + obj[i] + '"';
-                  break;
-                case "boolean":
-                case "number":
-                  _ret2 = obj[i];
-                  break;
-                case "object":
-                  _ret2 = varToJSON(obj[i]);
-              }
-              if (_ret2 != null) {
-                _ret += _a + '"' + i + '":' + _ret2;
-                _a = ",";
-              }
-            }
-            _ret += "}";
-          }
-      }
-      return _ret;
     };
 
     /**
@@ -3184,7 +3292,6 @@
     HSF.prototype.numberInputReplace = function(el, opt) {
       var check, down, height, inputWrapperReplase, ndn, nup, parent, up, wheel, width,
         _this = this;
-
       if (opt == null) {
         opt = {};
       }
@@ -3212,7 +3319,6 @@
       }
       up = function() {
         var value;
-
         value = _this.toInt(el.value);
         if ('max' in opt && opt.max < value + opt.step) {
           el.value = opt.max;
@@ -3223,7 +3329,6 @@
       };
       down = function() {
         var value;
-
         value = _this.toInt(el.value);
         if ('min' in opt && opt.min > value - opt.step) {
           el.value = opt.min;
@@ -3234,7 +3339,6 @@
       };
       check = function() {
         var value;
-
         value = _this.toInt(el.value);
         if ('max' in opt && opt.max < value) {
           el.value = opt.max;
@@ -3264,7 +3368,6 @@
       }
       wheel = function(e) {
         var num, wheelDelta, _i;
-
         if (e == null) {
           e = window.event;
         }
@@ -3311,7 +3414,6 @@
 
     HSF.prototype.keyListener = function(key, func, ctrl, shift, alt) {
       var keyCode, second;
-
       if (ctrl == null) {
         ctrl = false;
       }
@@ -3416,7 +3518,6 @@
 
     HSF.prototype.onDomReady = function(func) {
       var oldonload;
-
       oldonload = this._funcDomReady;
       if (typeof this._funcDomReady !== "function") {
         this._funcDomReady = func;
@@ -3455,7 +3556,6 @@
     HSF.prototype.prepareOnDocumentReady = function() {
       var _timer,
         _this = this;
-
       if (document.addEventListener) {
         document.addEventListener("DOMContentLoaded", function() {
           return _this.initOnDomReady();
@@ -3499,7 +3599,6 @@
     HSF.prototype.setDrag = function(element, opt) {
       var empty, msie, oldOver, sl, st, sx, sy, xy,
         _this = this;
-
       empty = function() {
         return true;
       };
@@ -3551,7 +3650,6 @@
       };
       element.onmousedown = function(e) {
         var position, stl, stt, target, touchEnd, touchMove;
-
         e = e || window.event;
         if (opt.onDragStart(element, e, opt) === false) {
           return false;
@@ -3587,7 +3685,6 @@
         sl = sl === 'auto' || sl === '' ? stl : _this.toInt(sl);
         document.onmousemove = function(ev) {
           var elOver, x, y;
-
           if (!ev) {
             ev = window.event;
           }
@@ -3619,7 +3716,6 @@
         } catch (_error) {}
         document.onmouseup = function(eu) {
           var elOver;
-
           if (!eu) {
             eu = window.event;
           }
@@ -3697,7 +3793,6 @@
 
     HSF.prototype.dateToFormat = function(date, format) {
       var percentEcran, t, tmp;
-
       percentEcran = false;
       if (/%%/.test(format)) {
         percentEcran = true;
@@ -3876,7 +3971,6 @@
 
     HSF.prototype.insertAfter = function(el, exist) {
       var next, parent;
-
       parent = exist.parentNode;
       next = exist.nextSibling;
       if (next) {
@@ -3922,7 +4016,6 @@
 
     HSF.prototype.qsa = function(queryString, context) {
       var a, beh, c, i, j, r, s, script, selector, _i, _j, _len, _len1, _ref;
-
       if (context == null) {
         context = document;
       }
@@ -3981,7 +4074,6 @@
 
     HSF.prototype.getScrollBarWidth = function() {
       var inner, outer, w1, w2;
-
       if (this._scrollBarWidth < 0) {
         this.appendChild(document.body, "<div id='__HSFscrollbar' style='position:absolute;top:0;left:0;visibility:hidden;width:200px;height:150px;overflow:hidden;'><p style='width:100%;height:200px'></p></div>");
         outer = f.GBI('__HSFscrollbar');
@@ -3999,34 +4091,6 @@
     };
 
     /**
-     * накладывает объект obj2 на объект obj1
-     * если нужно создать третий объект (не трогать obj1) из двух надо использовать f.merge(f.merge({},obj1), obj2)
-     * @param {Object} obj1 модифицируемый объект
-     * @param {Object} obj2 модифицирующий объект
-     * @return  Object
-    */
-
-
-    HSF.prototype.merge = function(obj1, obj2) {
-      var e, p;
-
-      for (p in obj2) {
-        if (!__hasProp.call(obj2, p)) continue;
-        try {
-          if (obj2[p].constructor === Object) {
-            obj1[p] = this.merge(obj1[p], obj2[p]);
-          } else {
-            obj1[p] = obj2[p];
-          }
-        } catch (_error) {
-          e = _error;
-          obj1[p] = obj2[p];
-        }
-      }
-      return obj1;
-    };
-
-    /**
      * преобразует данные формы в строку. Нет типа файл из-за проблем с кроссбраузерностью
      * @param {HTMLFormElement} form форма
      * @param {Boolean} isGet является ли запрос get-запросом
@@ -4036,12 +4100,10 @@
 
     HSF.prototype.formToData = function(form, isGet) {
       var el, encodeEl, p, q, _i, _len, _ref;
-
       q = '';
       p = isGet ? '?' : '';
       encodeEl = function(el) {
         var r;
-
         r = p + encodeURI(el.name) + '=' + encodeURI(el.value);
         p = '&';
         return r;
@@ -4080,7 +4142,6 @@
 
     HSF.prototype.createStyleSheet = function() {
       var ss;
-
       if (this._systemStyleSheet != null) {
         return this;
       }
@@ -4111,7 +4172,6 @@
 
     HSF.prototype.updateStyleSheetIndex = function() {
       var cssText, i, indexStyle, mode, p, part, rule, rules, selectorText, sumaryStyle, _i, _j, _k, _len, _len1, _len2, _ref;
-
       sumaryStyle = [];
       indexStyle = {};
       mode = -1;
@@ -4177,7 +4237,6 @@
 
     HSF.prototype.setCSS = function(selector, prop, value) {
       var eProps, i, newIndex, p, pp, props, reIndexed, rule, rules, sel, selectors, strProps, v, _i, _j, _len, _len1;
-
       selectors = selector.split(',');
       props = {};
       switch (typeof prop) {
@@ -4285,7 +4344,6 @@
 
     HSF.prototype.remCSS = function(selector) {
       var i, reIndexed, rule, rules, sel, selectors, _i, _j, _len, _len1;
-
       if (this._systemStyleSheet == null) {
         return this;
       }
@@ -4336,7 +4394,6 @@
   if ('localStorage' in window) {
     HSF.prototype.setLS = function(key, val) {
       var e;
-
       try {
         localStorage.setItem(key, val);
       } catch (_error) {
@@ -4384,7 +4441,6 @@
     };
     HSF.prototype.clearLS = function() {
       var v, _i, _len, _ref;
-
       _ref = this._storage.XMLDocument.documentElement.attributes;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         v = _ref[_i];

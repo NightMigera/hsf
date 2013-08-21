@@ -54,6 +54,7 @@ window._HSF =
 
 ###*
  * Базовый класс содержит методы и переменные
+ * @class HSF
  * @type {HSF}
  ###
 class HSF
@@ -323,8 +324,12 @@ class HSF
         return
 
     ###*
-     * Присоединяет значения объекта к текущему массиву
-     * @param {Array|NodeList|HTMLCollection} array любой массивоподобный объект
+     * Присоединяет значения массива или списка к текущему массиву
+     * Если ничего не переданно, равно как и null, то будет ошибка.
+     * Если будет переданн посторонний объект без свойства `length`, то массив изменён не будет,
+     * если же у объекта будет `length` то будет прибавденно `length` элементов в конец массива
+     *
+     * @param {Array|String||NodeList|HTMLCollection} array любой массивоподобный объект
      * @return Array
      ###
     Array::take = (array) ->
@@ -381,18 +386,231 @@ class HSF
 
     @prepareOnDocumentReady()
 
+  # VARS MODULE: work width variables
 
   ###*
    * Получает строку для обращения из глобальной области видимости для inline функций
-   * @return String
+   * @return {String}
    ###
   getThis: ->
     "_HSF.get('#{@_id}')"
 
   ###*
+   * Возвращает структуру объекта `o` с глубиной рекурсии `level`.
+   *
+   * @method toSource
+   * @param {Object} o объект, который отображаем
+   * @param {Number} [level] глубина рекурсивного перебора, по умолчанию 0
+   * @return {String} структура объекта
+   ###
+  toSource: (o, level = 0) ->
+    #return o.toSource() if 'toSource' of o
+    space = arguments[2] || '  '
+    switch typeof o
+      when 'object'
+        isArray = o instanceof Array
+        if isArray
+          source = "[\n"
+          for val in o
+            if typeof val is 'object' and level > 0
+              source += "#{space}#{@toSource(val, level-1, space+'  ')},\n"
+            else
+              if typeof val is "string"
+                val = '"' + val + '"'
+              source += "#{space}#{val},\n"
+        else
+          source = "{\n"
+          for own i, val of o
+            if typeof val is 'object' and level > 0
+              source += "#{space}#{i}: #{@toSource(val, level-1, space+'  ')},\n"
+            else
+              if typeof val is "string"
+                val = '"' + val + '"'
+              source += "#{space}#{i}: #{val},\n"
+        source = source.substr(0, source.length - 2) + '\n' if source.length > 2
+        source += "#{space.replace('  ','')}"
+        if isArray then source += "]" else source += "}"
+      when 'function'
+        source = (''+o)||'function(){...}'
+      when 'string'
+        source = '"' + o + '"'
+      when 'number', 'boolean'
+        source = ''+o
+      else
+        source = 'undefined'
+    source
+
+  ###*
+   * Возвращает количество свойств и методов или длину объекта `o`
+   *
+   * @method oSize
+   * @param {Object|Array|String} o
+   * @return {Number} длина объекта
+   ###
+  oSize: (o) ->
+    return o.length if o instanceof String or typeof o is 'string'
+    throw new Error('argument not object') if typeof o isnt 'object'
+    return Object.keys(o).length  if "keys" of Object
+    s = 0
+    s++ for own k of o
+    s
+
+  ###*
+   * Возвращает ключи объекта `o`
+   *
+   * @method oKeys
+   * @param {Object|Array|String} o
+   * @return {Array} массив ключей
+   ###
+  oKeys: (o) ->
+    if o instanceof String or typeof o is 'string'
+      return @oKeys([].take(o))
+    throw new Error('argument not object') if typeof o isnt 'object'
+    return Object.keys(o) if "keys" of Object
+    res = []
+    for own k of o
+      res[res.length] = k
+    res
+
+  ###*
+   * накладывает объект obj2 на объект obj1
+   * если нужно создать третий объект (не трогать obj1) из двух надо использовать f.merge(f.merge({},obj1), obj2) <br />
+   * (!) Нет защиты от дурака. Если аргументы не объекты, то результат не предсказуем и может быть ошибка.
+   *
+   * @method merge
+   * @param {Object|Array} to модифицируемый объект
+   * @param {Object|Array} from модифицирующий объект
+   * @return {Object} изменённый to
+   ###
+  merge: (to, from) ->
+    for own p of from
+      try
+      # Property in destination object set; update its value.
+        if typeof from[p] is 'object'
+          to[p] = @merge(to[p], from[p])
+        else
+          to[p] = from[p]
+      catch e
+      # Property in destination object not set; create it and set its value.
+        to[p] = from[p]
+    to
+
+  ###*
+   * Парсит JSON строку в JS объект по RFC 4627 или "родными" средствами
+   *
+   * @method parseJSON
+   * @param   {String} text
+   * @return  {Object|Array|Boolean|Number|String|Null}
+   ###
+  parseJSON: (text) ->
+    return JSON.parse(text)  if "JSON" of window and "parse" of JSON
+    not (/[^,:{}\[\]0-9.\-+Eaeflnr-u \n\r\t]/.test(text.replace(/"(\\.|[^"\\])*"/g, ""))) and eval("(#{text})")
+
+  ###*
+   * Преобразует объект в JSON строку
+   *
+   * @method varToJSON
+   * @param   {Object|Array|Boolean|Number|String|Null} o
+   * @return  {String} строка в формате JSON
+   ###
+  varToJSON: (o) ->
+    return JSON.stringify(o) if "JSON" of window and "stringify" of JSON
+    _ret = ""
+    _a = ""
+    switch typeof o
+      when "string"
+        return '"' + o + '"'
+      when "number", "boolean"
+        return o.toString()
+      when "object"
+        if o instanceof Array
+          _ret = "["
+          i = 0
+          for el in o
+            switch typeof el
+              when "string"
+                _ret += _a + '"' + el + '"'
+              when "boolean", "number"
+                _ret += _a + el
+              when "object"
+                _ret += _a + varToJSON(el)
+            _a = ","
+            i++
+          _ret += "]"
+        else if o is null
+          return "null"
+        else
+          _ret = "{"
+          for own i of o
+            continue  unless o.hasOwnProperty(i)
+            _ret2 = null
+            switch typeof o[i]
+              when "string"
+                _ret2 = '"' + o[i] + '"'
+              when "boolean", "number"
+                _ret2 = o[i]
+              when "object"
+                _ret2 = varToJSON(o[i])
+            if _ret2?
+              _ret += _a + '"' + i + '":' + _ret2
+              _a = ","
+          _ret += "}"
+    _ret
+
+  ###*
+   * возвращает целое число или 0 (вместо NaN), так же может работать с числами вида 12.3768E+21
+   *
+   * @method toInt
+   * @param {*} value
+   * @return {Number} Integer
+   ###
+  toInt: (value) ->
+    switch typeof value
+      when 'boolean'
+        return +value
+      when 'string'
+        if /^\d+(\.\d+)?([eE][\+-]?\d+)?$/.test value
+          return eval value | 0
+        else
+          return parseInt(value, 10)|0
+      else
+        return parseInt(value, 10)|0
+
+  ###*
+   * возвращает число с плавающей точкой или 0 (вместо NaN), так же может работать с числами вида 12.3768E+21
+   *
+   * @method toFloat
+   * @param {*} value
+   * @return {Number} Float
+   ###
+  toFloat: (value) ->
+    switch typeof value
+      when 'boolean'
+        return +value
+      when 'string'
+        if /^\d+(\.\d+)?([eE][\+-]?\d+)?$/.test value
+          return eval value
+        else
+          r = parseFloat(value, 10)
+      else
+        r = parseFloat(value, 10)
+    if isNaN(r) then 0 else r
+
+  ###*
+   * Берёт логарифм от a по основанию b. Если основания не указано, то логарифм натуральный.
+   *
+   * @method mLog
+   * @param {Number} a
+   * @param {Number} b = Math.E
+   * @return Number
+   ###
+  mLog: (a, b = Math.E) ->
+    1000*Math.log(a)/(1000*Math.log(b))
+
+  ###*
    * синоним для document.getElementById
    * @param {String} el
-   * @return Element
+   * @return {Element}
    ###
   GBI: (el) ->
     document.getElementById el
@@ -504,6 +722,7 @@ class HSF
   ###*
    * получается позиция объекта в документе. Некоторые баги в ИЕ
    * @param {Element} el
+   * @param {Element} parent=document
    * @return Object {x:(number),y:(number)}
    ###
   getPos: (el, parent = document.body) ->
@@ -566,7 +785,8 @@ class HSF
    * @param {Event} e
    * @return {Object} {x:(number),y:(number)}
    ###
-  GMP: @getMousePos
+  GMP: (e) =>
+    @getMousePos(e)
 
   ###*
    * получается позиция объекта на экране.
@@ -774,43 +994,6 @@ class HSF
     return false unless nameSpace
     el[nameSpace] = {}
     return true
-
-  ###*
-   * Возвращает свойства объекта, преобразованные в строку.
-   * Расширение класса происходит только там, где нет этого метода
-   * @return String
-   ###
-  toSource: (o) ->
-    return o.toSource() if 'toSource' of o
-    source = "{\n"
-    source += "  #{i}: #{val}\n" for own i, val of o
-    source + "\n}"
-
-  ###*
-   * возвращает число или 0 (вместо NaN)
-   * @param {*} value
-   * @return Number
-   ###
-  toInt: (value) ->
-    switch typeof value
-      when 'boolean'
-        return +value
-      when 'string'
-        if /^\d+(\.\d+)?([eE][\+-]\d+)?$/.test value
-          return eval value | 0
-        else
-          return parseInt(value)|0
-      else
-        return parseInt(value)|0
-
-  ###*
-   * Берёт логарифм от a по основанию b. По умолчанию натуральный.
-   * @param {Number} a
-   * @param {Number} b = Math.E
-   * @return Number
-   ###
-  mLog: (a, b = Math.E) ->
-    1000*Math.log(a)/(1000*Math.log(b))
 
   ###*
    * Описываем, что в кнопке должно измениться и какие функции произойти, когда на неё нажимают,
@@ -1204,7 +1387,8 @@ class HSF
         close: =>
           bg.style.display = "none"
           bubble.style.display = "none"
-          bubbleContainer.innerHTML = ""
+          @clearElement(bubbleContainer)
+          #bubbleContainer.innerHTML = ""
           func = @getMem(bubble, "func")
           if func isnt null
             func()
@@ -1220,10 +1404,10 @@ class HSF
       #контейнер для текста
       bubbleContainer = @createElement(".bubbleContainer",{},bubble)
       @setOnResize bg, =>
-        bubble = @GBI("bubbleItem")
+        #bubble = @GBI("bubbleItem")
         ws = @getSize()
         l = (ws.w - parseInt(bubble.style.width)) / 2
-        t = (ws.h - parseInt(bubble.style.height)) / 2
+        t = (ws.h - parseInt(bubble.style.height)) / 2 + @getMem(bubble, 's')
         if l < 0
           l = 0
         else
@@ -1257,7 +1441,8 @@ class HSF
     if typeof html is "string"
       bubbleContainer.innerHTML = html
     else if typeof html is "object" and "nodeType" of html
-      bubbleContainer.innerHTML = ""
+      @clearElement(bubbleContainer)
+      #bubbleContainer.innerHTML = ""
       bubbleContainer.appendChild html
     else
       return false
@@ -1294,6 +1479,7 @@ class HSF
           bubbleContainer.style.overflowY = 'scroll'
     top = parseInt(bubble.style.top)
     height = parseInt(bubble.style.height)
+    @setMem(bubble, 's', ws.s)
     if ws.s > 0 # if scrolled page
       if ws.sh < ws.s + top + height # if big bubble
         if ws.sh > top + height # if  bubble ineer into scrollHeight
@@ -1679,29 +1865,6 @@ class HSF
     catch e
       @log 'hasElement' + e.message, 'warn'
       return false
-
-  ###*
-   * Возвращает количество свойств объекта
-   * @param {Object} obj
-   * @return Number
-   ###
-  oSize: (obj) ->
-    return Object.keys(obj).length  if "keys" of Object
-    s = 0
-    s++ for own k of obj
-    s
-
-  ###*
-   * Возвращает ключи объекта
-   * @param {Object} obj
-   * @return Array
-   ###
-  oKeys: (obj) ->
-    return Object.keys(obj) if "keys" of Object
-    res = []
-    for own k of obj
-      res[res.length] = k
-    res
 #------------------------------------------------    start resize
   ###*
    * Устанавливает отслеживание изменение размеров элементов в документе.
@@ -1830,12 +1993,13 @@ class HSF
    * @return  Element|Null
    ###
   GPT: (el, tagName) ->
+    return null if not tagName? or tagName is ''
     tagName = tagName.toLowerCase()
-    return document.getElementsByTagName(tagName)[0] or null  if tagName is "html" or tagName is "body"
     return null if not el or not el.parentNode
-    el = el.parentNode  while el?.parentNode?.tagName? and el.parentNode.tagName.toLowerCase() isnt tagName and el.parentNode.tagName.toLowerCase() isnt 'html'
-    return null if not ("parentNode" of el) or el.tagName.toLowerCase() is 'html' or el.parentNode.tagName.toLowerCase() is 'html'
-    el.parentNode
+    while el?.parentNode?.tagName?
+      el = el.parentNode
+      return el if el.tagName.toLowerCase() is tagName
+    null
 
   ###*
    * Получить родителя по имени класса
@@ -1845,9 +2009,14 @@ class HSF
    ###
   GPC: (el, className) ->
     return null if not el
-    while el and el.parentNode
-      el = el.parentNode
-      return el if @hasClassName(el, className)
+    if className isnt ''
+      while el?.parentNode?
+        el = el.parentNode
+        return el if @hasClassName(el, className)
+    else
+      while el?.parentNode?
+        el = el.parentNode
+        return el if not el.className
     null
 #------------------------------------------------    start truncateStrng
   ###*
@@ -2064,64 +2233,6 @@ class HSF
       secEl.style.zIndex = 1
       el.style.textDecoration = 'none'
     true
-
-  ###*
-   * Парсит JSON строку в JS объект по RFC 4627 или "родными" средствами
-   * @param   {String} text
-   * @return  Object|Array|Boolean|Number|String|Null
-   ###
-  parseJSON: (text) ->
-    return JSON.parse(text)  if "JSON" of window and "parse" of JSON
-    not (/[^,:{}\[\]0-9.\-+Eaeflnr-u \n\r\t]/.test(text.replace(/"(\\.|[^"\\])*"/g, ""))) and eval("(#{text})")
-
-  ###*
-   * Преобразует объект в JSON строку
-   * @param   {Object|Array|Boolean|Number|String|Null} obj
-   * @return  String
-   ###
-  varToJSON: (obj) ->
-    return JSON.stringify(obj) if "JSON" of window and "stringify" of JSON
-    _ret = ""
-    _a = ""
-    switch typeof obj
-      when "string"
-        return '"' + obj + '"'
-      when "number", "boolean"
-        return obj.toString()
-      when "object"
-        if obj instanceof Array
-          _ret = "["
-          i = 0
-          for el in obj
-            switch typeof el
-              when "string"
-                _ret += _a + '"' + el + '"'
-              when "boolean", "number"
-                _ret += _a + el
-              when "object"
-                _ret += _a + varToJSON(el)
-            _a = ","
-            i++
-          _ret += "]"
-        else if obj is null
-          return "null"
-        else
-          _ret = "{"
-          for own i of obj
-            continue  unless obj.hasOwnProperty(i)
-            _ret2 = null
-            switch typeof obj[i]
-              when "string"
-                _ret2 = '"' + obj[i] + '"'
-              when "boolean", "number"
-                _ret2 = obj[i]
-              when "object"
-                _ret2 = varToJSON(obj[i])
-            if _ret2?
-              _ret += _a + '"' + i + '":' + _ret2
-              _a = ","
-          _ret += "}"
-    _ret
 
   ###*
    * получает внешнюю обёртку тэга более кроссбраузерно, чем обращение к outerHTML
@@ -2721,26 +2832,6 @@ class HSF
       document.body.removeChild outer
       @_scrollBarWidth = w1 - w2
     @_scrollBarWidth
-
-  ###*
-   * накладывает объект obj2 на объект obj1
-   * если нужно создать третий объект (не трогать obj1) из двух надо использовать f.merge(f.merge({},obj1), obj2)
-   * @param {Object} obj1 модифицируемый объект
-   * @param {Object} obj2 модифицирующий объект
-   * @return  Object
-   ###
-  merge: (obj1, obj2) ->
-    for own p of obj2
-      try
-      # Property in destination object set; update its value.
-        if obj2[p].constructor is Object
-          obj1[p] = @merge(obj1[p], obj2[p])
-        else
-          obj1[p] = obj2[p]
-      catch e
-      # Property in destination object not set; create it and set its value.
-        obj1[p] = obj2[p]
-    obj1
 
   ###*
    * преобразует данные формы в строку. Нет типа файл из-за проблем с кроссбраузерностью
