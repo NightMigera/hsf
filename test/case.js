@@ -328,7 +328,7 @@
       test('1c f.GPT no el and class', f.GPT(document.getElementById('testItalic')) === null);
       test('1c f.GPT no args', f.GPT() === null);
     }
-    {
+    { // Work width vars
       group('Work width vars');
       // toSource
       test('2c f.toSource simple String', f.toSource('sas') === '"sas"');
@@ -531,6 +531,89 @@
       test('2c f.toFloat number with E',  f.toFloat('0.003E2') === 0.3);
       test('2c f.toFloat number with E+', f.toFloat('0.003E+2') === 0.3);
       test('2c f.toFloat number with E-', f.toFloat('0.003E-2') === 0.00003);
+      // mLog
+      test('2c f.mLog ln e', f.mLog(Math.E) === 1);
+      test('2c f.mLog ln 1', f.mLog(1) === 0);
+      test('2c f.mLog log 10', f.mLog(10, 10) === 1);
+      test('2c f.mLog log 100', f.mLog(100, 10) === 2);
+      test('2c f.mLog log 1000000', f.mLog(1000000, 10) === 6);
+      test('2c f.mLog log 2, 2', f.mLog(2, 2) === 1);
+      test('2c f.mLog log 2, 4', f.mLog(4, 2) === 2);
+      test('2c f.mLog log 2, 1024', f.mLog(1024, 2) === 10);
+      test('2c f.mLog hard calc', f.mLog(181.019335983756182, 8) === 2.5);
+      // md5
+      test('2c f.md5 ""', f.md5('') === 'd41d8cd98f00b204e9800998ecf8427e');
+      test('2c f.md5 "123"', f.md5('123') === '202cb962ac59075b964b07152d234b70');
+      test('2c f.md5 "abc"', f.md5('abc') === '900150983cd24fb0d6963f7d28e17f72');
+      test('2c f.md5 symbols', f.md5('!&^&*@^(*$&)(%$$^$}{:"<?><') === '6cebd516ac821a24cf7e669117711adf');
+      test('2c f.md5 long string', f.md5('bfx89I6SqNqUuphtxv7wV6lAj5j4qOiCaV8AuZOI6NnUvyOo3xuDUQHFEa6jNzXr47aquebvab9Fytwqb9WasbAkFRERaj5wrJrY') === '109f2df7548eb13a9a817f4505909d0a');
+      // random
+      test('2c f.random 0, 1', function(){
+        var i, r, ret = true, o = false, s = false;
+        for(i=0; i < 100000; i++) {
+          r = f.random(0, 1);
+          ret = ret && (r === 0 || r === 1);
+          if (r === 0) {
+            o = true;
+          } else {
+            s = true;
+          }
+        }
+        return ret && o && s;
+      });
+      test('2c f.random 0, 50', function(){
+        var i, r, ret = true, o = false, s = false;
+        for(i=0; i < 100000; i++) {
+          r = f.random(0, 50);
+          ret = ret && (r >= 0 || r <= 50);
+          if (r === 0) {
+            o = true;
+          } else if (r === 50) {
+            s = true;
+          }
+        }
+        return ret && o && s;
+      });
+      test('2c f.random -1, 0', function(){
+        var i, r, ret = true, o = false, s = false;
+        for(i=0; i < 100000; i++) {
+          r = f.random(-1, 0);
+          ret = ret && (r === 0 || r === -1);
+          if (r === 0) {
+            o = true;
+          } else {
+            s = true;
+          }
+        }
+        return ret && o && s;
+      });
+      test('2c f.random -50, 0', function(){
+        var i, r, ret = true, o = false, s = false;
+        for(i=0; i < 100000; i++) {
+          r = f.random(-50, 0);
+          ret = ret && (r <= 0 || r >= -50);
+          if (r === 0) {
+            o = true;
+          } else if (r === -50) {
+            s = true;
+          }
+        }
+        return ret && o && s;
+      });
+      test('2c f.random -25, 25', function(){
+        var i, r, ret = true, o = false, s = false;
+        for(i=0; i < 100000; i++) {
+          r = f.random(-25, 25);
+          ret = ret && (r <= 25 || r >= -25);
+          if (r === 25) {
+            o = true;
+          } else if (r === -25) {
+            s = true;
+          }
+        }
+        return ret && o && s;
+      });
+
     }
   }
 }
