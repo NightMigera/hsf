@@ -76,6 +76,9 @@
      * @type {Array}
      * @private
     */
+
+    var utf8_encode;
+
     HSF.prototype._rPool = [];
 
     /**
@@ -932,7 +935,7 @@
      * @method mLog
      * @param {Number} a
      * @param {Number} b = Math.E
-     * @return Number
+     * @return {Number} logarithm
     */
 
 
@@ -941,6 +944,241 @@
         b = Math.E;
       }
       return 1000 * Math.log(a) / (1000 * Math.log(b));
+    };
+
+    /**
+     * md5 сумму подсчитывает по строке.
+     *
+     * @method md5
+     * @param {String} str
+     * @return {String} hash summ
+    */
+
+
+    HSF.prototype.md5 = function(str) {
+      var AA, AddUnsigned, BB, CC, ConvertToWordArray, DD, F, FF, G, GG, H, HH, I, II, RotateLeft, S11, S12, S13, S14, S21, S22, S23, S24, S31, S32, S33, S34, S41, S42, S43, S44, WordToHex, a, b, c, d, k, temp, x;
+      RotateLeft = function(lValue, iShiftBits) {
+        return (lValue << iShiftBits) | (lValue >>> (32 - iShiftBits));
+      };
+      AddUnsigned = function(lX, lY) {
+        var lResult, lX4, lX8, lY4, lY8;
+        lX8 = lX & 0x80000000;
+        lY8 = lY & 0x80000000;
+        lX4 = lX & 0x40000000;
+        lY4 = lY & 0x40000000;
+        lResult = (lX & 0x3FFFFFFF) + (lY & 0x3FFFFFFF);
+        if (lX4 & lY4) {
+          return lResult ^ 0x80000000 ^ lX8 ^ lY8;
+        }
+        if (lX4 | lY4) {
+          if (lResult & 0x40000000) {
+            return lResult ^ 0xC0000000 ^ lX8 ^ lY8;
+          } else {
+            return lResult ^ 0x40000000 ^ lX8 ^ lY8;
+          }
+        } else {
+          return lResult ^ lX8 ^ lY8;
+        }
+      };
+      F = function(x, y, z) {
+        return (x & y) | ((~x) & z);
+      };
+      G = function(x, y, z) {
+        return (x & z) | (y & (~z));
+      };
+      H = function(x, y, z) {
+        return x ^ y ^ z;
+      };
+      I = function(x, y, z) {
+        return y ^ (x | (~z));
+      };
+      FF = function(a, b, c, d, x, s, ac) {
+        a = AddUnsigned(a, AddUnsigned(AddUnsigned(F(b, c, d), x), ac));
+        return AddUnsigned(RotateLeft(a, s), b);
+      };
+      GG = function(a, b, c, d, x, s, ac) {
+        a = AddUnsigned(a, AddUnsigned(AddUnsigned(G(b, c, d), x), ac));
+        return AddUnsigned(RotateLeft(a, s), b);
+      };
+      HH = function(a, b, c, d, x, s, ac) {
+        a = AddUnsigned(a, AddUnsigned(AddUnsigned(H(b, c, d), x), ac));
+        return AddUnsigned(RotateLeft(a, s), b);
+      };
+      II = function(a, b, c, d, x, s, ac) {
+        a = AddUnsigned(a, AddUnsigned(AddUnsigned(I(b, c, d), x), ac));
+        return AddUnsigned(RotateLeft(a, s), b);
+      };
+      ConvertToWordArray = function(str) {
+        var lByteCount, lBytePosition, lMessageLength, lNumberOfWords, lNumberOfWords_temp1, lNumberOfWords_temp2, lWordArray, lWordCount;
+        lMessageLength = str.length;
+        lNumberOfWords_temp1 = lMessageLength + 8;
+        lNumberOfWords_temp2 = (lNumberOfWords_temp1 - (lNumberOfWords_temp1 % 64)) / 64;
+        lNumberOfWords = (lNumberOfWords_temp2 + 1) * 16;
+        lWordArray = new Array(lNumberOfWords - 1);
+        lBytePosition = 0;
+        lByteCount = 0;
+        while (lByteCount < lMessageLength) {
+          lWordCount = (lByteCount - (lByteCount % 4)) / 4;
+          lBytePosition = (lByteCount % 4) * 8;
+          lWordArray[lWordCount] = lWordArray[lWordCount] | (str.charCodeAt(lByteCount) << lBytePosition);
+          lByteCount++;
+        }
+        lWordCount = (lByteCount - (lByteCount % 4)) / 4;
+        lBytePosition = (lByteCount % 4) * 8;
+        lWordArray[lWordCount] = lWordArray[lWordCount] | (0x80 << lBytePosition);
+        lWordArray[lNumberOfWords - 2] = lMessageLength << 3;
+        lWordArray[lNumberOfWords - 1] = lMessageLength >>> 29;
+        return lWordArray;
+      };
+      WordToHex = function(lValue) {
+        var WordToHexValue, WordToHexValue_temp, lByte, lCount;
+        WordToHexValue = "";
+        WordToHexValue_temp = "";
+        lCount = 0;
+        while (lCount <= 3) {
+          lByte = (lValue >>> (lCount * 8)) & 255;
+          WordToHexValue_temp = "0" + lByte.toString(16);
+          WordToHexValue = WordToHexValue + WordToHexValue_temp.substr(WordToHexValue_temp.length - 2, 2);
+          lCount++;
+        }
+        return WordToHexValue;
+      };
+      S11 = 7;
+      S12 = 12;
+      S13 = 17;
+      S14 = 22;
+      S21 = 5;
+      S22 = 9;
+      S23 = 14;
+      S24 = 20;
+      S31 = 4;
+      S32 = 11;
+      S33 = 16;
+      S34 = 23;
+      S41 = 6;
+      S42 = 10;
+      S43 = 15;
+      S44 = 21;
+      str = utf8_encode(str);
+      x = ConvertToWordArray(str);
+      a = 0x67452301;
+      b = 0xEFCDAB89;
+      c = 0x98BADCFE;
+      d = 0x10325476;
+      k = 0;
+      while (k < x.length) {
+        AA = a;
+        BB = b;
+        CC = c;
+        DD = d;
+        a = FF(a, b, c, d, x[k + 0], S11, 0xD76AA478);
+        d = FF(d, a, b, c, x[k + 1], S12, 0xE8C7B756);
+        c = FF(c, d, a, b, x[k + 2], S13, 0x242070DB);
+        b = FF(b, c, d, a, x[k + 3], S14, 0xC1BDCEEE);
+        a = FF(a, b, c, d, x[k + 4], S11, 0xF57C0FAF);
+        d = FF(d, a, b, c, x[k + 5], S12, 0x4787C62A);
+        c = FF(c, d, a, b, x[k + 6], S13, 0xA8304613);
+        b = FF(b, c, d, a, x[k + 7], S14, 0xFD469501);
+        a = FF(a, b, c, d, x[k + 8], S11, 0x698098D8);
+        d = FF(d, a, b, c, x[k + 9], S12, 0x8B44F7AF);
+        c = FF(c, d, a, b, x[k + 10], S13, 0xFFFF5BB1);
+        b = FF(b, c, d, a, x[k + 11], S14, 0x895CD7BE);
+        a = FF(a, b, c, d, x[k + 12], S11, 0x6B901122);
+        d = FF(d, a, b, c, x[k + 13], S12, 0xFD987193);
+        c = FF(c, d, a, b, x[k + 14], S13, 0xA679438E);
+        b = FF(b, c, d, a, x[k + 15], S14, 0x49B40821);
+        a = GG(a, b, c, d, x[k + 1], S21, 0xF61E2562);
+        d = GG(d, a, b, c, x[k + 6], S22, 0xC040B340);
+        c = GG(c, d, a, b, x[k + 11], S23, 0x265E5A51);
+        b = GG(b, c, d, a, x[k + 0], S24, 0xE9B6C7AA);
+        a = GG(a, b, c, d, x[k + 5], S21, 0xD62F105D);
+        d = GG(d, a, b, c, x[k + 10], S22, 0x2441453);
+        c = GG(c, d, a, b, x[k + 15], S23, 0xD8A1E681);
+        b = GG(b, c, d, a, x[k + 4], S24, 0xE7D3FBC8);
+        a = GG(a, b, c, d, x[k + 9], S21, 0x21E1CDE6);
+        d = GG(d, a, b, c, x[k + 14], S22, 0xC33707D6);
+        c = GG(c, d, a, b, x[k + 3], S23, 0xF4D50D87);
+        b = GG(b, c, d, a, x[k + 8], S24, 0x455A14ED);
+        a = GG(a, b, c, d, x[k + 13], S21, 0xA9E3E905);
+        d = GG(d, a, b, c, x[k + 2], S22, 0xFCEFA3F8);
+        c = GG(c, d, a, b, x[k + 7], S23, 0x676F02D9);
+        b = GG(b, c, d, a, x[k + 12], S24, 0x8D2A4C8A);
+        a = HH(a, b, c, d, x[k + 5], S31, 0xFFFA3942);
+        d = HH(d, a, b, c, x[k + 8], S32, 0x8771F681);
+        c = HH(c, d, a, b, x[k + 11], S33, 0x6D9D6122);
+        b = HH(b, c, d, a, x[k + 14], S34, 0xFDE5380C);
+        a = HH(a, b, c, d, x[k + 1], S31, 0xA4BEEA44);
+        d = HH(d, a, b, c, x[k + 4], S32, 0x4BDECFA9);
+        c = HH(c, d, a, b, x[k + 7], S33, 0xF6BB4B60);
+        b = HH(b, c, d, a, x[k + 10], S34, 0xBEBFBC70);
+        a = HH(a, b, c, d, x[k + 13], S31, 0x289B7EC6);
+        d = HH(d, a, b, c, x[k + 0], S32, 0xEAA127FA);
+        c = HH(c, d, a, b, x[k + 3], S33, 0xD4EF3085);
+        b = HH(b, c, d, a, x[k + 6], S34, 0x4881D05);
+        a = HH(a, b, c, d, x[k + 9], S31, 0xD9D4D039);
+        d = HH(d, a, b, c, x[k + 12], S32, 0xE6DB99E5);
+        c = HH(c, d, a, b, x[k + 15], S33, 0x1FA27CF8);
+        b = HH(b, c, d, a, x[k + 2], S34, 0xC4AC5665);
+        a = II(a, b, c, d, x[k + 0], S41, 0xF4292244);
+        d = II(d, a, b, c, x[k + 7], S42, 0x432AFF97);
+        c = II(c, d, a, b, x[k + 14], S43, 0xAB9423A7);
+        b = II(b, c, d, a, x[k + 5], S44, 0xFC93A039);
+        a = II(a, b, c, d, x[k + 12], S41, 0x655B59C3);
+        d = II(d, a, b, c, x[k + 3], S42, 0x8F0CCC92);
+        c = II(c, d, a, b, x[k + 10], S43, 0xFFEFF47D);
+        b = II(b, c, d, a, x[k + 1], S44, 0x85845DD1);
+        a = II(a, b, c, d, x[k + 8], S41, 0x6FA87E4F);
+        d = II(d, a, b, c, x[k + 15], S42, 0xFE2CE6E0);
+        c = II(c, d, a, b, x[k + 6], S43, 0xA3014314);
+        b = II(b, c, d, a, x[k + 13], S44, 0x4E0811A1);
+        a = II(a, b, c, d, x[k + 4], S41, 0xF7537E82);
+        d = II(d, a, b, c, x[k + 11], S42, 0xBD3AF235);
+        c = II(c, d, a, b, x[k + 2], S43, 0x2AD7D2BB);
+        b = II(b, c, d, a, x[k + 9], S44, 0xEB86D391);
+        a = AddUnsigned(a, AA);
+        b = AddUnsigned(b, BB);
+        c = AddUnsigned(c, CC);
+        d = AddUnsigned(d, DD);
+        k += 16;
+      }
+      temp = WordToHex(a) + WordToHex(b) + WordToHex(c) + WordToHex(d);
+      return temp.toLowerCase();
+    };
+
+    utf8_encode = function(str_data) {
+      var c, n, utftext;
+      str_data = str_data.replace(/\r\n/g, "\n");
+      utftext = "";
+      n = 0;
+      while (n < str_data.length) {
+        c = str_data.charCodeAt(n);
+        if (c < 128) {
+          utftext += String.fromCharCode(c);
+        } else if ((c > 127) && (c < 2048)) {
+          utftext += String.fromCharCode((c >> 6) | 192);
+          utftext += String.fromCharCode((c & 63) | 128);
+        } else {
+          utftext += String.fromCharCode((c >> 12) | 224);
+          utftext += String.fromCharCode(((c >> 6) & 63) | 128);
+          utftext += String.fromCharCode((c & 63) | 128);
+        }
+        n++;
+      }
+      return utftext;
+    };
+
+    /**
+     * Получает рендомное число от min до max включительно. unsafe
+     *
+     * @method  random
+     * @param   {Number} min минимальное значение Int
+     * @param   {Number} max максимальное значение Int
+     * @return  {Number} integer
+    */
+
+
+    HSF.prototype.random = function(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
     };
 
     /**
@@ -1119,7 +1357,7 @@
       if (parent == null) {
         parent = document.body;
       }
-      if (!this.hasElement(parent, el)) {
+      if (!this.hasElement(parent, el) || el.offsetParent === null) {
         return false;
       }
       s = {
@@ -2226,19 +2464,34 @@
 
     /**
      * Создаёт бабл, который появляется при загрузке.
-     * TODO: сделать так, чтобы в качестве img можно было передавать Element
-     * @param {string} img
-     * @return Boolean|HSF
+     *
+     * @param {String|Element} img
+     * @return {HSF}
     */
 
 
     HSF.prototype.createLoaderBubble = function(img) {
+      var el;
       if (img == null) {
         img = this._defaultLoader;
       }
-      return this.createBubble("<div style='text-align:center;margin-top:50px;'><img src='" + img + "' alt='ajax-loader'/></div>", 0, 0, {
-        loader: true
-      });
+      if (this._defaultLoader == null) {
+        this._defaultLoader = img;
+      }
+      if (typeof img === 'object') {
+        el = document.createElement('div');
+        el.style.textAlign = 'center';
+        el.style.marginTop = '50%';
+        el.appendChild(img);
+        this.createBubble(el, 0, 0, {
+          loader: true
+        });
+      } else {
+        this.createBubble("<div style='text-align:center;margin-top:50px;'><img src='" + img + "' alt='ajax-loader'/></div>", 0, 0, {
+          loader: true
+        });
+      }
+      return this;
     };
 
     /**
@@ -2254,240 +2507,6 @@
       }
       option.resize = true;
       return this.createBubble("<div class=\"alertBubble\"><span>" + text + "</span><button onclick=\"" + (this.getThis()) + ".closeBubble();\">Ok</button></div>", 400, 60, option);
-    };
-
-    /*
-    # Calculate the md5 hash of a string
-    #
-    # +   original by: Webtoolkit.info (http://www.webtoolkit.info/)
-    # + namespaced by: Michael White (http://crestidg.com)
-    */
-
-
-    /**
-     * md5 сумму подсчитывает по строке.
-     * @param {String} str
-     * @return String
-    */
-
-
-    HSF.prototype.md5 = function(str) {
-      var AA, AddUnsigned, BB, CC, ConvertToWordArray, DD, F, FF, G, GG, H, HH, I, II, RotateLeft, S11, S12, S13, S14, S21, S22, S23, S24, S31, S32, S33, S34, S41, S42, S43, S44, WordToHex, a, b, c, d, k, temp, x;
-      RotateLeft = function(lValue, iShiftBits) {
-        return (lValue << iShiftBits) | (lValue >>> (32 - iShiftBits));
-      };
-      AddUnsigned = function(lX, lY) {
-        var lResult, lX4, lX8, lY4, lY8;
-        lX8 = lX & 0x80000000;
-        lY8 = lY & 0x80000000;
-        lX4 = lX & 0x40000000;
-        lY4 = lY & 0x40000000;
-        lResult = (lX & 0x3FFFFFFF) + (lY & 0x3FFFFFFF);
-        if (lX4 & lY4) {
-          return lResult ^ 0x80000000 ^ lX8 ^ lY8;
-        }
-        if (lX4 | lY4) {
-          if (lResult & 0x40000000) {
-            return lResult ^ 0xC0000000 ^ lX8 ^ lY8;
-          } else {
-            return lResult ^ 0x40000000 ^ lX8 ^ lY8;
-          }
-        } else {
-          return lResult ^ lX8 ^ lY8;
-        }
-      };
-      F = function(x, y, z) {
-        return (x & y) | ((~x) & z);
-      };
-      G = function(x, y, z) {
-        return (x & z) | (y & (~z));
-      };
-      H = function(x, y, z) {
-        return x ^ y ^ z;
-      };
-      I = function(x, y, z) {
-        return y ^ (x | (~z));
-      };
-      FF = function(a, b, c, d, x, s, ac) {
-        a = AddUnsigned(a, AddUnsigned(AddUnsigned(F(b, c, d), x), ac));
-        return AddUnsigned(RotateLeft(a, s), b);
-      };
-      GG = function(a, b, c, d, x, s, ac) {
-        a = AddUnsigned(a, AddUnsigned(AddUnsigned(G(b, c, d), x), ac));
-        return AddUnsigned(RotateLeft(a, s), b);
-      };
-      HH = function(a, b, c, d, x, s, ac) {
-        a = AddUnsigned(a, AddUnsigned(AddUnsigned(H(b, c, d), x), ac));
-        return AddUnsigned(RotateLeft(a, s), b);
-      };
-      II = function(a, b, c, d, x, s, ac) {
-        a = AddUnsigned(a, AddUnsigned(AddUnsigned(I(b, c, d), x), ac));
-        return AddUnsigned(RotateLeft(a, s), b);
-      };
-      ConvertToWordArray = function(str) {
-        var lByteCount, lBytePosition, lMessageLength, lNumberOfWords, lNumberOfWords_temp1, lNumberOfWords_temp2, lWordArray, lWordCount;
-        lMessageLength = str.length;
-        lNumberOfWords_temp1 = lMessageLength + 8;
-        lNumberOfWords_temp2 = (lNumberOfWords_temp1 - (lNumberOfWords_temp1 % 64)) / 64;
-        lNumberOfWords = (lNumberOfWords_temp2 + 1) * 16;
-        lWordArray = new Array(lNumberOfWords - 1);
-        lBytePosition = 0;
-        lByteCount = 0;
-        while (lByteCount < lMessageLength) {
-          lWordCount = (lByteCount - (lByteCount % 4)) / 4;
-          lBytePosition = (lByteCount % 4) * 8;
-          lWordArray[lWordCount] = lWordArray[lWordCount] | (str.charCodeAt(lByteCount) << lBytePosition);
-          lByteCount++;
-        }
-        lWordCount = (lByteCount - (lByteCount % 4)) / 4;
-        lBytePosition = (lByteCount % 4) * 8;
-        lWordArray[lWordCount] = lWordArray[lWordCount] | (0x80 << lBytePosition);
-        lWordArray[lNumberOfWords - 2] = lMessageLength << 3;
-        lWordArray[lNumberOfWords - 1] = lMessageLength >>> 29;
-        return lWordArray;
-      };
-      WordToHex = function(lValue) {
-        var WordToHexValue, WordToHexValue_temp, lByte, lCount;
-        WordToHexValue = "";
-        WordToHexValue_temp = "";
-        lCount = 0;
-        while (lCount <= 3) {
-          lByte = (lValue >>> (lCount * 8)) & 255;
-          WordToHexValue_temp = "0" + lByte.toString(16);
-          WordToHexValue = WordToHexValue + WordToHexValue_temp.substr(WordToHexValue_temp.length - 2, 2);
-          lCount++;
-        }
-        return WordToHexValue;
-      };
-      S11 = 7;
-      S12 = 12;
-      S13 = 17;
-      S14 = 22;
-      S21 = 5;
-      S22 = 9;
-      S23 = 14;
-      S24 = 20;
-      S31 = 4;
-      S32 = 11;
-      S33 = 16;
-      S34 = 23;
-      S41 = 6;
-      S42 = 10;
-      S43 = 15;
-      S44 = 21;
-      str = this.utf8_encode(str);
-      x = ConvertToWordArray(str);
-      a = 0x67452301;
-      b = 0xEFCDAB89;
-      c = 0x98BADCFE;
-      d = 0x10325476;
-      k = 0;
-      while (k < x.length) {
-        AA = a;
-        BB = b;
-        CC = c;
-        DD = d;
-        a = FF(a, b, c, d, x[k + 0], S11, 0xD76AA478);
-        d = FF(d, a, b, c, x[k + 1], S12, 0xE8C7B756);
-        c = FF(c, d, a, b, x[k + 2], S13, 0x242070DB);
-        b = FF(b, c, d, a, x[k + 3], S14, 0xC1BDCEEE);
-        a = FF(a, b, c, d, x[k + 4], S11, 0xF57C0FAF);
-        d = FF(d, a, b, c, x[k + 5], S12, 0x4787C62A);
-        c = FF(c, d, a, b, x[k + 6], S13, 0xA8304613);
-        b = FF(b, c, d, a, x[k + 7], S14, 0xFD469501);
-        a = FF(a, b, c, d, x[k + 8], S11, 0x698098D8);
-        d = FF(d, a, b, c, x[k + 9], S12, 0x8B44F7AF);
-        c = FF(c, d, a, b, x[k + 10], S13, 0xFFFF5BB1);
-        b = FF(b, c, d, a, x[k + 11], S14, 0x895CD7BE);
-        a = FF(a, b, c, d, x[k + 12], S11, 0x6B901122);
-        d = FF(d, a, b, c, x[k + 13], S12, 0xFD987193);
-        c = FF(c, d, a, b, x[k + 14], S13, 0xA679438E);
-        b = FF(b, c, d, a, x[k + 15], S14, 0x49B40821);
-        a = GG(a, b, c, d, x[k + 1], S21, 0xF61E2562);
-        d = GG(d, a, b, c, x[k + 6], S22, 0xC040B340);
-        c = GG(c, d, a, b, x[k + 11], S23, 0x265E5A51);
-        b = GG(b, c, d, a, x[k + 0], S24, 0xE9B6C7AA);
-        a = GG(a, b, c, d, x[k + 5], S21, 0xD62F105D);
-        d = GG(d, a, b, c, x[k + 10], S22, 0x2441453);
-        c = GG(c, d, a, b, x[k + 15], S23, 0xD8A1E681);
-        b = GG(b, c, d, a, x[k + 4], S24, 0xE7D3FBC8);
-        a = GG(a, b, c, d, x[k + 9], S21, 0x21E1CDE6);
-        d = GG(d, a, b, c, x[k + 14], S22, 0xC33707D6);
-        c = GG(c, d, a, b, x[k + 3], S23, 0xF4D50D87);
-        b = GG(b, c, d, a, x[k + 8], S24, 0x455A14ED);
-        a = GG(a, b, c, d, x[k + 13], S21, 0xA9E3E905);
-        d = GG(d, a, b, c, x[k + 2], S22, 0xFCEFA3F8);
-        c = GG(c, d, a, b, x[k + 7], S23, 0x676F02D9);
-        b = GG(b, c, d, a, x[k + 12], S24, 0x8D2A4C8A);
-        a = HH(a, b, c, d, x[k + 5], S31, 0xFFFA3942);
-        d = HH(d, a, b, c, x[k + 8], S32, 0x8771F681);
-        c = HH(c, d, a, b, x[k + 11], S33, 0x6D9D6122);
-        b = HH(b, c, d, a, x[k + 14], S34, 0xFDE5380C);
-        a = HH(a, b, c, d, x[k + 1], S31, 0xA4BEEA44);
-        d = HH(d, a, b, c, x[k + 4], S32, 0x4BDECFA9);
-        c = HH(c, d, a, b, x[k + 7], S33, 0xF6BB4B60);
-        b = HH(b, c, d, a, x[k + 10], S34, 0xBEBFBC70);
-        a = HH(a, b, c, d, x[k + 13], S31, 0x289B7EC6);
-        d = HH(d, a, b, c, x[k + 0], S32, 0xEAA127FA);
-        c = HH(c, d, a, b, x[k + 3], S33, 0xD4EF3085);
-        b = HH(b, c, d, a, x[k + 6], S34, 0x4881D05);
-        a = HH(a, b, c, d, x[k + 9], S31, 0xD9D4D039);
-        d = HH(d, a, b, c, x[k + 12], S32, 0xE6DB99E5);
-        c = HH(c, d, a, b, x[k + 15], S33, 0x1FA27CF8);
-        b = HH(b, c, d, a, x[k + 2], S34, 0xC4AC5665);
-        a = II(a, b, c, d, x[k + 0], S41, 0xF4292244);
-        d = II(d, a, b, c, x[k + 7], S42, 0x432AFF97);
-        c = II(c, d, a, b, x[k + 14], S43, 0xAB9423A7);
-        b = II(b, c, d, a, x[k + 5], S44, 0xFC93A039);
-        a = II(a, b, c, d, x[k + 12], S41, 0x655B59C3);
-        d = II(d, a, b, c, x[k + 3], S42, 0x8F0CCC92);
-        c = II(c, d, a, b, x[k + 10], S43, 0xFFEFF47D);
-        b = II(b, c, d, a, x[k + 1], S44, 0x85845DD1);
-        a = II(a, b, c, d, x[k + 8], S41, 0x6FA87E4F);
-        d = II(d, a, b, c, x[k + 15], S42, 0xFE2CE6E0);
-        c = II(c, d, a, b, x[k + 6], S43, 0xA3014314);
-        b = II(b, c, d, a, x[k + 13], S44, 0x4E0811A1);
-        a = II(a, b, c, d, x[k + 4], S41, 0xF7537E82);
-        d = II(d, a, b, c, x[k + 11], S42, 0xBD3AF235);
-        c = II(c, d, a, b, x[k + 2], S43, 0x2AD7D2BB);
-        b = II(b, c, d, a, x[k + 9], S44, 0xEB86D391);
-        a = AddUnsigned(a, AA);
-        b = AddUnsigned(b, BB);
-        c = AddUnsigned(c, CC);
-        d = AddUnsigned(d, DD);
-        k += 16;
-      }
-      temp = WordToHex(a) + WordToHex(b) + WordToHex(c) + WordToHex(d);
-      return temp.toLowerCase();
-    };
-
-    /**
-     * Функция кодирует в utf8 нужна для md5
-     * @param {String} str_data
-     * @return String
-    */
-
-
-    HSF.prototype.utf8_encode = function(str_data) {
-      var c, n, utftext;
-      str_data = str_data.replace(/\r\n/g, "\n");
-      utftext = "";
-      n = 0;
-      while (n < str_data.length) {
-        c = str_data.charCodeAt(n);
-        if (c < 128) {
-          utftext += String.fromCharCode(c);
-        } else if ((c > 127) && (c < 2048)) {
-          utftext += String.fromCharCode((c >> 6) | 192);
-          utftext += String.fromCharCode((c & 63) | 128);
-        } else {
-          utftext += String.fromCharCode((c >> 12) | 224);
-          utftext += String.fromCharCode(((c >> 6) & 63) | 128);
-          utftext += String.fromCharCode((c & 63) | 128);
-        }
-        n++;
-      }
-      return utftext;
     };
 
     /**
@@ -2938,7 +2957,7 @@
     /**
      * Более умное обрезание строки: ищет пробелы в промежутке от dMax до uMax.
      * Если пробел не найден в этом промежутке, то ищет его в меньшую сторону
-     * TODO: могут быть не только пробелы, а любые разделяющие символы и при этом скорость не должна упасть
+     *
      * @param   {String}  string
      * @param   {Number}  dMax
      * @param   {Number}  uMax
@@ -3992,18 +4011,6 @@
     HSF.prototype.insertBefore = function(el, exist) {
       exist.parentNode.insertBefore(el, exist);
       return this;
-    };
-
-    /**
-     * Получает рендомное число от min до max включительно
-     * @param   {Number} min минимальное значение
-     * @param   {Number} max максимальное значение
-     * @return  Number
-    */
-
-
-    HSF.prototype.random = function(min, max) {
-      return Math.floor(Math.random() * (max - min + 1)) + min;
     };
 
     /**
