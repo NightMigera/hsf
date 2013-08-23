@@ -35,8 +35,6 @@
 ~addEvent
 
 
-module Global
-=============
 HSF(options)
 ------------
 Параметры:
@@ -124,70 +122,70 @@ getThis()
 Получает строку для обращения из глобальной области видимости для inline функций
 
 
-class HSF
----------
-**Methods**
-
-HSF.toSource(o, \[level\])
---------------------------
-Возвращает структуру объекта `o` с глубиной рекурсии `level`.
-
+truncateStringMin(str, length, \[after\])
+-----------------------------------------
+Обрезает строку `str`, если она больше `length` и прибавляет к ней `after` так, чтобы итоговая длина строки была равна `length`.
 
 
 **Parameters**
 
-**o**:  *Object*,  объект, который нам нужен
+**str**:  *String*,  
 
-**[level]**:  *Number*,  глубина рекурсивного перебора, по умолчанию 0
+
+**length**:  *Number*,  
+
+
+**[after]**:  *String*,  что ставится после обрезанной строки
 
 **Returns**
 
-*String*,  структура объекта
+String
 
-HSF.oSize(o)
-------------
-Возвращает количество свойств и методов объекта `o`
+truncateString(string, dMax, uMax, \[after\])
+---------------------------------------------
+Более умное обрезание строки: ищет пробелы в промежутке от dMax до uMax.
+Если пробел не найден в этом промежутке, то ищет его в меньшую сторону
 
 
 
 **Parameters**
 
-**o**:  *Object*,  
+**string**:  *String*,  
 
+
+**dMax**:  *Number*,  
+
+
+**uMax**:  *Number*,  
+
+
+**[after]**:  *String*,  
+
+
+**Returns**
+
+String
+
+getCharWidthMax(\[fs\], \[ff\], \[chart\])
+------------------------------------------
+получает ширину символа chart размера fs и шрифта ff
+в кирилице максимальную букву лучше брать Ю
+
+
+**Parameters**
+
+**[fs]**:  *Number*,  =  11
+
+**[ff]**:  *String*,  =  "Tahoma"
+
+**[chart]**:  *String*,  =  "m"
 
 **Returns**
 
 Number
 
-HSF.oKeys(o)
-------------
-Возвращает ключи объекта `o`
-
-
-
-**Parameters**
-
-**o**:  *Object*,  
-
-
-**Returns**
-
-Array
-
-module var
-==========
-Возвращает структуру объекта `o` с глубиной рекурсии `level`.
-
-module var
-==========
-Возвращает количество свойств и методов объекта `o`
-
-module var
-==========
-Возвращает ключи объекта `o`
-
-var.GBI(el)
------------
+GBI(el)
+-------
 синоним для document.getElementById
 
 
@@ -196,8 +194,8 @@ var.GBI(el)
 **el**:  *String*,  
 
 
-var.GBC(classname, \[node\])
-----------------------------
+GBC(classname, \[node\])
+------------------------
 кросс-браузерная версия для получения элементов по имени класса classname внутри node
 
 
@@ -212,8 +210,8 @@ var.GBC(classname, \[node\])
 
 Array|NodeList
 
-var.GBT(tagName, \[node\])
---------------------------
+GBT(tagName, \[node\])
+----------------------
 синоним для node.getElementsByTagName
 
 
@@ -228,8 +226,8 @@ var.GBT(tagName, \[node\])
 
 NodeList
 
-var.openWin(url, \[title\], \[width\], \[height\], \[option\])
---------------------------------------------------------------
+openWin(url, \[title\], \[width\], \[height\], \[option\])
+----------------------------------------------------------
 создаём окно по центру с заданной ссылкой и названием.
 Размеры, а так же различные элементы определяются отдельно
 
@@ -253,8 +251,8 @@ var.openWin(url, \[title\], \[width\], \[height\], \[option\])
 
 window
 
-var.getPos(el, parent=document)
--------------------------------
+getPos(el, parent=document)
+---------------------------
 получается позиция объекта в документе. Некоторые баги в ИЕ
 
 
@@ -266,8 +264,8 @@ var.getPos(el, parent=document)
 **parent=document**:  *Element*,  
 
 
-var.getMousePos(e)
-------------------
+getMousePos(e)
+--------------
 получается позиция event-a
 
 
@@ -276,8 +274,8 @@ var.getMousePos(e)
 **e**:  *Event*,  
 
 
-var.GMP(e)
-----------
+GMP(e)
+------
 alias to getMousePos
 
 
@@ -290,8 +288,8 @@ alias to getMousePos
 
 *Object*,  {x:(number),y:(number)}
 
-var.getScreenPos(el)
---------------------
+getScreenPos(el)
+----------------
 получается позиция объекта на экране.
 
 
@@ -304,8 +302,8 @@ var.getScreenPos(el)
 
 *Object*,  {x:(number),y:(number)}
 
-var.getSize()
--------------
+getSize()
+---------
 получение размеров экрана, возвращается объект с свойствами:
 w ширина экрана,
 h высота экрана,
@@ -319,8 +317,8 @@ sh высота документа
 
 Object
 
-var.getStyle(el, styleName)
----------------------------
+getStyle(el, styleName)
+-----------------------
 получаем значение стиля элемента по его DOM-имени
 
 
@@ -336,8 +334,8 @@ var.getStyle(el, styleName)
 
 String
 
-var.setStyle(el, style)
------------------------
+setStyle(el, style)
+-------------------
 Выставляет стиль, в основном призвын перебирать стили в объекте
 
 
@@ -353,8 +351,8 @@ var.setStyle(el, style)
 
 HSF
 
-var.getIndexElement(el, node)
------------------------------
+getIndexElement(el, node)
+-------------------------
 Получает индекс элемента у родительского элемента.
 
 
@@ -369,13 +367,13 @@ var.getIndexElement(el, node)
 
 Number
 
-var.browser()
--------------
+browser()
+---------
 определяет название браузера и версию
 
 
-var.setMem(el, prop, val, nameSpace)
-------------------------------------
+setMem(el, prop, val, nameSpace)
+--------------------------------
 устанавливаем "память" объекту.
 пока он будет жив, память можно будет получить
 
@@ -396,8 +394,8 @@ var.setMem(el, prop, val, nameSpace)
 
 Element
 
-var.getMem(el, prop, nameSpace)
--------------------------------
+getMem(el, prop, nameSpace)
+---------------------------
 получаем "память" объекта.
 пока он будет жив, память можно будет получить
 
@@ -416,8 +414,8 @@ var.getMem(el, prop, nameSpace)
 
 Mixed
 
-var.getMemList(el, nameSpace)
------------------------------
+getMemList(el, nameSpace)
+-------------------------
 получаем всю память с установленным префиксом
 
 
@@ -433,8 +431,8 @@ var.getMemList(el, nameSpace)
 
 Object
 
-var.clearMem(el, nameSpace)
----------------------------
+clearMem(el, nameSpace)
+-----------------------
 очищаем всю память с установленным префиксом
 
 
@@ -450,38 +448,8 @@ var.clearMem(el, nameSpace)
 
 Boolean
 
-var.toInt(value)
-----------------
-возвращает число или 0 (вместо NaN)
-
-
-**Parameters**
-
-**value**:  ***,  
-
-
-**Returns**
-
-Number
-
-var.mLog(a, b)
---------------
-Берёт логарифм от a по основанию b. По умолчанию натуральный.
-
-
-**Parameters**
-
-**a**:  *Number*,  
-
-
-**b**:  *Number*,  = Math.E
-
-**Returns**
-
-Number
-
-var.buttonClick(el, props, opt={})
-----------------------------------
+buttonClick(el, props, opt={})
+------------------------------
 Описываем, что в кнопке должно измениться и какие функции произойти, когда на неё нажимают,
 прописываем функцию, срабатывающую при отпускании.
 
@@ -499,8 +467,8 @@ var.buttonClick(el, props, opt={})
 
 Boolean
 
-var.hover(el, props, opt={})
-----------------------------
+hover(el, props, opt={})
+------------------------
 Описываем, что в кнопке должно измениться и какие функции произойти, когда на неё наводят,
 прописываем функцию, срабатывающую при отведении.
 
@@ -518,8 +486,8 @@ var.hover(el, props, opt={})
 
 Boolean
 
-var.setTempStyle(el, props, state)
-----------------------------------
+setTempStyle(el, props, state)
+------------------------------
 Устанавливает временный стиль, записывая старый стиль в память объекта
 
 
@@ -536,8 +504,8 @@ var.setTempStyle(el, props, state)
 
 HSF
 
-var.retTempStyle(el, props, state)
-----------------------------------
+retTempStyle(el, props, state)
+------------------------------
 Восстанавливает указанные в props ывойства из state блока
 
 
@@ -554,8 +522,8 @@ var.retTempStyle(el, props, state)
 
 HSF
 
-var.addEvent(elem, evType, fn)
-------------------------------
+addEvent(elem, evType, fn)
+--------------------------
 Добавление функции для действия
 
 
@@ -573,8 +541,8 @@ var.addEvent(elem, evType, fn)
 
 Boolean|Function функция для удаления эвента или false
 
-var.removeEvent(elem, evType, fn)
----------------------------------
+removeEvent(elem, evType, fn)
+-----------------------------
 Удаление функции из слушателей
 
 
@@ -592,8 +560,8 @@ var.removeEvent(elem, evType, fn)
 
 Boolean
 
-var.load(url, \[func\], \[data|err\], \[data\])
------------------------------------------------
+load(url, \[func\], \[data|err\], \[data\])
+-------------------------------------------
 AJAX запрос
 может принять необходимые аргументы, а может и объект, где:
 url: String собственно адрес
@@ -621,8 +589,8 @@ header: Object вида {header1Name: header1Value[, headerXName: headerXValue].
 
 String|XMLHttpRequest|ActiveXObject
 
-var.createBubble(html, \[w\], \[h\], \[options\])
--------------------------------------------------
+createBubble(html, \[w\], \[h\], \[options\])
+---------------------------------------------
 Создаём бабл в центре экрана с шириной w и высотой h, с содержимым html
 В опции можно передать:
 close: function наступает при закрытии окна
@@ -645,8 +613,8 @@ resize: Boolean определяет, подгонять ли высоту по 
 
 Boolean|HSF
 
-var.closeBubble()
------------------
+closeBubble()
+-------------
 закрывает бабл
 
 
@@ -654,8 +622,8 @@ var.closeBubble()
 
 Boolean|Element
 
-var.getBubble()
----------------
+getBubble()
+-----------
 Возвращает бабл, если он есть или null
 
 
@@ -663,23 +631,19 @@ var.getBubble()
 
 Element|NULL
 
-var.createLoaderBubble(img)
----------------------------
+createLoaderBubble(img)
+-----------------------
 Создаёт бабл, который появляется при загрузке.
-TODO: сделать так, чтобы в качестве img можно было передавать Element
+
 
 
 **Parameters**
 
-**img**:  *string*,  
+**img**:  *String|Element*,  
 
 
-**Returns**
-
-Boolean|HSF
-
-var.createAlertBubble(text)
----------------------------
+createAlertBubble(text)
+-----------------------
 аналог alert, но не блокирует все скрипты.
 
 
@@ -691,36 +655,8 @@ var.createAlertBubble(text)
 
 Boolean|HSF
 
-var.md5(str)
-------------
-md5 сумму подсчитывает по строке.
-
-
-**Parameters**
-
-**str**:  *String*,  
-
-
-**Returns**
-
-String
-
-var.utf8_encode(str_data)
--------------------------
-Функция кодирует в utf8 нужна для md5
-
-
-**Parameters**
-
-**str_data**:  *String*,  
-
-
-**Returns**
-
-String
-
-var.createElement(tag, \[option\], \[parent\])
-----------------------------------------------
+createElement(tag, \[option\], \[parent\])
+------------------------------------------
 Создаёт элемент по шаблону tag с свойствами из option и прикрепляет в parent
 последовательность важна! Сначала тэг, потом ID и уже потом имена классов
 
@@ -738,8 +674,8 @@ var.createElement(tag, \[option\], \[parent\])
 
 Element
 
-var.appendChild(parent, el)
----------------------------
+appendChild(parent, el)
+-----------------------
 прикрепляет к parent ребёнка из дочерний элемент el
 Если el строка, то это равносильно parent.innerHTML += el, но не ломается DOM-модель
 
@@ -756,8 +692,8 @@ var.appendChild(parent, el)
 
 Array массив элементов
 
-var.removeElement(el)
----------------------
+removeElement(el)
+-----------------
 удаляет элемент el из общего DOM
 
 
@@ -766,8 +702,8 @@ var.removeElement(el)
 **el**:  *Element*,  
 
 
-var.replaceElement(el, newEl)
------------------------------
+replaceElement(el, newEl)
+-------------------------
 заменяет элемент el на newEl
 
 
@@ -779,8 +715,8 @@ var.replaceElement(el, newEl)
 **newEl**:  *Element*,  
 
 
-var.clearElement(el)
---------------------
+clearElement(el)
+----------------
 Очищает элемент. Как оказалось innerHTML = '' довольно затратная операция
 
 
@@ -789,8 +725,8 @@ var.clearElement(el)
 **el**:  *Element*,  
 
 
-var.setUniversalStyle(el, name, value)
---------------------------------------
+setUniversalStyle(el, name, value)
+----------------------------------
 Устанавливает стиль по имени вне зависимости от префиксов, если стиль вообще существует.
 имя стилей следует преобразовывать в CamelCase c маленькой буквы
 
@@ -809,8 +745,8 @@ var.setUniversalStyle(el, name, value)
 
 Boolean
 
-var.hasElement(el, child)
--------------------------
+hasElement(el, child)
+---------------------
 Устанавливает, есть ли в элементе el потомок child
 
 
@@ -826,8 +762,8 @@ var.hasElement(el, child)
 
 Boolean
 
-var.setOnResize(el, \[funcName\])
----------------------------------
+setOnResize(el, \[funcName\])
+-----------------------------
 Устанавливает отслеживание изменение размеров элементов в документе.
 Работает через единый таймер или через onresize
 Если объект активируется повторно и нет funcName, то использыется прежняяфункция
@@ -843,13 +779,13 @@ var.setOnResize(el, \[funcName\])
 
 Number|Boolean
 
-var.resizeObjects()
--------------------
+resizeObjects()
+---------------
 Таймер отслеживает изменения по номерам позиции.
 
 
-var.offOnResize(pos)
---------------------
+offOnResize(pos)
+----------------
 Выключает таймер по позиции, которая возвращалась в setOnResize
 
 
@@ -862,8 +798,8 @@ var.offOnResize(pos)
 
 Object
 
-var.addClassName(el, className)
--------------------------------
+addClassName(el, className)
+---------------------------
 Добавляет к элементу название класса
 
 
@@ -879,8 +815,8 @@ var.addClassName(el, className)
 
 Element
 
-var.hasClassName(el, className)
--------------------------------
+hasClassName(el, className)
+---------------------------
 Определяет, имеет ли документ определённый класс
 
 
@@ -896,8 +832,8 @@ var.hasClassName(el, className)
 
 Boolean
 
-var.removeClassName(el, className)
-----------------------------------
+removeClassName(el, className)
+------------------------------
 Удаляет у элемента название класса
 
 
@@ -913,8 +849,8 @@ var.removeClassName(el, className)
 
 Element
 
-var.delClassName(el, className)
--------------------------------
+delClassName(el, className)
+---------------------------
 синоним для removeClassName
 
 
@@ -930,8 +866,8 @@ var.delClassName(el, className)
 
 Element
 
-var.GPT(el, tagName)
---------------------
+GPT(el, tagName)
+----------------
 Получить родителя по тэгу
 
 
@@ -947,8 +883,8 @@ var.GPT(el, tagName)
 
 Element|Null
 
-var.GPC(el, className)
-----------------------
+GPC(el, className)
+------------------
 Получить родителя по имени класса
 
 
@@ -964,70 +900,8 @@ var.GPC(el, className)
 
 Element|Null
 
-var.truncateStringMin(string, len, \[after\])
----------------------------------------------
-Обрезает строку, если она больше и прибавляет к ней многоточие
-
-
-**Parameters**
-
-**string**:  *String*,  
-
-
-**len**:  *Number*,  
-
-
-**[after]**:  *String*,  что ставится после обрезанной строки
-
-**Returns**
-
-String
-
-var.truncateString(string, dMax, uMax, \[after\])
--------------------------------------------------
-Более умное обрезание строки: ищет пробелы в промежутке от dMax до uMax.
-Если пробел не найден в этом промежутке, то ищет его в меньшую сторону
-TODO: могут быть не только пробелы, а любые разделяющие символы и при этом скорость не должна упасть
-
-
-**Parameters**
-
-**string**:  *String*,  
-
-
-**dMax**:  *Number*,  
-
-
-**uMax**:  *Number*,  
-
-
-**[after]**:  *String*,  
-
-
-**Returns**
-
-String
-
-var.getCharWidthMax(\[fs\], \[ff\], \[chart\])
-----------------------------------------------
-получает ширину символа chart размера fs и шрифта ff
-в кирилице максимальную букву лучше брать Ю
-
-
-**Parameters**
-
-**[fs]**:  *Number*,  =  11
-
-**[ff]**:  *String*,  =  "Tahoma"
-
-**[chart]**:  *String*,  =  "m"
-
-**Returns**
-
-Number
-
-var.log(message, \[type\])
---------------------------
+log(message, \[type\])
+----------------------
 Добавление сообщения в лог
 
 
@@ -1042,8 +916,8 @@ var.log(message, \[type\])
 
 Boolean
 
-var.time(message)
------------------
+time(message)
+-------------
 Работает аналогично time в linux: считает кол-во мс, которое тратит на себя функция
 
 
@@ -1056,8 +930,8 @@ var.time(message)
 
 Boolean
 
-var.printLog()
---------------
+printLog()
+----------
 Выводит лог на экран в виде линии событий и времён
 TODO: сделать наведение более логичным и не зависящим от общей длины шкалы времени
 
@@ -1066,8 +940,8 @@ TODO: сделать наведение более логичным и не за
 
 Boolean
 
-var.selectLogPoint(el)
-----------------------
+selectLogPoint(el)
+------------------
 Выделяет определённую строку при наведении на строчку
 
 
@@ -1080,8 +954,8 @@ var.selectLogPoint(el)
 
 Boolean
 
-var.unselectLogPoint(el)
-------------------------
+unselectLogPoint(el)
+--------------------
 Снимает выделение с определённой строки
 
 
@@ -1094,36 +968,8 @@ var.unselectLogPoint(el)
 
 Boolean
 
-var.parseJSON(text)
--------------------
-Парсит JSON строку в JS объект по RFC 4627 или "родными" средствами
-
-
-**Parameters**
-
-**text**:  *String*,  
-
-
-**Returns**
-
-Object|Array|Boolean|Number|String|Null
-
-var.varToJSON(obj)
-------------------
-Преобразует объект в JSON строку
-
-
-**Parameters**
-
-**obj**:  *Object|Array|Boolean|Number|String|Null*,  
-
-
-**Returns**
-
-String
-
-var.outerHTML(el)
------------------
+outerHTML(el)
+-------------
 получает внешнюю обёртку тэга более кроссбраузерно, чем обращение к outerHTML
 
 
@@ -1136,25 +982,8 @@ var.outerHTML(el)
 
 String|Boolean
 
-var.zeroFill(number, width)
----------------------------
-заполняет спереди нулями number до длины width
-
-
-**Parameters**
-
-**number**:  *Number*,  
-
-
-**width**:  *Number*,  
-
-
-**Returns**
-
-String
-
-var.blockEvent(event)
----------------------
+blockEvent(event)
+-----------------
 блокирует выполнение действия по умолчанию в браузере, включая такие, как ctrl+s и др.
 
 
@@ -1167,8 +996,8 @@ var.blockEvent(event)
 
 Boolean
 
-var.numberInputReplace(el, opt)
--------------------------------
+numberInputReplace(el, opt)
+---------------------------
 замещает input полем со стрелочками
 в опциях можно задать:
 step:  {Number} шаг с которым работает колёсико и кнопки
@@ -1188,8 +1017,8 @@ max:   {Number} максимальное значение
 
 Boolean
 
-var.keyListener(key, func, \[ctrl\], \[shift\], \[alt\])
---------------------------------------------------------
+keyListener(key, func, \[ctrl\], \[shift\], \[alt\])
+----------------------------------------------------
 Добавляет слушателя клавиатуры и прерывает действия по умолчанию, если функции не возвращают true
 
 
@@ -1209,8 +1038,8 @@ var.keyListener(key, func, \[ctrl\], \[shift\], \[alt\])
 
 Boolean
 
-var.onDomReady(func)
---------------------
+onDomReady(func)
+----------------
 Добавляет функцию, которая выполнится при наступлении события построения dom модели
 
 
@@ -1222,8 +1051,8 @@ var.onDomReady(func)
 
 Boolean
 
-var.initOnDomReady()
---------------------
+initOnDomReady()
+----------------
 Запускает цепочку функций
 
 
@@ -1231,8 +1060,8 @@ var.initOnDomReady()
 
 *
 
-var.prepareOnDocumentReady()
-----------------------------
+prepareOnDocumentReady()
+------------------------
 Подготавливает (расставляет слшателей событий) к загрузке документа
 
 
@@ -1240,8 +1069,8 @@ var.prepareOnDocumentReady()
 
 Boolean
 
-var.setDrag(element, funcChecker, funcDragStart, funcDragStop)
---------------------------------------------------------------
+setDrag(element, funcChecker, funcDragStart, funcDragStop)
+----------------------------------------------------------
 Возможность перетаскивания объектов мышью.
 функция проверки принимает 4 аргумента: (element, x/y, 1/0, ev).
 Если третий аргумент 1, то передаётся x, иначе -- y
@@ -1262,8 +1091,8 @@ var.setDrag(element, funcChecker, funcDragStart, funcDragStop)
 
 HSF
 
-var.dateToFormat(date, format)
-------------------------------
+dateToFormat(date, format)
+--------------------------
 Форматирует дату в строку по шаблону. Все одиночные % должны быть экранированы %%, иначе результат непредсказуем
 
 - d день месяца с ведущими нулями 01-31
@@ -1314,8 +1143,8 @@ var.dateToFormat(date, format)
 
 String
 
-var.insertAfter(el, exist)
---------------------------
+insertAfter(el, exist)
+----------------------
 Вставляет элемент el после элемента exist
 
 
@@ -1329,8 +1158,8 @@ var.insertAfter(el, exist)
 
 Node
 
-var.insertBefore(el, exist)
----------------------------
+insertBefore(el, exist)
+-----------------------
 Вставляет элемент el перед элементом exist
 
 
@@ -1344,23 +1173,8 @@ var.insertBefore(el, exist)
 
 Node
 
-var.random(min, max)
---------------------
-Получает рендомное число от min до max включительно
-
-
-**Parameters**
-
-**min**:  *Number*,  минимальное значение
-
-**max**:  *Number*,  максимальное значение
-
-**Returns**
-
-Number
-
-var.qsa(queryString, context)
------------------------------
+qsa(queryString, context)
+-------------------------
 Замена jQuery селектору и универсализация querySelectorAll
 
 
@@ -1374,8 +1188,8 @@ var.qsa(queryString, context)
 
 Array
 
-var.getScrollBarWidth()
------------------------
+getScrollBarWidth()
+-------------------
 Получение ширины скроллбара. Взято из MooTools
 
 
@@ -1383,24 +1197,8 @@ var.getScrollBarWidth()
 
 Number
 
-var.merge(obj1, obj2)
----------------------
-накладывает объект obj2 на объект obj1
-если нужно создать третий объект (не трогать obj1) из двух надо использовать f.merge(f.merge({},obj1), obj2)
-
-
-**Parameters**
-
-**obj1**:  *Object*,  модифицируемый объект
-
-**obj2**:  *Object*,  модифицирующий объект
-
-**Returns**
-
-Object
-
-var.formToData(form, isGet)
----------------------------
+formToData(form, isGet)
+-----------------------
 преобразует данные формы в строку. Нет типа файл из-за проблем с кроссбраузерностью
 
 
@@ -1414,8 +1212,8 @@ var.formToData(form, isGet)
 
 String
 
-var.createStyleSheet()
-----------------------
+createStyleSheet()
+------------------
 Создаёт системный стиль. Если количество стилей зашкаливает (31+), то приклеивается к последнему стилю.
 
 
@@ -1423,8 +1221,8 @@ var.createStyleSheet()
 
 HSF
 
-var.updateStyleSheetIndex()
----------------------------
+updateStyleSheetIndex()
+-----------------------
 Обновляет индекс стилей или создаёт его
 
 
@@ -1432,8 +1230,8 @@ var.updateStyleSheetIndex()
 
 HSF
 
-var.setCSS(selector, prop, \[value\])
--------------------------------------
+setCSS(selector, prop, \[value\])
+---------------------------------
 Устанавливает новое CSS правило
 Если правило существует, то оно дополняется свойствами из prop или prop: value, при чём, если prop строка, а value не указан, будет ошибка
 Формат prop как строки "-moz-border-radius" или "MozBorderRadius", но правильный первый вариант
@@ -1453,8 +1251,8 @@ value только строка и учитывается только, когд
 
 HSF
 
-var.remCSS(selector)
---------------------
+remCSS(selector)
+----------------
 Удалает CSS правило из системного styleSheet-та по селектору
 
 
@@ -1465,4 +1263,190 @@ var.remCSS(selector)
 **Returns**
 
 HSF
+
+class HSF
+---------
+**Methods**
+
+HSF.toSource(o, \[level\])
+--------------------------
+Возвращает структуру объекта `o` с глубиной рекурсии `level`.
+
+
+
+**Parameters**
+
+**o**:  *Object*,  объект, который отображаем
+
+**[level]**:  *Number*,  глубина рекурсивного перебора, по умолчанию 0
+
+**Returns**
+
+*String*,  структура объекта
+
+HSF.oSize(o)
+------------
+Возвращает количество свойств и методов или длину объекта `o`
+
+
+
+**Parameters**
+
+**o**:  *Object|Array|String*,  
+
+
+**Returns**
+
+*Number*,  длина объекта
+
+HSF.oKeys(o)
+------------
+Возвращает ключи объекта `o`
+
+
+
+**Parameters**
+
+**o**:  *Object|Array|String*,  
+
+
+**Returns**
+
+*Array*,  массив ключей
+
+HSF.merge(to, from)
+-------------------
+накладывает объект `from` на объект `to`<br />
+если нужно создать третий объект (не трогать `to`) из двух надо использовать `f.merge(f.merge({},to), from)` <br />
+(!) Нет защиты от дурака. Если аргументы не объекты, то результат не предсказуем и может быть ошибка.
+
+
+
+**Parameters**
+
+**to**:  *Object|Array*,  модифицируемый объект
+
+**from**:  *Object|Array*,  модифицирующий объект
+
+**Returns**
+
+*Object*,  изменённый `to`
+
+HSF.parseJSON(text)
+-------------------
+Парсит JSON строку `str` в JS объект по RFC 4627 или "родными" средствами
+
+
+
+**Parameters**
+
+**text**:  *String*,  
+
+
+HSF.varToJSON(o)
+----------------
+Преобразует объект `o` в JSON строку
+
+
+
+**Parameters**
+
+**o**:  *Object|Array|Boolean|Number|String|Null*,  
+
+
+**Returns**
+
+*String*,  строка в формате JSON
+
+HSF.toInt(value)
+----------------
+возвращает целое число или 0 (вместо NaN), так же может работать с числами вида 12.3768E+21
+
+
+
+**Parameters**
+
+**value**:  ***,  
+
+
+**Returns**
+
+*Number*,  Integer
+
+HSF.toFloat(value)
+------------------
+возвращает число с плавающей точкой или 0 (вместо NaN), так же может работать с числами вида 12.3768E+21
+
+
+
+**Parameters**
+
+**value**:  ***,  
+
+
+**Returns**
+
+*Number*,  Float
+
+HSF.mLog(a, b)
+--------------
+Берёт логарифм от `a` по основанию `b`. Если основание не указано, то логарифм натуральный.
+
+
+
+**Parameters**
+
+**a**:  *Number*,  
+
+
+**b**:  *Number*,  = Math.E
+
+**Returns**
+
+*Number*,  logarithm
+
+HSF.md5(str)
+------------
+вычисляет md5 hash из строки `str`
+
+
+
+**Parameters**
+
+**str**:  *String*,  
+
+
+**Returns**
+
+*String*,  hash summ
+
+HSF.random(min, max)
+--------------------
+Получает рендомное число от `min` до `max` включительно. unsafe
+
+
+
+**Parameters**
+
+**min**:  *Number*,  минимальное значение Int
+
+**max**:  *Number*,  максимальное значение Int
+
+**Returns**
+
+*Number*,  integer
+
+HSF.zeroFill(number, width)
+---------------------------
+заполняет спереди нулями `number` до длины `width`
+
+
+
+**Parameters**
+
+**number**:  *Number*,  
+
+
+**width**:  *Number*,  
+
 
