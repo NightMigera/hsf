@@ -613,7 +613,19 @@
         }
         return ret && o && s;
       });
-
+      // f.zeroFill
+      test('1c f.zeroFill 001', f.zeroFill(1, 3) === '001');
+      test('1c f.zeroFill 100', f.zeroFill(100, 3) === '100');
+      test('1c f.zeroFill 100, 1', f.zeroFill(100, 1) === '100');
+      test('1c f.zeroFill 0.1', f.zeroFill(0.1, 4) === '00.1');
+      test('1c f.zeroFill 0.1', f.zeroFill(.1, 4) === '00.1');
+      test('1c f.zeroFill 0.01', f.zeroFill(.01, 4) === '0.01');
+      test('1c f.zeroFill 0.321312', f.zeroFill(.321312, 4) === '0.321312');
+      test('1c f.zeroFill 321', f.zeroFill(321, 5) === '00321');
+      // f.truncateStringMin
+      test('1c f.truncateStringMin simple truncate', f.truncateStringMin('123456', 3) === '...');
+      test('1c f.truncateStringMin simple none truncate', f.truncateStringMin('123456', 6) === '123456');
+      test('1c f.truncateStringMin simple none truncate', f.truncateStringMin('1234567', 6) === '123...');
     }
   }
 }
