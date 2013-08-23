@@ -753,14 +753,14 @@
     };
 
     /**
-     * накладывает объект obj2 на объект obj1
-     * если нужно создать третий объект (не трогать obj1) из двух надо использовать f.merge(f.merge({},obj1), obj2) <br />
+     * накладывает объект `from` на объект `to`<br />
+     * если нужно создать третий объект (не трогать `to`) из двух надо использовать `f.merge(f.merge({},to), from)` <br />
      * (!) Нет защиты от дурака. Если аргументы не объекты, то результат не предсказуем и может быть ошибка.
      *
      * @method merge
      * @param {Object|Array} to модифицируемый объект
      * @param {Object|Array} from модифицирующий объект
-     * @return {Object} изменённый to
+     * @return {Object} изменённый `to`
     */
 
 
@@ -783,7 +783,7 @@
     };
 
     /**
-     * Парсит JSON строку в JS объект по RFC 4627 или "родными" средствами
+     * Парсит JSON строку `str` в JS объект по RFC 4627 или "родными" средствами
      *
      * @method parseJSON
      * @param   {String} text
@@ -791,15 +791,15 @@
     */
 
 
-    HSF.prototype.parseJSON = function(text) {
+    HSF.prototype.parseJSON = function(str) {
       if ("JSON" in window && "parse" in JSON) {
-        return JSON.parse(text);
+        return JSON.parse(str);
       }
-      return !(/[^,:{}\[\]0-9.\-+Eaeflnr-u \n\r\t]/.test(text.replace(/"(\\.|[^"\\])*"/g, ""))) && eval("(" + text + ")");
+      return !(/[^,:{}\[\]0-9.\-+Eaeflnr-u \n\r\t]/.test(str.replace(/"(\\.|[^"\\])*"/g, ""))) && eval("(" + str + ")");
     };
 
     /**
-     * Преобразует объект в JSON строку
+     * Преобразует объект `o` в JSON строку
      *
      * @method varToJSON
      * @param   {Object|Array|Boolean|Number|String|Null} o
@@ -930,7 +930,7 @@
     };
 
     /**
-     * Берёт логарифм от a по основанию b. Если основания не указано, то логарифм натуральный.
+     * Берёт логарифм от `a` по основанию `b`. Если основание не указано, то логарифм натуральный.
      *
      * @method mLog
      * @param {Number} a
@@ -947,7 +947,7 @@
     };
 
     /**
-     * md5 сумму подсчитывает по строке.
+     * вычисляет md5 hash из строки `str`
      *
      * @method md5
      * @param {String} str
@@ -1168,7 +1168,7 @@
     };
 
     /**
-     * Получает рендомное число от min до max включительно. unsafe
+     * Получает рендомное число от `min` до `max` включительно. unsafe
      *
      * @method  random
      * @param   {Number} min минимальное значение Int
@@ -1179,6 +1179,149 @@
 
     HSF.prototype.random = function(min, max) {
       return Math.floor(Math.random() * (max - min + 1)) + min;
+    };
+
+    /**
+     * заполняет спереди нулями `number` до длины `width`
+     *
+     * @method zeroFill
+     * @param   {Number}  number
+     * @param   {Number}  width
+     * @return  {String}
+    */
+
+
+    HSF.prototype.zeroFill = function(number, width) {
+      width -= number.toString().length;
+      if (width > 0) {
+        return new Array(width + 1).join("0") + number;
+      }
+      return number + "";
+    };
+
+    /**
+     * Обрезает строку `str`, если она больше `length` и прибавляет к ней `after` так, чтобы итоговая длина строки была равна `length`.
+     * @param   {String}  str
+     * @param   {Number}  length
+     * @param   {String}  [after] что ставится после обрезанной строки
+     * @return  String
+    */
+
+
+    HSF.prototype.truncateStringMin = function(str, length, after) {
+      if (after == null) {
+        after = '...';
+      }
+      if (str.length > length) {
+        return str.substr(0, length - after.length) + after;
+      }
+      return str;
+    };
+
+    /**
+     * Более умное обрезание строки: ищет пробелы в промежутке от dMax до uMax.
+     * Если пробел не найден в этом промежутке, то ищет его в меньшую сторону
+     *
+     * @param   {String}  string
+     * @param   {Number}  dMax
+     * @param   {Number}  uMax
+     * @param   {String}  [after]
+     * @return  String
+    */
+
+
+    HSF.prototype.truncateString = function(string, dMax, uMax, after) {
+      var criticalMinChars, dSpace, i, j, minChars, newStr, uSpace;
+      if (after == null) {
+        after = '...';
+      }
+      newStr = "";
+      dSpace = -1;
+      uSpace = -1;
+      minChars = Math.floor(string.length * 0.6);
+      criticalMinChars = Math.floor(string.length * 0.35);
+      string = string.trim();
+      dMax = dMax - after.length;
+      uMax = uMax - after.length;
+      i = dMax;
+      j = dMax;
+      while (i < uMax && i < string.length && j >= 0) {
+        if (/\W/.test(string.charAt(i)) && dSpace < 0) {
+          dSpace = i;
+        }
+        if (/\W/.test(string.charAt(j)) && uSpace < 0) {
+          uSpace = j;
+        }
+        if (uSpace >= 0 && dSpace >= 0) {
+          break;
+        }
+        i++;
+        j--;
+      }
+      if (string.length < dMax) {
+        return string;
+      }
+      if (dSpace > 0) {
+        if (dSpace < minChars) {
+          if (uSpace < uMax && uSpace > 0) {
+            newStr = string.substr(0, uSpace) + after;
+          } else if (dSpace < criticalMinChars) {
+            newStr = string.substr(0, dMax) + after;
+          } else {
+            newStr = string.substr(0, dSpace) + after;
+          }
+        } else {
+          newStr = string.substr(0, dSpace) + after;
+        }
+      } else if (uSpace > 0) {
+        if (uSpace < uMax) {
+          newStr = string.substr(0, uSpace) + after;
+        } else {
+          newStr = string.substr(0, dMax) + after;
+        }
+      } else {
+        if (string.length > dMax && string.length < uMax) {
+          newStr = string;
+        } else {
+          newStr = string.substr(0, dMax) + after;
+        }
+      }
+      return newStr;
+    };
+
+    /**
+     * получает ширину символа chart размера fs и шрифта ff
+     * в кирилице максимальную букву лучше брать Ю
+     * @param   {Number} [fs]    =  11
+     * @param   {String} [ff]    =  "Tahoma"
+     * @param   {String} [chart] =  "m"
+     * @return  Number
+    */
+
+
+    HSF.prototype.getCharWidthMax = function(fs, ff, chart) {
+      var charEl;
+      ff = ff || "Tahoma";
+      fs = fs || 11;
+      chart = chart || "m";
+      if (!window.charWidth) {
+        window.charWidth = {};
+      }
+      if (!(ff in window.charWidth)) {
+        window.charWidth[ff] = {};
+      }
+      if (!(fs in window.charWidth[ff])) {
+        charEl = this.GBI("charEl");
+        if (!charEl) {
+          charEl = this.createElement("#charEl", {
+            innerHTML: chart
+          }, document.body);
+        }
+        charEl.style.fontFamily = ff;
+        charEl.style.fontSize = fs + "px";
+        window.charWidth[ff][fs] = charEl.offsetWidth;
+      }
+      return window.charWidth[ff][fs];
     };
 
     /**
@@ -2936,131 +3079,6 @@
     };
 
     /**
-     * Обрезает строку, если она больше и прибавляет к ней многоточие
-     * @param   {String}  string
-     * @param   {Number}  len
-     * @param   {String}  [after] что ставится после обрезанной строки
-     * @return  String
-    */
-
-
-    HSF.prototype.truncateStringMin = function(string, len, after) {
-      if (after == null) {
-        after = '...';
-      }
-      if (len < string.length) {
-        return string.substr(0, len - after.length) + after;
-      }
-      return string;
-    };
-
-    /**
-     * Более умное обрезание строки: ищет пробелы в промежутке от dMax до uMax.
-     * Если пробел не найден в этом промежутке, то ищет его в меньшую сторону
-     *
-     * @param   {String}  string
-     * @param   {Number}  dMax
-     * @param   {Number}  uMax
-     * @param   {String}  [after]
-     * @return  String
-    */
-
-
-    HSF.prototype.truncateString = function(string, dMax, uMax, after) {
-      var criticalMinChars, dSpace, i, j, minChars, newStr, uSpace;
-      if (after == null) {
-        after = '...';
-      }
-      newStr = "";
-      dSpace = -1;
-      uSpace = -1;
-      minChars = Math.floor(string.length * 0.6);
-      criticalMinChars = Math.floor(string.length * 0.35);
-      string = string.trim();
-      dMax = dMax - after.length;
-      uMax = uMax - after.length;
-      i = dMax;
-      j = dMax;
-      while (i < uMax && i < string.length && j >= 0) {
-        if (/\W/.test(string.charAt(i)) && dSpace < 0) {
-          dSpace = i;
-        }
-        if (/\W/.test(string.charAt(j)) && uSpace < 0) {
-          uSpace = j;
-        }
-        if (uSpace >= 0 && dSpace >= 0) {
-          break;
-        }
-        i++;
-        j--;
-      }
-      if (string.length < dMax) {
-        return string;
-      }
-      if (dSpace > 0) {
-        if (dSpace < minChars) {
-          if (uSpace < uMax && uSpace > 0) {
-            newStr = string.substr(0, uSpace) + after;
-          } else if (dSpace < criticalMinChars) {
-            newStr = string.substr(0, dMax) + after;
-          } else {
-            newStr = string.substr(0, dSpace) + after;
-          }
-        } else {
-          newStr = string.substr(0, dSpace) + after;
-        }
-      } else if (uSpace > 0) {
-        if (uSpace < uMax) {
-          newStr = string.substr(0, uSpace) + after;
-        } else {
-          newStr = string.substr(0, dMax) + after;
-        }
-      } else {
-        if (string.length > dMax && string.length < uMax) {
-          newStr = string;
-        } else {
-          newStr = string.substr(0, dMax) + after;
-        }
-      }
-      return newStr;
-    };
-
-    /**
-     * получает ширину символа chart размера fs и шрифта ff
-     * в кирилице максимальную букву лучше брать Ю
-     * @param   {Number} [fs]    =  11
-     * @param   {String} [ff]    =  "Tahoma"
-     * @param   {String} [chart] =  "m"
-     * @return  Number
-    */
-
-
-    HSF.prototype.getCharWidthMax = function(fs, ff, chart) {
-      var charEl;
-      ff = ff || "Tahoma";
-      fs = fs || 11;
-      chart = chart || "m";
-      if (!window.charWidth) {
-        window.charWidth = {};
-      }
-      if (!(ff in window.charWidth)) {
-        window.charWidth[ff] = {};
-      }
-      if (!(fs in window.charWidth[ff])) {
-        charEl = this.GBI("charEl");
-        if (!charEl) {
-          charEl = this.createElement("#charEl", {
-            innerHTML: chart
-          }, document.body);
-        }
-        charEl.style.fontFamily = ff;
-        charEl.style.fontSize = fs + "px";
-        window.charWidth[ff][fs] = charEl.offsetWidth;
-      }
-      return window.charWidth[ff][fs];
-    };
-
-    /**
      * Добавление сообщения в лог
      * @param   {String}    message
      * @param   {String}    [type] = 'log'
@@ -3255,22 +3273,6 @@
 
     HSF.prototype.outerHTML = function(el) {
       return el.outerHTML || ('XMLSerializer' in window && new XMLSerializer().serializeToString(el)) || false;
-    };
-
-    /**
-     * заполняет спереди нулями number до длины width
-     * @param   {Number}  number
-     * @param   {Number}  width
-     * @return  String
-    */
-
-
-    HSF.prototype.zeroFill = function(number, width) {
-      width -= number.toString().length;
-      if (width > 0) {
-        return new Array(width + (/\./.test(number) ? 2 : 1)).join("0") + number;
-      }
-      return number + "";
     };
 
     /**

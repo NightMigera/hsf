@@ -473,14 +473,14 @@ class HSF
     res
 
   ###*
-   * накладывает объект obj2 на объект obj1
-   * если нужно создать третий объект (не трогать obj1) из двух надо использовать f.merge(f.merge({},obj1), obj2) <br />
+   * накладывает объект `from` на объект `to`<br />
+   * если нужно создать третий объект (не трогать `to`) из двух надо использовать `f.merge(f.merge({},to), from)` <br />
    * (!) Нет защиты от дурака. Если аргументы не объекты, то результат не предсказуем и может быть ошибка.
    *
    * @method merge
    * @param {Object|Array} to модифицируемый объект
    * @param {Object|Array} from модифицирующий объект
-   * @return {Object} изменённый to
+   * @return {Object} изменённый `to`
    ###
   merge: (to, from) ->
     for own p of from
@@ -496,18 +496,18 @@ class HSF
     to
 
   ###*
-   * Парсит JSON строку в JS объект по RFC 4627 или "родными" средствами
+   * Парсит JSON строку `str` в JS объект по RFC 4627 или "родными" средствами
    *
    * @method parseJSON
    * @param   {String} text
    * @return  {Object|Array|Boolean|Number|String|Null}
    ###
-  parseJSON: (text) ->
-    return JSON.parse(text)  if "JSON" of window and "parse" of JSON
-    not (/[^,:{}\[\]0-9.\-+Eaeflnr-u \n\r\t]/.test(text.replace(/"(\\.|[^"\\])*"/g, ""))) and eval("(#{text})")
+  parseJSON: (str) ->
+    return JSON.parse(str)  if "JSON" of window and "parse" of JSON
+    not (/[^,:{}\[\]0-9.\-+Eaeflnr-u \n\r\t]/.test(str.replace(/"(\\.|[^"\\])*"/g, ""))) and eval("(#{str})")
 
   ###*
-   * Преобразует объект в JSON строку
+   * Преобразует объект `o` в JSON строку
    *
    * @method varToJSON
    * @param   {Object|Array|Boolean|Number|String|Null} o
@@ -597,7 +597,7 @@ class HSF
     if isNaN(r) then 0 else r
 
   ###*
-   * Берёт логарифм от a по основанию b. Если основания не указано, то логарифм натуральный.
+   * Берёт логарифм от `a` по основанию `b`. Если основание не указано, то логарифм натуральный.
    *
    * @method mLog
    * @param {Number} a
@@ -608,7 +608,7 @@ class HSF
     1000*Math.log(a)/(1000*Math.log(b))
 
   ###*
-   * md5 сумму подсчитывает по строке.
+   * вычисляет md5 hash из строки `str`
    *
    * @method md5
    * @param {String} str
@@ -807,7 +807,7 @@ class HSF
     utftext
 
   ###*
-   * Получает рендомное число от min до max включительно. unsafe
+   * Получает рендомное число от `min` до `max` включительно. unsafe
    *
    * @method  random
    * @param   {Number} min минимальное значение Int
@@ -816,6 +816,113 @@ class HSF
    ###
   random: (min, max) ->
     Math.floor(Math.random() * (max - min + 1)) + min;
+
+  ###*
+   * заполняет спереди нулями `number` до длины `width`
+   *
+   * @method zeroFill
+   * @param   {Number}  number
+   * @param   {Number}  width
+   * @return  {String}
+   ###
+  zeroFill: (number, width) ->
+    width -= number.toString().length
+    return new Array(width + 1).join("0") + number  if width > 0
+    number + "" # always return a string
+
+#------------------------------------------------    start truncateStrng
+
+  ###*
+   * Обрезает строку `str`, если она больше `length` и прибавляет к ней `after` так, чтобы итоговая длина строки была равна `length`.
+   * @param   {String}  str
+   * @param   {Number}  length
+   * @param   {String}  [after] что ставится после обрезанной строки
+   * @return  String
+   ###
+  truncateStringMin: (str, length, after = '...') ->
+    return str.substr(0, length - after.length) + after if str.length > length
+    str
+
+  ###*
+   * Более умное обрезание строки: ищет пробелы в промежутке от dMax до uMax.
+   * Если пробел не найден в этом промежутке, то ищет его в меньшую сторону
+   *
+   * @param   {String}  string
+   * @param   {Number}  dMax
+   * @param   {Number}  uMax
+   * @param   {String}  [after]
+   * @return  String
+   ###
+  truncateString: (string, dMax, uMax, after = '...') ->
+    newStr = ""
+    dSpace = -1
+    uSpace = -1
+    minChars = Math.floor(string.length * 0.6)
+    criticalMinChars = Math.floor(string.length * 0.35)
+    string = string.trim()
+    dMax = dMax - after.length
+    uMax = uMax - after.length
+    i = dMax
+    j = dMax
+
+    while i < uMax and i < string.length and j >= 0
+      dSpace = i  if /\W/.test(string.charAt(i)) and dSpace < 0
+      uSpace = j  if /\W/.test(string.charAt(j)) and uSpace < 0
+      break  if uSpace >= 0 and dSpace >= 0
+      i++
+      j--
+
+    #возможно 3 варианта выхода:
+    #строка короче dMax
+    return string  if string.length < dMax
+
+    #пробел до максимума найден
+    if dSpace > 0
+      if dSpace < minChars
+        if uSpace < uMax and uSpace > 0
+          newStr = string.substr(0, uSpace) + after
+        else if dSpace < criticalMinChars
+          newStr = string.substr(0, dMax) + after
+        else
+          newStr = string.substr(0, dSpace) + after
+      else
+        newStr = string.substr(0, dSpace) + after
+
+      #пробел найден после максимума
+    else if uSpace > 0
+      if uSpace < uMax
+        newStr = string.substr(0, uSpace) + after
+      else
+        newStr = string.substr(0, dMax) + after
+    else
+      if string.length > dMax and string.length < uMax
+        newStr = string
+      else
+        newStr = string.substr(0, dMax) + after
+    newStr
+
+  ###*
+   * получает ширину символа chart размера fs и шрифта ff
+   * в кирилице максимальную букву лучше брать Ю
+   * @param   {Number} [fs]    =  11
+   * @param   {String} [ff]    =  "Tahoma"
+   * @param   {String} [chart] =  "m"
+   * @return  Number
+   ###
+  getCharWidthMax: (fs, ff, chart) ->
+    ff = ff or "Tahoma"
+    fs = fs or 11
+    chart = chart or "m"
+    window.charWidth = {}  unless window.charWidth
+    window.charWidth[ff] = {}  unless ff of window.charWidth
+    unless fs of window.charWidth[ff]
+      charEl = @GBI("charEl")
+      unless charEl
+        charEl = @createElement("#charEl", {innerHTML: chart}, document.body)
+      charEl.style.fontFamily = ff
+      charEl.style.fontSize = fs + "px"
+      window.charWidth[ff][fs] = charEl.offsetWidth
+    window.charWidth[ff][fs]
 
   ###*
    * синоним для document.getElementById
@@ -2024,98 +2131,6 @@ class HSF
         el = el.parentNode
         return el if not el.className
     null
-#------------------------------------------------    start truncateStrng
-  ###*
-   * Обрезает строку, если она больше и прибавляет к ней многоточие
-   * @param   {String}  string
-   * @param   {Number}  len
-   * @param   {String}  [after] что ставится после обрезанной строки
-   * @return  String
-   ###
-  truncateStringMin: (string, len, after = '...') ->
-    return string.substr(0, len - after.length) + after if len < string.length
-    string
-
-  ###*
-   * Более умное обрезание строки: ищет пробелы в промежутке от dMax до uMax.
-   * Если пробел не найден в этом промежутке, то ищет его в меньшую сторону
-   *
-   * @param   {String}  string
-   * @param   {Number}  dMax
-   * @param   {Number}  uMax
-   * @param   {String}  [after]
-   * @return  String
-   ###
-  truncateString: (string, dMax, uMax, after = '...') ->
-    newStr = ""
-    dSpace = -1
-    uSpace = -1
-    minChars = Math.floor(string.length * 0.6)
-    criticalMinChars = Math.floor(string.length * 0.35)
-    string = string.trim()
-    dMax = dMax - after.length
-    uMax = uMax - after.length
-    i = dMax
-    j = dMax
-
-    while i < uMax and i < string.length and j >= 0
-      dSpace = i  if /\W/.test(string.charAt(i)) and dSpace < 0
-      uSpace = j  if /\W/.test(string.charAt(j)) and uSpace < 0
-      break  if uSpace >= 0 and dSpace >= 0
-      i++
-      j--
-
-    #возможно 3 варианта выхода:
-    #строка короче dMax
-    return string  if string.length < dMax
-
-    #пробел до максимума найден
-    if dSpace > 0
-      if dSpace < minChars
-        if uSpace < uMax and uSpace > 0
-          newStr = string.substr(0, uSpace) + after
-        else if dSpace < criticalMinChars
-          newStr = string.substr(0, dMax) + after
-        else
-          newStr = string.substr(0, dSpace) + after
-      else
-        newStr = string.substr(0, dSpace) + after
-
-      #пробел найден после максимума
-    else if uSpace > 0
-      if uSpace < uMax
-        newStr = string.substr(0, uSpace) + after
-      else
-        newStr = string.substr(0, dMax) + after
-    else
-      if string.length > dMax and string.length < uMax
-        newStr = string
-      else
-        newStr = string.substr(0, dMax) + after
-    newStr
-
-  ###*
-   * получает ширину символа chart размера fs и шрифта ff
-   * в кирилице максимальную букву лучше брать Ю
-   * @param   {Number} [fs]    =  11
-   * @param   {String} [ff]    =  "Tahoma"
-   * @param   {String} [chart] =  "m"
-   * @return  Number
-   ###
-  getCharWidthMax: (fs, ff, chart) ->
-    ff = ff or "Tahoma"
-    fs = fs or 11
-    chart = chart or "m"
-    window.charWidth = {}  unless window.charWidth
-    window.charWidth[ff] = {}  unless ff of window.charWidth
-    unless fs of window.charWidth[ff]
-      charEl = @GBI("charEl")
-      unless charEl
-        charEl = @createElement("#charEl", {innerHTML: chart}, document.body)
-      charEl.style.fontFamily = ff
-      charEl.style.fontSize = fs + "px"
-      window.charWidth[ff][fs] = charEl.offsetWidth
-    window.charWidth[ff][fs]
 
   ###*
    * Добавление сообщения в лог
@@ -2247,18 +2262,6 @@ class HSF
    ###
   outerHTML: (el) ->
     return el.outerHTML or ('XMLSerializer' of window and new XMLSerializer().serializeToString(el)) or false;
-
-  ###*
-   * заполняет спереди нулями number до длины width
-   * @param   {Number}  number
-   * @param   {Number}  width
-   * @return  String
-   ###
-  zeroFill: (number, width) ->
-    width -= number.toString().length
-    return new Array(width + ((if /\./.test(number) then 2 else 1))).join("0") + number  if width > 0
-    number + "" # always return a string
-
 
   ###*
    * блокирует выполнение действия по умолчанию в браузере, включая такие, как ctrl+s и др.
