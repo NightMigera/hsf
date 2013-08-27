@@ -6,7 +6,7 @@
  * To change this template use File | Settings | File Templates.
  */
 { // self tests
-  group('Self-tests');
+  group('Self-tests', window.location.hash !== '#system');
   test('0b success assert', function () {
     return true;
   });
@@ -33,6 +33,7 @@
     callback(false);
   });
   test('0b eq', eq([1,2,3], [1,2,3]));
+  gEnd();
 }
 { // Proto mod test
   group('Proto mod test');
@@ -100,6 +101,7 @@
       mess:'',
       type:TEST_TYPE_ERROR
     });
+    gEnd();
   }
   { // String::trim
     group('String::trim');
@@ -109,6 +111,7 @@
     test('2c String:trim rtrim', 'x       '.trim() === 'x');
     test('2c String:trim trim', '    x     '.trim() === 'x');
     test('2c String:trim tabs', ' \t   x  \t y \t '.trim() === 'x  \t y');
+    gEnd();
   }
   { // String::replace
     group('String::replace');
@@ -184,6 +187,7 @@
         return 'a';
       }, 'gi') === 'besb';
     });
+    gEnd();
   }
   {// Array::forEach
     group('Array::forEach');
@@ -201,6 +205,7 @@
       }, a);
       return ret;
     });
+    gEnd();
   }
   { // Array::take
     group('Array::take');
@@ -260,6 +265,7 @@
         return [].take(null);
       }
     });
+    gEnd();
   }
   { // Array:del
     group('Array::del');
@@ -272,6 +278,7 @@
       var a = [1,2];
       return a.del().length === 1 && a[0] === 2;
     });
+    gEnd();
   }
   { // window.setImmediate
     group('window.setImmediate');
@@ -280,7 +287,9 @@
         callback(true);
       });
     });
+    gEnd();
   }
+  gEnd();
   { // HSF functions
     group('HSF functions');
     // getThis
@@ -309,6 +318,7 @@
         return seq(f.GBC('sTest', tb), tb.getElementsByTagName('s'))
       });
       test('1c f.GBC no exists', f.GBC('sas').length === 0);
+      gEnd();
     }
     { // Get parent
       group('Get parent');
@@ -327,6 +337,7 @@
       test('1c f.GPT no el', f.GPT(null, '') === null);
       test('1c f.GPT no el and class', f.GPT(document.getElementById('testItalic')) === null);
       test('1c f.GPT no args', f.GPT() === null);
+      gEnd();
     }
     { // Work width vars
       group('Work width vars');
@@ -625,7 +636,87 @@
       // f.truncateStringMin
       test('1c f.truncateStringMin simple truncate', f.truncateStringMin('123456', 3) === '...');
       test('1c f.truncateStringMin simple none truncate', f.truncateStringMin('123456', 6) === '123456');
-      test('1c f.truncateStringMin simple none truncate', f.truncateStringMin('1234567', 6) === '123...');
+      test('1c f.truncateStringMin simple width truncate', f.truncateStringMin('1234567', 6) === '123...');
+      test('1c f.truncateStringMin custom after, none', f.truncateStringMin('1234567', 7, 'AAAA') === '1234567');
+      test('1c f.truncateStringMin custom after', f.truncateStringMin('123456', 5, 'AAAA') === '1AAAA');
+      // f.truncateString
+      test('1c f.truncateString, simple', f.truncateString('abc', 3) === 'abc');
+      test('1c f.truncateString, simple2', f.truncateString('abc', 4) === 'abc');
+      test('1c f.truncateString, big string, after cleared', f.truncateString('abc', 2) === '..');
+      test('1c f.truncateString, big string, after full', f.truncateString('abcd', 3) === '...');
+      test('1c f.truncateString, ab| cd', f.truncateString('ab cd', 3, 5) === 'ab...');
+      test('1c f.truncateString, ab| cd_ef gh', f.truncateString('ab cd_ef gh', 5, 8) === 'ab...');
+      test('1c f.truncateString, ab cd| ef gh', f.truncateString('ab cd ef gh', 6, 8) === 'ab cd...');
+      test('1c f.truncateString, ab cd ef| gh', f.truncateString('ab cd ef gh', 10, 12) === 'ab cd ef...');
+      test('1c f.truncateString, ab cd| ef_gh', f.truncateString('ab cd ef_gh', 10, 12) === 'ab cd...');
+      test('1c f.truncateString, ab cd ef| gh', f.truncateString('ab cd ef gh', 10, 12) === 'ab cd ef...');
+      // f.truncateString width change after
+      test('1c f.truncateString, width change after simple', f.truncateString('abc', 3, 3, 'aaa') === 'abc');
+      test('1c f.truncateString, width change after simple2', f.truncateString('abc', 4, 4, 'aaa') === 'abc');
+      test('1c f.truncateString, width change after big string, after cleared', f.truncateString('abc', 2, 2, 'aaa') === 'aa');
+      test('1c f.truncateString, width change after big string, after full', f.truncateString('abcd', 3, 3, 'aaa') === 'aaa');
+      test('1c f.truncateString, width change after ab| cd', f.truncateString('ab cd', 3, 5, 'aaa') === 'abaaa');
+      test('1c f.truncateString, width change after ab| cd_ef gh', f.truncateString('ab cd_ef gh', 5, 8, 'aaa') === 'abaaa');
+      test('1c f.truncateString, width change after ab cd| ef gh', f.truncateString('ab cd ef gh', 6, 8, 'aaa') === 'ab cdaaa');
+      test('1c f.truncateString, width change after ab cd ef| gh', f.truncateString('ab cd ef gh', 10, 12, 'aaa') === 'ab cd efaaa');
+      test('1c f.truncateString, width change after ab cd| ef_gh', f.truncateString('ab cd ef_gh', 10, 12, 'aaa') === 'ab cdaaa');
+      test('1c f.truncateString, width change after ab cd ef| gh', f.truncateString('ab cd ef gh', 10, 12, 'aaa') === 'ab cd efaaa');
+      // f.getCharWidthMax
+      test('1c f.getCharWidthMax, no args', function () {
+        var w = f.getCharWidthMax();
+        return w != null && w === f.getCharWidthMax();
+      });
+      test('1c f.getCharWidthMax, set font size', function () {
+        var w = f.getCharWidthMax(16);
+        return w != null && w === f.getCharWidthMax(16);
+      });
+      test('1c f.getCharWidthMax, set font size and font famaly', function () {
+        var w = f.getCharWidthMax(16, 'Arial, "Helvetica CY", "Nimbus Sans L", sans-serif');
+        return w != null && w === f.getCharWidthMax(16, 'Arial, "Helvetica CY", "Nimbus Sans L", sans-serif');
+      });
+      test('1c f.getCharWidthMax, all args, latin', function () {
+        var w = f.getCharWidthMax(16, 'Arial, "Helvetica CY", "Nimbus Sans L", sans-serif', 'M');
+        return w != null && w === f.getCharWidthMax(16, 'Arial, "Helvetica CY", "Nimbus Sans L", sans-serif', 'M');
+      });
+      test('1c f.getCharWidthMax, all args, ru', function () {
+        var w = f.getCharWidthMax(16, 'Arial, "Helvetica CY", "Nimbus Sans L", sans-serif', 'Щ');
+        return w != null && w === f.getCharWidthMax(16, 'Arial, "Helvetica CY", "Nimbus Sans L", sans-serif', 'Щ');
+      });
+      // f.getCharWidth
+      test('1c f.getCharWidth, no args', function () {
+        var w = f.getCharWidth();
+        return w != null && w === f.getCharWidth();
+      });
+      test('1c f.getCharWidth, set font size', function () {
+        var w = f.getCharWidth(16);
+        return w != null && w === f.getCharWidth(16);
+      });
+      test('1c f.getCharWidth, set font size and font famaly', function () {
+        var w = f.getCharWidth(16, 'Arial, "Helvetica CY", "Nimbus Sans L", sans-serif');
+        return w != null && w === f.getCharWidth(16, 'Arial, "Helvetica CY", "Nimbus Sans L", sans-serif');
+      });
+      test('1c f.getCharWidth, all args, latin', function () {
+        var w = f.getCharWidth(16, 'Arial, "Helvetica CY", "Nimbus Sans L", sans-serif', 'M');
+        return w != null && w === f.getCharWidth(16, 'Arial, "Helvetica CY", "Nimbus Sans L", sans-serif', 'M');
+      });
+      test('1c f.getCharWidth, all args, ru', function () {
+        var w = f.getCharWidth(16, 'Arial, "Helvetica CY", "Nimbus Sans L", sans-serif', 'Щ');
+        return w != null && w === f.getCharWidth(16, 'Arial, "Helvetica CY", "Nimbus Sans L", sans-serif', 'Щ');
+      });
+      // f.dateToFormat
+      test('1c f.dateToFormat simple date width time', f.dateToFormat((new Date(2000, 0, 1)), '%d.%m.%y %h:%i:%s') === '01.01.2000 00:00:00');
+      test('1c f.dateToFormat simple date width time simpled', f.dateToFormat((new Date(2000, 0, 1)), '%D.%M.%Y %H:%I:%S') === '1.1.00 0:0:0');
+      test('1c f.dateToFormat masked percent', f.dateToFormat((new Date(2000, 0, 1)), "%%%d %% %%_") === "%01 % %_");
+      test('1c f.dateToFormat date width local names', f.dateToFormat((new Date(2000, 0, 1)), '%l, %d %f %y %h:%i:%s') === f._dateNames.weekShort[5] + ', 01 '+f._dateNames.monthShort[0]+' 2000 00:00:00');
+      test('1c f.dateToFormat other local names', f.dateToFormat((new Date(2000, 0, 1)), '%L %F %z %a %A') === f._dateNames.weekFull[5] + ' ' + f._dateNames.monthFull[0] + ' 1 am AM');
+      test('1c f.dataToFormat unix time', function () {
+        var t = parseInt(f.dateToFormat(new Date(2000, 0, 1, 15), '%u')),
+          t2 = parseInt(f.dateToFormat(new Date(2000, 0, 1, 15), '%U'));
+        return t2 / t === 1000;
+      });
+      test('1c f.dateToFormat full test', f.dateToFormat((new Date(2000, 0, 1, 15)),
+        '%d %D %w %l %L %m %M %f %F %y %Y %a %A %g %G %h %H %i %I %s %S %p %P %z') ===
+        '01 1 6 '+ f._dateNames.weekShort[5] + ' ' + f._dateNames.weekFull[5] + ' 01 1 ' + f._dateNames.monthShort[0] + ' ' + f._dateNames.monthFull[0] + ' 2000 00 pm PM 03 3 15 15 00 0 00 0 000 0 1');
     }
   }
 }
