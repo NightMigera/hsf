@@ -34,8 +34,8 @@ b {
     margin-left: 10px;
 }
 .testResult {
-    float: left;
-    margin-left: 10px;
+    float: right;
+    margin-right: 30px;
 }
 .success {
     font-weight: bold;
@@ -47,4 +47,20 @@ b {
 }
 #testBlock {
     display: none;
+}
+.result {
+    margin: 0 20px 20px;
+}
+.result div {
+    display: inline-block;
+    margin-right: 10px;
+}
+.scs b {
+    color: green;
+}
+.err b {
+    color: red;
+}
+.scs b, .err b, .skip b {
+    font-weight: bold;
 }
