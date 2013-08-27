@@ -10,7 +10,13 @@
   window.TEST_TYPE_USER = 3;
   window.TEST_TYPE_SYSTEM = 4;
 
-  var number, callback, error, warn, lis, ul
+  var number, callback, error, warn, lis, ul, res, updateResult
+    , s = 0
+    , e = 0
+    , ss = 0
+    , skipped = false
+    , padding = 15
+    , gStack = []
     , __slice = [].slice
     , __hasProp = {}.hasOwnProperty;
   number = 1;
@@ -18,6 +24,10 @@
 
   ul = document.createElement('ul');
   ul.className = 'testList';
+  res = document.createElement('div');
+  res.className = 'result';
+  res.innerHTML = '<div class="runs">Runs: 0; </div><div class="scs">Success: 0; </div><div class="err">Error: 0; </div><div class="skip">Skipped: 0;</div>';
+  document.getElementsByTagName('body')[0].appendChild(res);
   document.getElementsByTagName('body')[0].appendChild(ul);
 
   error = function (str) {
@@ -56,7 +66,24 @@
   };
 
   callback = function (n, result) {
-    lis[n].getElementsByTagName('strong')[0].innerHTML = result ? '<span class="success">success</span>' : '<span class="fail">fail</span>'
+    if (result === 'skip') {
+      lis[n].getElementsByTagName('strong')[0].innerHTML = '<span class="skip">skip</span>';
+      s++;
+      updateResult();
+      return;
+    }
+    if (result) {
+      lis[n].getElementsByTagName('strong')[0].innerHTML = '<span class="success">success</span>';
+      ss++;
+    } else {
+      lis[n].getElementsByTagName('strong')[0].innerHTML = '<span class="fail">fail</span>';
+      e++;
+    }
+    updateResult();
+  };
+
+  updateResult = function () {
+    res.innerHTML = "<div class=\"runs\">Runs: <b>" + (s + ss + e) + "</b>; </div><div class=\"scs\">Success: <b>" + ss + "</b>; </div><div class=\"err\">Error: <b>" + e + "</b>; </div><div class=\"skip\">Skipped: <b>" + s + "</b>;</div>";
   };
 
   window.eq = function() {
@@ -125,17 +152,39 @@
     return ret;
   };
 
-  window.group = function (name) {
+  window.group = function (name, skip) {
     var li;
     li = document.createElement('li');
+    li.style.paddingLeft = (padding * gStack.length).toString() + 'px';
     li.appendChild(document.createTextNode(name));
     li.style.fontWeight = 'bold';
     ul.appendChild(li);
+    gStack.push([name,skip||false]);
+    if (skip) {
+      skipped = true;
+    }
+  };
+
+  window.groupEnd = window.gEnd = function () {
+    if (gStack.pop()[1]) {
+      skipped = false;
+    }
+  };
+
+  window.skip = function () {
+    skipped = true;
+  };
+
+  window.sEnd = window.skipEnd = function () {
+    skipped = false;
   };
 
   window.test = function (name, body, tType) {
     var func, type, mess, str, n, res, li, tNum, tName, tRes, vRes;
     n = number++;
+    if (skipped) {
+      body = true;
+    }
     switch (typeof body) {
       case 'object':
         func = body.func;
@@ -158,6 +207,7 @@
         return;
     }
     li = document.createElement('li');
+    li.style.paddingLeft = (padding * gStack.length).toString() + 'px';
     tNum = document.createElement('span');
     tNum.className = 'testNumber';
     tNum.appendChild(document.createTextNode(n.toString()));
@@ -172,6 +222,10 @@
     li.appendChild(tRes);
     ul.appendChild(li);
     lis[n] = li;
+    if (skipped === true) {
+      callback(n, 'skip');
+      return;
+    }
     switch (type) {
       case TEST_TYPE_SUCCESS:
       case TEST_TYPE_SYSTEM:
