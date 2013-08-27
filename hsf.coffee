@@ -229,6 +229,13 @@ class HSF
   _systemStyleSheet: null
 
   ###*
+   * Кэщ ширин букв
+   * @type {Object}
+   * @private
+   ###
+  _charWidth = {}
+
+  ###*
    * Параметры:
    * - debug: true|false режим отладки
    * - ajaxPoolLength: {numeric} длина пула ajax
@@ -834,95 +841,294 @@ class HSF
 
   ###*
    * Обрезает строку `str`, если она больше `length` и прибавляет к ней `after` так, чтобы итоговая длина строки была равна `length`.
+   *
+   * @method truncateStringMin
    * @param   {String}  str
    * @param   {Number}  length
    * @param   {String}  [after] что ставится после обрезанной строки
-   * @return  String
+   * @return  {String}  Обрезанная строка
    ###
   truncateStringMin: (str, length, after = '...') ->
     return str.substr(0, length - after.length) + after if str.length > length
     str
 
   ###*
-   * Более умное обрезание строки: ищет пробелы в промежутке от dMax до uMax.
-   * Если пробел не найден в этом промежутке, то ищет его в меньшую сторону
+   * Более умное обрезание строки: ищет пробелы так, чтобы длина итоговой строки `str`
+   * была в промежутке от `dMax` до `uMax`.
+   * Т.е. учитывается длина прибавляемой в конец строки `after` (по  умолчанию '...')
+   * Если пробел не найден в этом промежутке, то ищет его в меньшую сторону.
    *
+   * @method truncateString
    * @param   {String}  string
    * @param   {Number}  dMax
-   * @param   {Number}  uMax
-   * @param   {String}  [after]
-   * @return  String
+   * @param   {Number}  [uMax] = `dMax`
+   * @param   {String}  [after] = '...'
+   * @return  {String}  Обрезанная строка
    ###
-  truncateString: (string, dMax, uMax, after = '...') ->
+  truncateString: (str, dMax, uMax = dMax, after = '...') ->
+    #строка короче dMax
+    return str  if str.length <= dMax
+    p = new RegExp('\\W')
     newStr = ""
     dSpace = -1
     uSpace = -1
-    minChars = Math.floor(string.length * 0.6)
-    criticalMinChars = Math.floor(string.length * 0.35)
-    string = string.trim()
+    minChars = Math.floor(str.length * 0.6)
+    criticalMinChars = Math.floor(str.length * 0.35)
+    str = str.trim()
     dMax = dMax - after.length
     uMax = uMax - after.length
+    if uMax < 0
+      after = after.substr 0, after.length + uMax
     i = dMax
     j = dMax
-
-    while i < uMax and i < string.length and j >= 0
-      dSpace = i  if /\W/.test(string.charAt(i)) and dSpace < 0
-      uSpace = j  if /\W/.test(string.charAt(j)) and uSpace < 0
-      break  if uSpace >= 0 and dSpace >= 0
-      i++
-      j--
-
+    while j <= uMax
+      if p.test str.charAt j
+        uSpace = j
+        break
+      j++
+    if uSpace < 0
+      while i > 0
+        if p.test str.charAt i
+          dSpace = i
+          break
+        i--
     #возможно 3 варианта выхода:
-    #строка короче dMax
-    return string  if string.length < dMax
+    #строка короче dMax (см выше)
 
     #пробел до максимума найден
     if dSpace > 0
       if dSpace < minChars
-        if uSpace < uMax and uSpace > 0
-          newStr = string.substr(0, uSpace) + after
+        if uSpace <= uMax and uSpace > 0
+          newStr = str.substr(0, uSpace) + after
         else if dSpace < criticalMinChars
-          newStr = string.substr(0, dMax) + after
+          newStr = str.substr(0, dMax) + after
         else
-          newStr = string.substr(0, dSpace) + after
+          newStr = str.substr(0, dSpace) + after
       else
-        newStr = string.substr(0, dSpace) + after
+        newStr = str.substr(0, dSpace) + after
 
-      #пробел найден после максимума
+    #пробел найден после максимума
     else if uSpace > 0
-      if uSpace < uMax
-        newStr = string.substr(0, uSpace) + after
+      if uSpace <= uMax
+        newStr = str.substr(0, uSpace) + after
       else
-        newStr = string.substr(0, dMax) + after
+        newStr = str.substr(0, dMax) + after
     else
-      if string.length > dMax and string.length < uMax
-        newStr = string
+      if str.length > dMax and str.length < uMax
+        newStr = str
       else
-        newStr = string.substr(0, dMax) + after
+        newStr = str.substr(0, dMax) + after
     newStr
 
   ###*
-   * получает ширину символа chart размера fs и шрифта ff
-   * в кирилице максимальную букву лучше брать Ю
-   * @param   {Number} [fs]    =  11
-   * @param   {String} [ff]    =  "Tahoma"
-   * @param   {String} [chart] =  "m"
-   * @return  Number
+   * Возвращает ширину символа `c` в пикселях, размера `fs` в пикселях и шрифта `ff`
+   * Замечание: в кирилице максимальную букву лучше брать Ю.
+   *
+   * @method getCharWidthMax
+   * @param   {Number} [fs] =  11
+   * @param   {String} [ff] =  "Tahoma"
+   * @param   {String} [c]  =  "W"
+   * @return  {Number}
    ###
-  getCharWidthMax: (fs, ff, chart) ->
+  getCharWidthMax: (fs, ff, c = 'W') ->
     ff = ff or "Tahoma"
     fs = fs or 11
-    chart = chart or "m"
-    window.charWidth = {}  unless window.charWidth
-    window.charWidth[ff] = {}  unless ff of window.charWidth
-    unless fs of window.charWidth[ff]
-      charEl = @GBI("charEl")
-      unless charEl
-        charEl = @createElement("#charEl", {innerHTML: chart}, document.body)
-      charEl.style.fontFamily = ff
-      charEl.style.fontSize = fs + "px"
-      window.charWidth[ff][fs] = charEl.offsetWidth
-    window.charWidth[ff][fs]
+    #chart = chart or "m"
+    _charWidth[ff] = {}  unless ff of _charWidth
+    charEl = @GBI("charEl")
+    unless charEl
+      charEl = @createElement("s#charEl", {}, document.body)
+    charEl.style.fontFamily = ff
+    charEl.style.fontSize = fs + "px"
+    unless fs of _charWidth[ff]
+      _charWidth[ff][fs] = {}
+      charEl.innerHTML = c
+      charEl.style.display = 'inline'
+      _charWidth[ff][fs][c] = charEl.offsetWidth
+      charEl.style.display = 'none'
+    else
+      unless c of _charWidth[ff][fs]
+        f.clearElement(charEl)
+        charEl.appendChild(document.createTextNode(c))
+        charEl.style.display = 'inline'
+        _charWidth[ff][fs][c] = charEl.offsetWidth
+        charEl.style.display = 'none'
+    _charWidth[ff][fs][c]
+
+  ###*
+   * Alias getCharWidthMax
+   *
+   * @method getCharWidth
+   * @param   {Number} [fs] =  11
+   * @param   {String} [ff] =  "Tahoma"
+   * @param   {String} [c]  =  "W"
+   * @return  {Number}
+  ###
+  getCharWidth: (fs, ff, c) =>
+    @getCharWidthMax fs, ff, c
+
+  ###*
+   * Форматирует дату в строку по шаблону. Все одиночные % должны быть экранированы %%, иначе результат непредсказуем
+   *
+   * - d день месяца с ведущими нулями 01-31
+   * - D день месяца без ведущих нулей 1-31
+   * - w день недели  1-7
+   * - l Сокращенное наименование дня недели, 2 символа (из настроек) Сб
+   * - L Полное наименование дня недели (из настроек) Суббота
+   * - m месяц с ведущими нулями
+   * - M месяц без ведущих нулей
+   * - f Сокращенное наименование месяца, 3 символа (из настроек)
+   * - F Полное наименование месяца (из настроек)
+   * - Y последние 2 числа года
+   * - y год полностью
+   * - &nbsp;
+   * - a am/pm в нижнем регистре
+   * - A AM/PM в верхнем регистре
+   * - &nbsp;
+   * - g Часы в 12-часовом формате с ведущими нулями
+   * - G Часы в 12-часовом формате без ведущих нулей
+   * - h Часы в 24-часовом формате с ведущими нулями
+   * - H Часы в 24-часовом формате без ведущих нулей
+   * - i Минуты с ведущими нулями
+   * - I Минуты без ведущих нулей
+   * - s секунды с ведущими нулями
+   * - S секунды без ведущих нулей
+   * - p милисекунды с ведущими нулями
+   * - P милисекунды без ведущих нулей
+   * - &nbsp;
+   * - u количество секунд с началы эпохи юникс (1 января 1970, 00:00:00 GMT)
+   * - U количество милисекунд с началы эпохи юникс
+   * - &nbsp;
+   * - c Дата в формате ISO 8601
+   * - r Дата по rfc 2822
+   * - O Разница с временем по Гринвичу в часах
+   * - z порядковый номер дня
+   *
+   * @method dateToFormat
+   * @param {Date}    date
+   * @param {String}  format
+   * @return {String} отформатированная строка
+   ###
+  dateToFormat: (date, format) ->
+    percentEcran = false
+    if /%%/.test format
+      percentEcran = true
+      format = format.replace /%%/g, "%%_"
+    if /%d/.test format
+      t = date.getDate()
+      t = '0'+t if t < 10
+      format = format.replace /%d/g, t
+    if /%D/.test format
+      t = date.getDate()
+      format = format.replace /%D/g, t
+    if /%w/.test format
+      t = date.getDay() or 7
+      format = format.replace /%w/g, t
+    if /%m/.test format
+      t = date.getMonth() + 1
+      t = '0'+t if t < 10
+      format = format.replace /%m/g, t
+    if /%M/.test format
+      t = date.getMonth() + 1
+      format = format.replace /%M/g, t
+    if /%y/.test format
+      t = date.getFullYear()
+      format = format.replace /%y/g, t
+    if /%Y/.test format
+      t = date.getFullYear().toString().substr(2,2)
+      format = format.replace /%Y/g, t
+    if /%a/.test format
+      t = date.getHours()
+      t = if t > 12 then 'pm' else 'am'
+      format = format.replace /%a/g, t
+    if /%A/.test format
+      t = date.getHours()
+      t = if t > 12 then 'PM' else 'AM'
+      format = format.replace /%A/g, t
+    if /%c/.test format
+      t = date.toISOString()
+      format = format.replace /%c/g, t
+    if /%l/.test format
+      t = @_dateNames.weekShort[(date.getDay() or 7)-1]
+      format = format.replace /%l/g, t
+    if /%L/.test format
+      t = @_dateNames.weekFull[(date.getDay() or 7)-1]
+      format = format.replace /%L/g, t
+    if /%f/.test format
+      t = @_dateNames.monthShort[date.getMonth()]
+      format = format.replace /%f/g, t
+    if /%F/.test format
+      t = @_dateNames.monthFull[date.getMonth()]
+      format = format.replace /%F/g, t
+    if /%g/.test format
+      t = date.getHours()
+      t -= 12 if t > 12
+      t = '0' + t if t < 10
+      format = format.replace /%g/g, t
+    if /%G/.test format
+      t = date.getHours()
+      t -= 12 if t > 12
+      format = format.replace /%G/g, t
+    if /%h/.test format
+      t = date.getHours()
+      t = '0' + t if t < 10
+      format = format.replace /%h/g, t
+    if /%H/.test format
+      t = date.getHours()
+      format = format.replace /%H/g, t
+    if /%i/.test format
+      t = date.getMinutes()
+      t = '0' + t if t < 10
+      format = format.replace /%i/g, t
+    if /%I/.test format
+      t = date.getMinutes()
+      format = format.replace /%I/g, t
+    if /%s/.test format
+      t = date.getSeconds()
+      t = '0' + t if t < 10
+      format = format.replace /%s/g, t
+    if /%S/.test format
+      t = date.getSeconds()
+      format = format.replace /%S/g, t
+    if /%p/.test format
+      t = date.getMilliseconds()
+      if t < 10
+        t = '00' + t
+      else if 10 <= t < 100
+        t = '0' + t
+      format = format.replace /%p/g, t
+    if /%P/.test format
+      t = date.getMilliseconds()
+      format = format.replace /%P/g, t
+    if /%r/.test format
+      t = @dateToFormat date, '%l, %d %f %y %h:%i:%s %O'
+      format = format.replace /%r/g, t
+    if /%O/.test format
+      t = date.toString()
+      p = t.indexOf('+')
+      t = t.substr(if p > 0 then p else t.indexOf('-'))
+      format = format.replace /%O/g, t
+    if /%u/.test format
+      t = date.getTime()
+      t = (t - (t % 1000)) / 1000
+      format = format.replace /%u/g, t
+    if /%U/.test format
+      t = date.getTime()
+      format = format.replace /%U/g, t
+    if /%z/.test format
+      t = date.getTime()
+      tmp = new Date(t)
+      tmp.setMonth(0)
+      tmp.setDate(1)
+      tmp.setHours(0)
+      tmp.setMinutes(0)
+      tmp.setSeconds(0)
+      tmp.setMilliseconds(0)
+      t = Math.floor((t - tmp.getTime()) / 86400000) + 1
+      format = format.replace /%z/g, t
+    if percentEcran is true
+      format = format.replace /%%_/g, '%'
+    format
 
   ###*
    * синоним для document.getElementById
@@ -2587,167 +2793,6 @@ class HSF
     try
       f.addEvent(element, 'touchstart', element.onmousedown)
     @
-
-  ###*
-   * Форматирует дату в строку по шаблону. Все одиночные % должны быть экранированы %%, иначе результат непредсказуем
-   *
-   * - d день месяца с ведущими нулями 01-31
-   * - D день месяца без ведущих нулей 1-31
-   * - w день недели  1-7
-   * - l Сокращенное наименование дня недели, 2 символа (из настроек) Сб
-   * - L Полное наименование дня недели (из настроек) Суббота
-   * - m месяц с ведущими нулями
-   * - M месяц без ведущих нулей
-   * - f Сокращенное наименование месяца, 3 символа (из настроек)
-   * - F Полное наименование месяца (из настроек)
-   * - Y последние 2 числа года
-   * - y год полностью
-   * - &nbsp;
-   * - a am/pm в нижнем регистре
-   * - A AM/PM в верхнем регистре
-   * - &nbsp;
-   * - g Часы в 12-часовом формате с ведущими нулями
-   * - G Часы в 12-часовом формате без ведущих нулей
-   * - h Часы в 24-часовом формате с ведущими нулями
-   * - H Часы в 24-часовом формате без ведущих нулей
-   * - i Минуты с ведущими нулями
-   * - I Минуты без ведущих нулей
-   * - s секунды с ведущими нулями
-   * - S секунды без ведущих нулей
-   * - p милисекунды с ведущими нулями
-   * - P милисекунды без ведущих нулей
-   * - &nbsp;
-   * - u количество секунд с началы эпохи юникс (1 января 1970, 00:00:00 GMT)
-   * - U количество милисекунд с началы эпохи юникс
-   * - &nbsp;
-   * - c Дата в формате ISO 8601
-   * - r Дата по rfc 2822
-   * - O Разница с временем по Гринвичу в часах
-   * - z порядковый номер дня
-   *
-   * @param {Date}    date
-   * @param {String}  format
-   * @return String
-   ###
-  dateToFormat: (date, format) ->
-    percentEcran = false
-    if /%%/.test format
-      percentEcran = true
-      format = format.replace /%%/g, "'%'"
-    if /%d/.test format
-      t = date.getDate()
-      t = '0'+t if t < 10
-      format = format.replace /%d/g, t
-    if /%D/.test format
-      t = date.getDate()
-      format = format.replace /%D/g, t
-    if /%w/.test format
-      t = date.getDay() + 1
-      format = format.replace /%w/g, t
-    if /%m/.test format
-      t = date.getMonth() + 1
-      t = '0'+t if t < 10
-      format = format.replace /%m/g, t
-    if /%M/.test format
-      t = date.getMonth() + 1
-      format = format.replace /%M/g, t
-    if /%y/.test format
-      t = date.getFullYear()
-      format = format.replace /%y/g, t
-    if /%Y/.test format
-      t = date.getFullYear().substr(2,2)
-      format = format.replace /%Y/g, t
-    if /%a/.test format
-      t = date.getHours()
-      t = if t > 12 then 'pm' else 'am'
-      format = format.replace /%a/g, t
-    if /%A/.test format
-      t = date.getHours()
-      t = if t > 12 then 'PM' else 'AM'
-      format = format.replace /%A/g, t
-    if /%c/.test format
-      t = date.toISOString()
-      format = format.replace /%c/g, t
-    if /%l/.test format
-      t = @_dateNames.weekShort[date.getDay()]
-      format = format.replace /%l/g, t
-    if /%L/.test format
-      t = @_dateNames.weekFull[date.getDay()]
-      format = format.replace /%L/g, t
-    if /%f/.test format
-      t = @_dateNames.monthShort[date.getMonth()]
-      format = format.replace /%f/g, t
-    if /%F/.test format
-      t = @_dateNames.monthFull[date.getMonth()]
-      format = format.replace /%F/g, t
-    if /%g/.test format
-      t = date.getHours()
-      t -= 12 if t > 12
-      format = format.replace /%g/g, t
-    if /%G/.test format
-      t = date.getHours()
-      t -= 12 if t > 12
-      t = '0' + t if t < 10
-      format = format.replace /%G/g, t
-    if /%h/.test format
-      t = date.getHours()
-      t = '0' + t if t < 10
-      format = format.replace /%h/g, t
-    if /%H/.test format
-      t = date.getHours()
-      format = format.replace /%H/g, t
-    if /%i/.test format
-      t = date.getMinutes()
-      t = '0' + t if t < 10
-      format = format.replace /%i/g, t
-    if /%I/.test format
-      t = date.getMinutes()
-      format = format.replace /%I/g, t
-    if /%s/.test format
-      t = date.getSeconds()
-      t = '0' + t if t < 10
-      format = format.replace /%s/g, t
-    if /%S/.test format
-      t = date.getSeconds()
-      format = format.replace /%S/g, t
-    if /%p/.test format
-      t = date.getMilliseconds()
-      if t < 10
-        t = '00' + t
-      else if 10 <= t < 100
-        t = '0' + t
-      format = format.replace /%p/g, t
-    if /%P/.test format
-      t = date.getMilliseconds()
-      format = format.replace /%P/g, t
-    if /%r/.test format
-      t = @dateToFormat date, '%l, %d %f %y %h:%i:%s %O'
-      format = format.replace /%r/g, t
-    if /%O/.test format
-      t = date.toString()
-      t = t.substr(t.indexOf('+'))
-      format = format.replace /%O/g, t
-    if /%u/.test format
-      t = date.getTime()
-      t = (t - (t % 1000)) / 1000
-      format = format.replace /%u/g, t
-    if /%U/.test format
-      t = date.getTime()
-      format = format.replace /%U/g, t
-    if /%z/.test format
-      t = date.getTime()
-      tmp = new Date(t)
-      tmp.setMonth(0)
-      tmp.setDate(1)
-      tmp.setHours(0)
-      tmp.setMinutes(0)
-      tmp.setSeconds(0)
-      tmp.setMilliseconds(0)
-      t = Math.floor((t - tmp.getTime()) / 86400000)
-      format = format.replace /%z/g, t
-    if percentEcran is true
-      format = format.replace /'%'/g, '%'
-    format
 
   ###*
    * Вставляет элемент el после элемента exist
