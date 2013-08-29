@@ -5,8 +5,36 @@
  * Time: 17:10
  * To change this template use File | Settings | File Templates.
  */
+(function (window) {
+  var _h, dirs, i, l, dir, d,
+    h = {},
+    hash = function (prop) {
+      if (prop in h) {
+        return h[prop];
+      }
+      return null;
+  };
+  _h = window.location.hash;
+  if (_h.length > 0) {
+    if (_h.charAt(0) === '#') {
+      _h = _h.substr(1);
+    }
+    dirs = _h.split('&');
+    for (i = 0, l = dirs.length; i < l; i++) {
+      dir = dirs[i];
+      if (dir.indexOf('=') > 0) {
+        d = dir.split('=');
+        h[decodeURI(d[0])] = decodeURI(d[1]);
+      } else {
+        h[decodeURI(dir)] = true;
+      }
+    }
+  }
+  window.hash = hash;
+}).call(this, window);
+
 { // self tests
-  group('Self-tests', window.location.hash !== '#system');
+  group('Self-tests', !hash('system'));
   test('0b success assert', function () {
     return true;
   });
@@ -717,6 +745,219 @@
       test('1c f.dateToFormat full test', f.dateToFormat((new Date(2000, 0, 1, 15)),
         '%d %D %w %l %L %m %M %f %F %y %Y %a %A %g %G %h %H %i %I %s %S %p %P %z') ===
         '01 1 6 '+ f._dateNames.weekShort[5] + ' ' + f._dateNames.weekFull[5] + ' 01 1 ' + f._dateNames.monthShort[0] + ' ' + f._dateNames.monthFull[0] + ' 2000 00 pm PM 03 3 15 15 00 0 00 0 000 0 1');
+      gEnd();
+    }
+    { // window
+      group('window functions');
+      test('1c f.getSize', function () {
+        var s = f.getSize();
+        return s.w > 0 && s.h > 0 && s.s >= 0 && s.sl >= 0 && s.sh > 0 && s.sw > 0;
+      });
+      test('3b f.browser', {
+        type: TEST_TYPE_USER,
+        mess: 'Browser: ' + f.browser().name + ', ver: ' + f.browser().version
+      });
+      test('3c f.openWin sync', function(cb) {
+        var w  = f.openWin('second.html', '', 200, 200, {sync: true});
+        if (w) {
+          cb(true);
+          w.close();
+        } else {
+          cb(false);
+        }
+      });
+      test('3c f.openWin async', function(cb) {
+        f.openWin('second.html', '', 200, 200, null, function (w) {
+          if (w) {
+            w.close();
+            cb(true);
+          } else {
+            cb(false);
+          }
+        })
+      });
+      { // ajax
+        group('AJAX', !hash('ajax'));
+        test('1c f.load GET classic', function(cb) {
+          f.load('load.html?get=1', function (data) {
+            if (data === 'success') {
+              cb(true);
+            } else {
+              cb(false);
+            }
+          }, function () {
+            cb(false);
+          });
+        });
+        test('1c f.load GET modern', function(cb) {
+          f.load({
+            url: 'load.html?get=1',
+            method: 'GET',
+            scs: function (data) {
+              if (data === 'success') {
+                cb(true);
+              } else {
+                cb (false);
+              }
+            },
+            err: function () {
+              cb (false);
+            }
+          });
+        });
+        test('1c f.load GET error', function(cb) {
+          f.load({
+            url: 'load.html?get=2',
+            method: 'GET',
+            scs: function (data) {
+              if (data === 'error') {
+                cb(true);
+              } else {
+                cb (false);
+              }
+            },
+            err: function () {
+              cb (false);
+            }
+          });
+        });
+        test('1c f.load POST classic', function(cb) {
+          f.load('load.html', function (data) {
+            if (data === 'success') {
+              cb(true);
+            } else {
+              cb(false);
+            }
+          }, function () {
+            cb(false);
+          }, 'post=1');
+        });
+        test('1c f.load POST modern', function(cb) {
+          f.load({
+            url: 'load.html',
+            method: 'POST',
+            data: 'post=1',
+            scs: function (data) {
+              if (data === 'success') {
+                cb(true);
+              } else {
+                cb (false);
+              }
+            },
+            err: function () {
+              cb (false);
+            }
+          });
+        });
+        test('1c f.load POST error', function(cb) {
+          f.load({
+            url: 'load.html',
+            method: 'POST',
+            data: 'post=2',
+            scs: function (data) {
+              if (data === 'error') {
+                cb(true);
+              } else {
+                cb (false);
+              }
+            },
+            err: function () {
+              cb (false);
+            }
+          });
+        });
+        test('1c f.load PUT', function(cb) {
+          f.load({
+            url: 'load.html',
+            method: 'PUT',
+            data: 'put=1',
+            scs: function (data) {
+              if (data === 'success') {
+                cb(true);
+              } else {
+                cb (false);
+              }
+            },
+            err: function () {
+              cb (false);
+            }
+          });
+        });
+        test('1c f.load PUT error', function(cb) {
+          f.load({
+            url: 'load.html',
+            method: 'PUT',
+            data: 'put=2',
+            scs: function (data) {
+              if (data === 'error') {
+                cb(true);
+              } else {
+                cb (false);
+              }
+            },
+            err: function () {
+              cb (false);
+            }
+          });
+        });
+        test('1c f.load HEAD', function(cb) {
+          f.load({
+            url: 'load.html',
+            method: 'HEAD',
+            header: {
+              'X-Data': '1'
+            },
+            scs: function (data, h) {
+              var p, i, l
+                , headers = h.split('\n');
+              for (i = 0, l = headers.length; i < l; i++) {
+                p = headers[i].split(':');
+                if (p[0].trim().toLowerCase() === 'X-Result-Request'.toLowerCase()) {
+                  if (p[1].trim() === 'success') {
+                    cb(true);
+                  } else {
+                    cb(false);
+                  }
+                  return;
+                }
+              }
+              cb(false);
+            },
+            err: function () {
+              cb (false);
+            }
+          });
+        });
+        test('1c f.load HEAD error', function(cb) {
+          f.load({
+            url: 'load.html',
+            method: 'HEAD',
+            header: {
+              'X-Data': '2'
+            },
+            scs: function (data, h) {
+              var p, i, l
+                , headers = h.split('\n');
+              for (i = 0, l = headers.length; i < l; i++) {
+                p = headers[i].split(':');
+                if (p[0].trim().toLowerCase() === 'X-Result-Request'.toLowerCase()) {
+                  if (p[1].trim() === 'error') {
+                    cb(true);
+                  } else {
+                    cb(false);
+                  }
+                  return;
+                }
+              }
+              cb(false);
+            },
+            err: function () {
+              cb (false);
+            }
+          });
+        });
+        gEnd();
+      }
     }
   }
 }
