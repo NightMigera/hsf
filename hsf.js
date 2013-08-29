@@ -625,6 +625,8 @@
 
     /**
      * Получает строку для обращения из глобальной области видимости для inline функций
+     *
+     * @method getThis
      * @return {String}
     */
 
@@ -845,7 +847,7 @@
                   _ret += _a + el;
                   break;
                 case "object":
-                  _ret += _a + varToJSON(el);
+                  _ret += _a + this.varToJSON(el);
               }
               _a = ",";
               i++;
@@ -857,9 +859,6 @@
             _ret = "{";
             for (i in o) {
               if (!__hasProp.call(o, i)) continue;
-              if (!o.hasOwnProperty(i)) {
-                continue;
-              }
               _ret2 = null;
               switch (typeof o[i]) {
                 case "string":
@@ -870,7 +869,7 @@
                   _ret2 = o[i];
                   break;
                 case "object":
-                  _ret2 = varToJSON(o[i]);
+                  _ret2 = this.varToJSON(o[i]);
               }
               if (_ret2 != null) {
                 _ret += _a + '"' + i + '":' + _ret2;
@@ -1591,9 +1590,203 @@
     };
 
     /**
-     * синоним для document.getElementById
+     * получение размеров экрана, возвращается объект с свойствами:
+     * - w ширина экрана,
+     * - h высота экрана,
+     * - s величина прокрутки сверху,
+     * - sl величина прокрутки слева,
+     * - sw ширина прокручиваемой области,
+     * - sh высота документа
+     *
+     * @method getSize
+     * @return {Object}
+    */
+
+
+    HSF.prototype.getSize = function() {
+      var ret;
+      ret = {
+        w: 0,
+        h: 0,
+        s: 0,
+        sl: 0,
+        sw: 0,
+        sh: 0
+      };
+      if (self.innerHeight) {
+        ret.w = window.innerWidth;
+        ret.h = window.innerHeight;
+        ret.s = window.pageYOffset;
+        ret.sl = window.pageXOffset;
+      } else if (document.documentElement && document.documentElement.clientHeight) {
+        ret.w = document.documentElement.clientWidth;
+        ret.h = document.documentElement.clientHeight;
+        ret.s = document.documentElement.scrollTop;
+        ret.sl = document.documentElement.scrollLeft;
+      } else if (document.body) {
+        ret.w = document.body.clientWidth;
+        ret.h = document.body.clientHeight;
+        ret.s = document.body.scrollTop;
+        ret.sl = document.body.scrollLeft;
+      }
+      if (window.innerHeight && window.scrollMaxY) {
+        ret.sw = document.body.scrollWidth;
+        ret.sh = window.innerHeight + window.scrollMaxY;
+      } else if (document.body.scrollHeight > document.body.offsetHeight) {
+        ret.sw = document.body.scrollWidth;
+        ret.sh = document.body.scrollHeight;
+      } else {
+        ret.sw = document.body.offsetWidth;
+        ret.sh = document.body.offsetHeight;
+      }
+      return ret;
+    };
+
+    /**
+     * определяет название браузера и версию
+     *
+     * @method browser
+     * @return {Object} {name:[mozilla|opera|chrome|ie|safari|...], version: (Float)}
+    */
+
+
+    HSF.prototype.browser = function() {
+      var chrome, nav, safari, start, v;
+      if (this._browser.version !== 0) {
+        return this._browser;
+      }
+      nav = window.navigator;
+      chrome = /Chrome\/([\d\.]+)/;
+      chrome = nav.userAgent.search(chrome);
+      safari = /Safari\/([\d\.]+)/;
+      safari = nav.userAgent.search(safari);
+      start = 0;
+      v = 0;
+      if (nav.appName === "Microsoft Internet Explorer") {
+        this._browser.name = "msie";
+        start = nav.appVersion.indexOf("MSIE") + 5;
+        v = nav.appVersion.substring(start, nav.appVersion.indexOf(";", start) - 1);
+        this._browser.version = parseFloat(v);
+      } else if (chrome !== -1) {
+        this._browser.name = "chrome";
+        start = nav.appVersion.indexOf("Chrome") + 7;
+        v = nav.appVersion.substring(start, nav.appVersion.indexOf(" ", start) - 1);
+        this._browser.version = parseFloat(v);
+      } else if (nav.appName === "Opera") {
+        this._browser.name = "opera";
+        start = nav.userAgent.indexOf("Version") + 8;
+        v = nav.userAgent.substring(start, nav.userAgent.length);
+        this._browser.version = parseFloat(v);
+      } else if (safari !== -1) {
+        this._browser.name = "safari";
+        start = nav.userAgent.indexOf("Version") + 8;
+        v = nav.userAgent.substring(start, nav.userAgent.indexOf(" ", start) - 1);
+        this._browser.version = parseFloat(v);
+      } else if (nav.appName === "Netscape" && nav.appCodeName === "Mozilla" && nav.userAgent.indexOf("Firefox") !== -1) {
+        this._browser.name = "mozilla";
+        start = nav.userAgent.indexOf("Firefox") + 8;
+        v = nav.userAgent.substr(start);
+        this._browser.version = parseFloat(v);
+      } else {
+        this._browser.name = nav.userAgent;
+        this._browser.version = parseFloat(nav.appVersion);
+      }
+      return this._browser;
+    };
+
+    /**
+     * Cоздаём окно по центру окрывая страницу по адресу `url` и `title`, шириной `width` и высотой `height`.
+     * По умолчанию окно создатся асинхронно, возвращает HSF. <br/>
+     * Размеры, а так же различные элементы определяются отдельно. <br/>
+     * Параметры `option`:
+     * - `resizable` (можно ли изменять размеры нового окна)
+     * - `scrollbars` (есть ли полосыпрокрутки)
+     * - `menubar` (есть ли меню)
+     * - `toolbar` (есть ли панель)
+     * - `status` (отображается ли статус окна)
+     * - `sync` (загрузить ли окно синхронно и вернуть ли ссылку на окно)
+     *
+     * @method openWin
+     * @param {String} url
+     * @param {String} [title]
+     * @param {Number} [width] = 902
+     * @param {Number} [height] = 700
+     * @param {Object} [option] = {}
+     * @param {Function} [callback] принимает 1 аргумет: ссылка на созданное окно
+     * @return {Object} HSF|window
+    */
+
+
+    HSF.prototype.openWin = function(url, title, width, height, option, callback) {
+      var err, left, link, map, name, open, top, _i, _len, _ref,
+        _this = this;
+      if (title == null) {
+        title = '';
+      }
+      if (width == null) {
+        width = 902;
+      }
+      if (height == null) {
+        height = 700;
+      }
+      if (option == null) {
+        option = {};
+      }
+      map = {
+        resizable: 1,
+        scrollbars: 1,
+        menubar: 0,
+        toolbar: 0,
+        status: 1
+      };
+      try {
+        left = ((screen.availWidth || screen.width) / 2) - (width / 2) + (screen.availLeft || 0);
+        top = ((screen.availHeight || screen.height) / 2) - (height / 2) + (screen.availTop || 0);
+        link = "width=" + (parseInt(width)) + ",height=" + (parseInt(height)) + ",left=" + left + ", top=" + top;
+        _ref = ['resizable', 'scrollbars', 'menubar', 'toolbar', 'status'];
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          name = _ref[_i];
+          link += ("," + name + "=") + (name in option ? (option[name] ? 1 : 0) : map[name]);
+        }
+        open = function() {
+          var w;
+          w = window.open(url, title, link);
+          w.activated = false;
+          w.onfocus = function() {
+            if (w.activated) {
+              return;
+            }
+            w.activated = true;
+            if (typeof callback === 'function') {
+              callback(w);
+            } else {
+              _this.log('success win open');
+            }
+          };
+          w.blocked = !!w.document.getElementById;
+          if (w) {
+            w.focus();
+          }
+          return w;
+        };
+        if ('sync' in option && option.sync === true) {
+          return open();
+        } else {
+          window.setTimeout(open, 4);
+        }
+      } catch (_error) {
+        err = _error;
+        alert("Ошибка открытия окна");
+      }
+      return this;
+    };
+
+    /**
+     * Синоним для document.getElementById: получает элемент по `id` или возвращает `null`.
+     *
+     * @method GBI
      * @param {String} el
-     * @return {Element}
+     * @return {Element|NULL}
     */
 
 
@@ -1602,10 +1795,13 @@
     };
 
     /**
-     * кросс-браузерная версия для получения элементов по имени класса classname внутри node
+     * Кросс-браузерная версия для получения элементов по имени класса `classname` внутри `node`.
+     * `node` по умолчанию `document`.
+     *
+     * @method GBC
      * @param {String} classname
      * @param {Element} [node] = document
-     * @return Array|NodeList
+     * @return {Array|NodeList}
     */
 
 
@@ -1637,7 +1833,10 @@
     };
 
     /**
-     * синоним для node.getElementsByTagName
+     * синоним для node.getElementsByTagName: получает набор элнементов с именем тэга `tagName` внутри элемента `node`.
+     * `node` по умолчанию `document`.
+     *
+     * @method GBT
      * @param {String} tagName
      * @param {Node} [node] = document
      * @return NodeList
@@ -1650,71 +1849,6 @@
         node = document;
       }
       return node.getElementsByTagName(tagName);
-    };
-
-    /**
-     * создаём окно по центру с заданной ссылкой и названием.
-     * Размеры, а так же различные элементы определяются отдельно
-     * @param {String} url
-     * @param {String} [title]
-     * @param {Number} [width] = 902
-     * @param {Number} [height] = 700
-     * @param {Object} [option]
-     * @return window
-    */
-
-
-    HSF.prototype.openWin = function(url, title, width, height, option, callback) {
-      var err, left, link, map, name, top, w, _i, _len, _ref,
-        _this = this;
-      if (width == null) {
-        width = 902;
-      }
-      if (height == null) {
-        height = 700;
-      }
-      if (option == null) {
-        option = {};
-      }
-      map = {
-        resizable: 1,
-        scrollbars: 1,
-        menubar: 0,
-        toolbar: 0,
-        status: 1
-      };
-      try {
-        left = ((screen.availWidth || screen.width) / 2) - (width / 2) + (screen.availLeft || 0);
-        top = ((screen.availHeight || screen.height) / 2) - (height / 2) + (screen.availTop || 0);
-        link = "width=" + (parseInt(width)) + ",height=" + (parseInt(height)) + ",left=" + left + ", top=" + top;
-        _ref = ['resizable', 'scrollbars', 'menubar', 'toolbar', 'status'];
-        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          name = _ref[_i];
-          link += ("," + name + "=") + (name in option ? (option[name] ? 1 : 0) : map[name]);
-        }
-        w = window.open(url, title, link);
-        w.activated = false;
-        w.onfocus = function() {
-          if (w.activated) {
-            return;
-          }
-          w.activated = true;
-          if (typeof callback === 'function') {
-            callback(w);
-          } else {
-            _this.log('success win open');
-          }
-          return true;
-        };
-        w.blocked = !!w.document.getElementById;
-        if (w) {
-          w.focus();
-        }
-      } catch (_error) {
-        err = _error;
-        alert("Ошибка открытия окна - " + title);
-      }
-      return w || false;
     };
 
     HSF.prototype.getSelection = function(el) {
@@ -1885,57 +2019,6 @@
     };
 
     /**
-     * получение размеров экрана, возвращается объект с свойствами:
-     * w ширина экрана,
-     * h высота экрана,
-     * s величина прокрутки сверху,
-     * sl величина прокрутки слева,
-     * sw ширина прокручиваемой области,
-     * sh высота документа
-     * @return Object
-    */
-
-
-    HSF.prototype.getSize = function() {
-      var ret;
-      ret = {
-        w: 0,
-        h: 0,
-        s: 0,
-        sl: 0,
-        sw: 0,
-        sh: 0
-      };
-      if (self.innerHeight) {
-        ret.w = window.innerWidth;
-        ret.h = window.innerHeight;
-        ret.s = window.pageYOffset;
-        ret.sl = window.pageXOffset;
-      } else if (document.documentElement && document.documentElement.clientHeight) {
-        ret.w = document.documentElement.clientWidth;
-        ret.h = document.documentElement.clientHeight;
-        ret.s = document.documentElement.scrollTop;
-        ret.sl = document.documentElement.scrollLeft;
-      } else if (document.body) {
-        ret.w = document.body.clientWidth;
-        ret.h = document.body.clientHeight;
-        ret.s = document.body.scrollTop;
-        ret.sl = document.body.scrollLeft;
-      }
-      if (window.innerHeight && window.scrollMaxY) {
-        ret.sw = document.body.scrollWidth;
-        ret.sh = window.innerHeight + window.scrollMaxY;
-      } else if (document.body.scrollHeight > document.body.offsetHeight) {
-        ret.sw = document.body.scrollWidth;
-        ret.sh = document.body.scrollHeight;
-      } else {
-        ret.sw = document.body.offsetWidth;
-        ret.sh = document.body.offsetHeight;
-      }
-      return ret;
-    };
-
-    /**
      * получаем значение стиля элемента по его DOM-имени
      * @param {Element} el
      * @param {String} styleName
@@ -1999,56 +2082,6 @@
       } else {
         return [].take(el.parentNode.children).indexOf(el);
       }
-    };
-
-    /**
-     * определяет название браузера и версию
-     * @return Object {name:[mozilla|opera|chrome|ie|safari|...], version: (Float)}
-    */
-
-
-    HSF.prototype.browser = function() {
-      var chrome, nav, safari, start, v;
-      if (this._browser.version !== 0) {
-        return this._browser;
-      }
-      nav = window.navigator;
-      chrome = /Chrome\/([\d\.]+)/;
-      chrome = nav.userAgent.search(chrome);
-      safari = /Safari\/([\d\.]+)/;
-      safari = nav.userAgent.search(safari);
-      start = 0;
-      v = 0;
-      if (nav.appName === "Microsoft Internet Explorer") {
-        this._browser.name = "msie";
-        start = nav.appVersion.indexOf("MSIE") + 5;
-        v = nav.appVersion.substring(start, nav.appVersion.indexOf(";", start) - 1);
-        this._browser.version = parseFloat(v);
-      } else if (chrome !== -1) {
-        this._browser.name = "chrome";
-        start = nav.appVersion.indexOf("Chrome") + 7;
-        v = nav.appVersion.substring(start, nav.appVersion.indexOf(" ", start) - 1);
-        this._browser.version = parseFloat(v);
-      } else if (nav.appName === "Opera") {
-        this._browser.name = "opera";
-        start = nav.userAgent.indexOf("Version") + 8;
-        v = nav.userAgent.substring(start, nav.userAgent.length);
-        this._browser.version = parseFloat(v);
-      } else if (safari !== -1) {
-        this._browser.name = "safari";
-        start = nav.userAgent.indexOf("Version") + 8;
-        v = nav.userAgent.substring(start, nav.userAgent.indexOf(" ", start) - 1);
-        this._browser.version = parseFloat(v);
-      } else if (nav.appName === "Netscape" && nav.appCodeName === "Mozilla" && nav.userAgent.indexOf("Firefox") !== -1) {
-        this._browser.name = "mozilla";
-        start = nav.userAgent.indexOf("Firefox") + 8;
-        v = nav.userAgent.substr(start);
-        this._browser.version = parseFloat(v);
-      } else {
-        this._browser.name = nav.userAgent;
-        this._browser.version = parseFloat(nav.appVersion);
-      }
-      return this._browser;
     };
 
     /**
@@ -2514,7 +2547,7 @@
           func = url.scs;
         }
         if ('success' in url) {
-          func = erl.success;
+          func = url.success;
         }
         if ('err' in url) {
           err = url.err;
@@ -2584,13 +2617,17 @@
           this._rPool[active].ajax = 'XMLHttpRequest' in window ? new XMLHttpRequest() : new ActiveXObject("Microsoft.XMLHTTP");
         }
         this._rPool[active].ajax.onreadystatechange = function() {
-          var xhr;
+          var xhr, _ref;
           xhr = null;
           var xhr = this;
           if (xhr.readyState === 4) {
             active = xhr["active"];
-            if (xhr.status === 200 || (xhr.status === 0 && xhr.responseText.length > 0)) {
-              _this._rPool[active].func(xhr.responseText, xhr.getAllResponseHeaders());
+            if ((200 <= (_ref = xhr.status) && _ref < 300) || (xhr.status === 0 && xhr.responseText.length > 0)) {
+              if ('getAllResponseHeaders' in xhr) {
+                _this._rPool[active].func(xhr.responseText, xhr.getAllResponseHeaders(), xhr.status);
+              } else {
+                _this._rPool[active].func(xhr.responseText, '', xhr.status);
+              }
             } else {
               _this._rPool[active].err(xhr.statusText);
             }

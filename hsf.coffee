@@ -397,6 +397,8 @@ class HSF
 
   ###*
    * Получает строку для обращения из глобальной области видимости для inline функций
+   *
+   * @method getThis
    * @return {String}
    ###
   getThis: ->
@@ -540,7 +542,7 @@ class HSF
               when "boolean", "number"
                 _ret += _a + el
               when "object"
-                _ret += _a + varToJSON(el)
+                _ret += _a + @varToJSON(el)
             _a = ","
             i++
           _ret += "]"
@@ -549,7 +551,7 @@ class HSF
         else
           _ret = "{"
           for own i of o
-            continue  unless o.hasOwnProperty(i)
+            #continue  unless o.hasOwnProperty(i)
             _ret2 = null
             switch typeof o[i]
               when "string"
@@ -557,7 +559,7 @@ class HSF
               when "boolean", "number"
                 _ret2 = o[i]
               when "object"
-                _ret2 = varToJSON(o[i])
+                _ret2 = @varToJSON(o[i])
             if _ret2?
               _ret += _a + '"' + i + '":' + _ret2
               _a = ","
@@ -1129,20 +1131,170 @@ class HSF
     if percentEcran is true
       format = format.replace /%%_/g, '%'
     format
+  # ------------------------ END DATE ------------------------------------
+  # ---------------------- START WINDOW ----------------------------------
 
   ###*
-   * синоним для document.getElementById
+   * получение размеров экрана, возвращается объект с свойствами:
+   * - w ширина экрана,
+   * - h высота экрана,
+   * - s величина прокрутки сверху,
+   * - sl величина прокрутки слева,
+   * - sw ширина прокручиваемой области,
+   * - sh высота документа
+   *
+   * @method getSize
+   * @return {Object}
+   ###
+  getSize: ->
+    ret =
+      w: 0
+      h: 0
+      s: 0
+      sl: 0
+      sw: 0
+      sh: 0
+    if self.innerHeight # Everyone but IE
+      ret.w = window.innerWidth
+      ret.h = window.innerHeight
+      ret.s = window.pageYOffset
+      ret.sl = window.pageXOffset
+    else if document.documentElement and document.documentElement.clientHeight # IE6 Strict
+      ret.w = document.documentElement.clientWidth
+      ret.h = document.documentElement.clientHeight
+      ret.s = document.documentElement.scrollTop
+      ret.sl = document.documentElement.scrollLeft
+    else if document.body # Other IE, such as IE7
+      ret.w = document.body.clientWidth
+      ret.h = document.body.clientHeight
+      ret.s = document.body.scrollTop
+      ret.sl = document.body.scrollLeft
+    # Page size w/offscreen areas
+    if window.innerHeight and window.scrollMaxY
+      ret.sw = document.body.scrollWidth
+      ret.sh = window.innerHeight + window.scrollMaxY
+    else if document.body.scrollHeight > document.body.offsetHeight # All but Explorer Mac
+      ret.sw = document.body.scrollWidth
+      ret.sh = document.body.scrollHeight
+    else # Explorer Mac...would also work in Explorer 6 Strict, Mozilla and Safari
+      ret.sw = document.body.offsetWidth
+      ret.sh = document.body.offsetHeight
+    ret
+
+  ###*
+   * определяет название браузера и версию
+   *
+   * @method browser
+   * @return {Object} {name:[mozilla|opera|chrome|ie|safari|...], version: (Float)}
+   ###
+  browser: ->
+    return @_browser if @_browser.version isnt 0
+    nav = window.navigator
+    chrome = /Chrome\/([\d\.]+)/
+    chrome = nav.userAgent.search(chrome)
+    safari = /Safari\/([\d\.]+)/
+    safari = nav.userAgent.search(safari)
+    start = 0
+    v = 0
+    if nav.appName is "Microsoft Internet Explorer"
+      @_browser.name = "msie"
+      start = nav.appVersion.indexOf("MSIE") + 5
+      v = nav.appVersion.substring(start, nav.appVersion.indexOf(";", start) - 1)
+      @_browser.version = parseFloat(v)
+    else unless chrome is -1
+      @_browser.name = "chrome"
+      start = nav.appVersion.indexOf("Chrome") + 7
+      v = nav.appVersion.substring(start, nav.appVersion.indexOf(" ", start) - 1)
+      @_browser.version = parseFloat(v)
+    else if nav.appName is "Opera"
+      @_browser.name = "opera"
+      start = nav.userAgent.indexOf("Version") + 8
+      v = nav.userAgent.substring(start, nav.userAgent.length)
+      @_browser.version = parseFloat(v)
+    else unless safari is -1
+      @_browser.name = "safari"
+      start = nav.userAgent.indexOf("Version") + 8
+      v = nav.userAgent.substring(start, nav.userAgent.indexOf(" ", start) - 1)
+      @_browser.version = parseFloat(v)
+    else if nav.appName is "Netscape" and nav.appCodeName is "Mozilla" and nav.userAgent.indexOf("Firefox") isnt -1
+      @_browser.name = "mozilla"
+      start = nav.userAgent.indexOf("Firefox") + 8
+      v = nav.userAgent.substr(start)
+      @_browser.version = parseFloat(v)
+    else
+      @_browser.name = nav.userAgent
+      @_browser.version = parseFloat(nav.appVersion)
+    @_browser
+
+  ###*
+   * Cоздаём окно по центру окрывая страницу по адресу `url` и `title`, шириной `width` и высотой `height`.
+   * По умолчанию окно создатся асинхронно, возвращает HSF. <br/>
+   * Размеры, а так же различные элементы определяются отдельно. <br/>
+   * Параметры `option`:
+   * - `resizable` (можно ли изменять размеры нового окна)
+   * - `scrollbars` (есть ли полосыпрокрутки)
+   * - `menubar` (есть ли меню)
+   * - `toolbar` (есть ли панель)
+   * - `status` (отображается ли статус окна)
+   * - `sync` (загрузить ли окно синхронно и вернуть ли ссылку на окно)
+   *
+   * @method openWin
+   * @param {String} url
+   * @param {String} [title]
+   * @param {Number} [width] = 902
+   * @param {Number} [height] = 700
+   * @param {Object} [option] = {}
+   * @param {Function} [callback] принимает 1 аргумет: ссылка на созданное окно
+   * @return {Object} HSF|window
+   ###
+  openWin: (url, title = '', width = 902, height = 700, option = {}, callback) ->
+    map = {resizable:1,scrollbars:1,menubar:0,toolbar:0,status:1}
+    try
+      left = ((screen.availWidth ||screen.width) / 2) - (width / 2) + (screen.availLeft || 0)
+      top = ((screen.availHeight || screen.height) / 2) - (height / 2) + (screen.availTop || 0)
+      link = "width=#{parseInt(width)},height=#{parseInt(height)},left=#{left}, top=#{top}"
+      for name in ['resizable','scrollbars','menubar','toolbar','status']
+        link += ",#{name}=" + (if name of option then (if option[name] then 1 else 0) else map[name])
+      open = =>
+        w = window.open(url, title, link)
+        w.activated = false
+        w.onfocus = () =>
+          return if w.activated
+          w.activated = true
+          if typeof callback is 'function'
+            callback(w)
+          else
+            @log('success win open')
+          return
+        w.blocked = !!(w.document.getElementById)
+        w.focus() if w
+        return w
+      if 'sync' of option and option.sync is true
+        return open()
+      else
+        window.setTimeout open, 4
+    catch err
+      alert "Ошибка открытия окна"
+    @
+
+  ###*
+   * Синоним для document.getElementById: получает элемент по `id` или возвращает `null`.
+   *
+   * @method GBI
    * @param {String} el
-   * @return {Element}
+   * @return {Element|NULL}
    ###
   GBI: (el) ->
     document.getElementById el
 
   ###*
-   * кросс-браузерная версия для получения элементов по имени класса classname внутри node
+   * Кросс-браузерная версия для получения элементов по имени класса `classname` внутри `node`.
+   * `node` по умолчанию `document`.
+   *
+   * @method GBC
    * @param {String} classname
    * @param {Element} [node] = document
-   * @return Array|NodeList
+   * @return {Array|NodeList}
    ###
   GBC: (classname, node = document) ->
     if 'getElementsByClassName' of node # use native implementation if available
@@ -1165,7 +1317,10 @@ class HSF
       ) classname, node
 
   ###*
-   * синоним для node.getElementsByTagName
+   * синоним для node.getElementsByTagName: получает набор элнементов с именем тэга `tagName` внутри элемента `node`.
+   * `node` по умолчанию `document`.
+   *
+   * @method GBT
    * @param {String} tagName
    * @param {Node} [node] = document
    * @return NodeList
@@ -1173,40 +1328,6 @@ class HSF
    ###
   GBT: (tagName, node = document) ->
     node.getElementsByTagName tagName
-
-  ###*
-   * создаём окно по центру с заданной ссылкой и названием.
-   * Размеры, а так же различные элементы определяются отдельно
-   * @param {String} url
-   * @param {String} [title]
-   * @param {Number} [width] = 902
-   * @param {Number} [height] = 700
-   * @param {Object} [option]
-   * @return window
-   ###
-  openWin: (url, title, width = 902, height = 700, option = {}, callback) ->
-    map = {resizable:1,scrollbars:1,menubar:0,toolbar:0,status:1}
-    try
-      left = ((screen.availWidth ||screen.width) / 2) - (width / 2) + (screen.availLeft || 0)
-      top = ((screen.availHeight || screen.height) / 2) - (height / 2) + (screen.availTop || 0)
-      link = "width=#{parseInt(width)},height=#{parseInt(height)},left=#{left}, top=#{top}"
-      for name in ['resizable','scrollbars','menubar','toolbar','status']
-        link += ",#{name}=" + (if name of option then (if option[name] then 1 else 0) else map[name])
-      w = window.open(url, title, link)
-      w.activated = false
-      w.onfocus = () =>
-        return if w.activated
-        w.activated = true
-        if typeof callback is 'function'
-          callback(w)
-        else
-          @log('success win open')
-        true
-      w.blocked = !!(w.document.getElementById)
-      w.focus() if w
-    catch err
-      alert "Ошибка открытия окна - #{title}"
-    w || false
 
   getSelection: (el) ->
     start = 0
@@ -1337,51 +1458,6 @@ class HSF
     s
 
   ###*
-   * получение размеров экрана, возвращается объект с свойствами:
-   * w ширина экрана,
-   * h высота экрана,
-   * s величина прокрутки сверху,
-   * sl величина прокрутки слева,
-   * sw ширина прокручиваемой области,
-   * sh высота документа
-   * @return Object
-   ###
-  getSize: ->
-    ret =
-      w: 0
-      h: 0
-      s: 0
-      sl: 0
-      sw: 0
-      sh: 0
-    if self.innerHeight # Everyone but IE
-      ret.w = window.innerWidth
-      ret.h = window.innerHeight
-      ret.s = window.pageYOffset
-      ret.sl = window.pageXOffset
-    else if document.documentElement and document.documentElement.clientHeight # IE6 Strict
-      ret.w = document.documentElement.clientWidth
-      ret.h = document.documentElement.clientHeight
-      ret.s = document.documentElement.scrollTop
-      ret.sl = document.documentElement.scrollLeft
-    else if document.body # Other IE, such as IE7
-      ret.w = document.body.clientWidth
-      ret.h = document.body.clientHeight
-      ret.s = document.body.scrollTop
-      ret.sl = document.body.scrollLeft
-    # Page size w/offscreen areas
-    if window.innerHeight and window.scrollMaxY
-      ret.sw = document.body.scrollWidth
-      ret.sh = window.innerHeight + window.scrollMaxY
-    else if document.body.scrollHeight > document.body.offsetHeight # All but Explorer Mac
-      ret.sw = document.body.scrollWidth
-      ret.sh = document.body.scrollHeight
-    else # Explorer Mac...would also work in Explorer 6 Strict, Mozilla and Safari
-      ret.sw = document.body.offsetWidth
-      ret.sh = document.body.offsetHeight
-    ret
-
-  ###*
    * получаем значение стиля элемента по его DOM-имени
    * @param {Element} el
    * @param {String} styleName
@@ -1419,49 +1495,6 @@ class HSF
       return [].take(el.parentNode.childNodes).indexOf(el)
     else
       return [].take(el.parentNode.children).indexOf(el)
-
-  ###*
-   * определяет название браузера и версию
-   * @return Object {name:[mozilla|opera|chrome|ie|safari|...], version: (Float)}
-   ###
-  browser: ->
-    return @_browser if @_browser.version isnt 0
-    nav = window.navigator
-    chrome = /Chrome\/([\d\.]+)/
-    chrome = nav.userAgent.search(chrome)
-    safari = /Safari\/([\d\.]+)/
-    safari = nav.userAgent.search(safari)
-    start = 0
-    v = 0
-    if nav.appName is "Microsoft Internet Explorer"
-      @_browser.name = "msie"
-      start = nav.appVersion.indexOf("MSIE") + 5
-      v = nav.appVersion.substring(start, nav.appVersion.indexOf(";", start) - 1)
-      @_browser.version = parseFloat(v)
-    else unless chrome is -1
-      @_browser.name = "chrome"
-      start = nav.appVersion.indexOf("Chrome") + 7
-      v = nav.appVersion.substring(start, nav.appVersion.indexOf(" ", start) - 1)
-      @_browser.version = parseFloat(v)
-    else if nav.appName is "Opera"
-      @_browser.name = "opera"
-      start = nav.userAgent.indexOf("Version") + 8
-      v = nav.userAgent.substring(start, nav.userAgent.length)
-      @_browser.version = parseFloat(v)
-    else unless safari is -1
-      @_browser.name = "safari"
-      start = nav.userAgent.indexOf("Version") + 8
-      v = nav.userAgent.substring(start, nav.userAgent.indexOf(" ", start) - 1)
-      @_browser.version = parseFloat(v)
-    else if nav.appName is "Netscape" and nav.appCodeName is "Mozilla" and nav.userAgent.indexOf("Firefox") isnt -1
-      @_browser.name = "mozilla"
-      start = nav.userAgent.indexOf("Firefox") + 8
-      v = nav.userAgent.substr(start)
-      @_browser.version = parseFloat(v)
-    else
-      @_browser.name = nav.userAgent
-      @_browser.version = parseFloat(nav.appVersion)
-    @_browser
 
   ###*
    * устанавливаем "память" объекту.
@@ -1746,7 +1779,7 @@ class HSF
   load: (url, func, err, data) ->
     if typeof url is 'object'
       func = url.scs if 'scs' of url
-      func = erl.success if 'success' of url
+      func = url.success if 'success' of url
       err = url.err if 'err' of url
       err = url.error if 'error' of url
       data = url.data if 'data' of url
@@ -1797,8 +1830,11 @@ class HSF
         if xhr.readyState is 4
           active = xhr["active"]
           # для статуса "OK"
-          if xhr.status is 200 || (xhr.status is 0 and xhr.responseText.length > 0) #в windows при открытии локальных файлов статус 0, но текст есть
-            @_rPool[active].func xhr.responseText, xhr.getAllResponseHeaders()
+          if 200 <= xhr.status < 300 || (xhr.status is 0 and xhr.responseText.length > 0) #в windows при открытии локальных файлов статус 0, но текст есть
+            if 'getAllResponseHeaders' of xhr
+              @_rPool[active].func xhr.responseText, xhr.getAllResponseHeaders(), xhr.status
+            else
+              @_rPool[active].func xhr.responseText, '', xhr.status
           else
             @_rPool[active].err xhr.statusText
           @_rPool[active].state = 0
