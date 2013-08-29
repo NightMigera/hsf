@@ -117,78 +117,6 @@ indexOf(item, \[startIndex\])
 
 Number
 
-getThis()
----------
-Получает строку для обращения из глобальной области видимости для inline функций
-
-
-GBI(el)
--------
-синоним для document.getElementById
-
-
-**Parameters**
-
-**el**:  *String*,  
-
-
-GBC(classname, \[node\])
-------------------------
-кросс-браузерная версия для получения элементов по имени класса classname внутри node
-
-
-**Parameters**
-
-**classname**:  *String*,  
-
-
-**[node]**:  *Element*,  = document
-
-**Returns**
-
-Array|NodeList
-
-GBT(tagName, \[node\])
-----------------------
-синоним для node.getElementsByTagName
-
-
-**Parameters**
-
-**tagName**:  *String*,  
-
-
-**[node]**:  *Node*,  = document
-
-**Returns**
-
-NodeList
-
-openWin(url, \[title\], \[width\], \[height\], \[option\])
-----------------------------------------------------------
-создаём окно по центру с заданной ссылкой и названием.
-Размеры, а так же различные элементы определяются отдельно
-
-
-**Parameters**
-
-**url**:  *String*,  
-
-
-**[title]**:  *String*,  
-
-
-**[width]**:  *Number*,  = 902
-
-**[height]**:  *Number*,  = 700
-
-**[option]**:  *Object*,  
-
-
-**Returns**
-
-window
-
 getPos(el, parent=document)
 ---------------------------
 получается позиция объекта в документе. Некоторые баги в ИЕ
@@ -240,21 +168,6 @@ getScreenPos(el)
 
 *Object*,  {x:(number),y:(number)}
 
-getSize()
----------
-получение размеров экрана, возвращается объект с свойствами:
-w ширина экрана,
-h высота экрана,
-s величина прокрутки сверху,
-sl величина прокрутки слева,
-sw ширина прокручиваемой области,
-sh высота документа
-
-
-**Returns**
-
-Object
-
 getStyle(el, styleName)
 -----------------------
 получаем значение стиля элемента по его DOM-имени
@@ -304,11 +217,6 @@ getIndexElement(el, node)
 **Returns**
 
 Number
-
-browser()
----------
-определяет название браузера и версию
-
 
 setMem(el, prop, val, nameSpace)
 --------------------------------
@@ -1154,6 +1062,12 @@ class HSF
 ---------
 **Methods**
 
+HSF.getThis()
+-------------
+Получает строку для обращения из глобальной области видимости для inline функций
+
+
+
 HSF.toSource(o, \[level\])
 --------------------------
 Возвращает структуру объекта `o` с глубиной рекурсии `level`.
@@ -1461,4 +1375,104 @@ HSF.dateToFormat(date, format)
 **Returns**
 
 *String*,  отформатированная строка
+
+HSF.getSize()
+-------------
+получение размеров экрана, возвращается объект с свойствами:
+- w ширина экрана,
+- h высота экрана,
+- s величина прокрутки сверху,
+- sl величина прокрутки слева,
+- sw ширина прокручиваемой области,
+- sh высота документа
+
+
+
+HSF.browser()
+-------------
+определяет название браузера и версию
+
+
+
+**Returns**
+
+*Object*,  {name:[mozilla|opera|chrome|ie|safari|...], version: (Float)}
+
+HSF.openWin(url, \[title\], \[width\], \[height\], \[option\], \[callback\])
+----------------------------------------------------------------------------
+Cоздаём окно по центру окрывая страницу по адресу `url` и `title`, шириной `width` и высотой `height`.
+По умолчанию окно создатся асинхронно, возвращает HSF. <br/>
+Размеры, а так же различные элементы определяются отдельно. <br/>
+Параметры `option`:
+- `resizable` (можно ли изменять размеры нового окна)
+- `scrollbars` (есть ли полосыпрокрутки)
+- `menubar` (есть ли меню)
+- `toolbar` (есть ли панель)
+- `status` (отображается ли статус окна)
+- `sync` (загрузить ли окно синхронно и вернуть ли ссылку на окно)
+
+
+
+**Parameters**
+
+**url**:  *String*,  
+
+
+**[title]**:  *String*,  
+
+
+**[width]**:  *Number*,  = 902
+
+**[height]**:  *Number*,  = 700
+
+**[option]**:  *Object*,  = {}
+
+**[callback]**:  *Function*,  принимает 1 аргумет: ссылка на созданное окно
+
+**Returns**
+
+*Object*,  HSF|window
+
+HSF.GBI(el)
+-----------
+Синоним для document.getElementById: получает элемент по `id` или возвращает `null`.
+
+
+
+**Parameters**
+
+**el**:  *String*,  
+
+
+HSF.GBC(classname, \[node\])
+----------------------------
+Кросс-браузерная версия для получения элементов по имени класса `classname` внутри `node`.
+`node` по умолчанию `document`.
+
+
+
+**Parameters**
+
+**classname**:  *String*,  
+
+
+**[node]**:  *Element*,  = document
+
+HSF.GBT(tagName, \[node\])
+--------------------------
+синоним для node.getElementsByTagName: получает набор элнементов с именем тэга `tagName` внутри элемента `node`.
+`node` по умолчанию `document`.
+
+
+
+**Parameters**
+
+**tagName**:  *String*,  
+
+
+**[node]**:  *Node*,  = document
+
+**Returns**
+
+NodeList
 
