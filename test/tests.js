@@ -258,7 +258,7 @@
         break;
       case TEST_TYPE_USER:
         tName.appendChild(document.createTextNode(' ' + mess));
-        tRes.innerHTML = '<button>Да</button><button>Нет</button>';
+        tRes.innerHTML = '<button>Yes Да</button><button>No Нет</button>';
         tRes.childNodes[0].onclick = function () {
           callback(n, true);
         };
