@@ -59,6 +59,10 @@ window._HSF =
  ###
 class HSF
   ###*
+   * Внутренние функции
+  ###
+  _i: 0
+  ###*
    * Сбор объектов для запросов.
    * Необходим для использования установившихся соединений и для образ-я новых
    * @type {Array}
@@ -797,7 +801,7 @@ class HSF
     temp.toLowerCase()
 
   utf8_encode = (str_data) ->
-    str_data = str_data.replace(/\r\n/g, "\n")
+    str_data = str_data.replace /\r\n/g, "\n"
     utftext = ""
     n = 0
 
@@ -832,7 +836,7 @@ class HSF
    * @method zeroFill
    * @param   {Number}  number
    * @param   {Number}  width
-   * @return  {String}
+   * @return  {String} string length >= width
    ###
   zeroFill: (number, width) ->
     width -= number.toString().length
@@ -930,7 +934,7 @@ class HSF
    * @param   {Number} [fs] =  11
    * @param   {String} [ff] =  "Tahoma"
    * @param   {String} [c]  =  "W"
-   * @return  {Number}
+   * @return  {Number} width of char
    ###
   getCharWidthMax: (fs, ff, c = 'W') ->
     ff = ff or "Tahoma"
@@ -964,7 +968,7 @@ class HSF
    * @param   {Number} [fs] =  11
    * @param   {String} [ff] =  "Tahoma"
    * @param   {String} [c]  =  "W"
-   * @return  {Number}
+   * @return  {Number} width of char
   ###
   getCharWidth: (fs, ff, c) =>
     @getCharWidthMax fs, ff, c
@@ -1275,6 +1279,54 @@ class HSF
         window.setTimeout open, 4
     catch err
       alert "Ошибка открытия окна"
+    @
+
+  ###*
+   * Добавление сообщения `message` с типом `type` в лог,
+   * универсальная прослойка для console, для старых браузеров. <br />
+   * Возможные значения type:
+   * - `log` простое добавление сообщения
+   * - `info` сообщение информационное
+   * - `warn` важное сообщение
+   * - `warning` то же, что и `warn`
+   * - `err` сообщение об ошибке
+   * - `error` то же, что и `err`
+   * - `debug` сообщение для отладки
+   *
+   * @method log
+   * @param   {String}    message
+   * @param   {String}    [type] = 'log'
+   * @return  {Object} HSF
+   ###
+  log: (message, type = 'log') ->
+    str = ((new Date()).getTime() - @_startLogDate).toString()
+    @_stackLog[@_stackLog.length] =
+      time: str
+      mess: "#{type}: #{message}"
+
+    if "console" of window
+      console = window.console
+      switch type
+        when 'log'
+          func = console.log
+        when 'info'
+          if 'info' of console then func = console.info else str = 'INFO: ' + str
+        when 'err', 'error'
+          if 'error' of console then func = console.error else str = "ERROR: #{str}"
+        when 'warn', 'warning'
+          if 'warn' of console then func = console.warn else str = "WARN: #{str}"
+        when 'debug'
+          if 'debug' of console then func = console.debug else str = "DEBUG: #{str}"
+        else
+          str = "#{type}: #{str}"
+      unless func
+        func = console.log
+      if typeof func isnt "function" #ie console.log is object
+        func str + ": #{message}"
+      else
+        func.call console, str + ": #{message}"
+    else if @_debug
+      alert "#{type}: #{str}: #{message}"
     @
 
   ###*
@@ -2373,43 +2425,6 @@ class HSF
         el = el.parentNode
         return el if not el.className
     null
-
-  ###*
-   * Добавление сообщения в лог
-   * @param   {String}    message
-   * @param   {String}    [type] = 'log'
-   * @return  Boolean
-   ###
-  log: (message, type = 'log') ->
-    str = ((new Date()).getTime() - @_startLogDate).toString()
-    @_stackLog[@_stackLog.length] =
-      time: str
-      mess: "#{type}: #{message}"
-
-    if "console" of window
-      console = window.console
-      switch type
-        when 'log'
-          func = console.log
-        when 'info'
-          if 'info' of console then func = console.info else str = 'INFO: ' + str
-        when 'err', 'error'
-          if 'error' of console then func = console.error else str = "ERROR: #{str}"
-        when 'warn', 'warning'
-          if 'warn' of console then func = console.warn else str = "WARN: #{str}"
-        when 'debug'
-          if 'debug' of console then func = console.debug else str = "DEBUG: #{str}"
-        else
-          str = "#{type}: #{str}"
-      unless func
-        func = console.log
-      if typeof func isnt "function" #ie console.log is object
-        func str + ": #{message}"
-      else
-        func.call console, str + ": #{message}"
-    else if @_debug
-      alert "#{type}: #{str}: #{message}"
-    true
 
   ###*
      * Работает аналогично time в linux: считает кол-во мс, которое тратит на себя функция
