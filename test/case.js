@@ -347,6 +347,11 @@
         return seq(f.GBC('sTest', tb), tb.getElementsByTagName('s'))
       });
       test('1c f.GBC no exists', f.GBC('sas').length === 0);
+      // QSA
+      test('1c f.QSA', seq(f.QSA('#testBlock.testBlock > s'), document.getElementById('testBlock').getElementsByTagName('s')));
+      test('1c f.QSA no exists', f.QSA('#testBlock.testBlock > .glue').length === 0);
+      test('1c f.qsa', seq(f.qsa('#testBlock.testBlock > s'), document.getElementById('testBlock').getElementsByTagName('s')));
+      test('1c f.qsa no exists', f.qsa('#testBlock.testBlock > .glue').length === 0);
       gEnd();
     }
     { // Get parent
@@ -1053,8 +1058,17 @@
         });
         gEnd();
       }
-      {
-
+      { // getScrollBarWidth
+        test('1c f.getScrollBarWidth', function () {
+          var el = f.createElement('div', {innerHTML: '<div>test</div>', style: {overflow: 'scroll', width: '200px', height: '200px'}}, document.body);
+          var sw = f.getScrollBarWidth();
+          var ret = false;
+          if (sw === 200 - el.childNodes[0].offsetWidth) {
+            ret = true;
+          }
+          document.body.removeChild(el);
+          return ret;
+        });
       }
     }
   }
