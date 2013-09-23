@@ -1070,6 +1070,104 @@
           return ret;
         });
       }
+      gEnd();
+    }
+    { // elements func
+      group('elements');
+      test('1c f.createElement clear => div', f.createElement('').tagName.toUpperCase() === 'DIV');
+      test('1c f.createElement div', f.createElement('').tagName.toUpperCase() === 'DIV');
+      test('1c f.createElement span', f.createElement('span').tagName.toUpperCase() === 'SPAN');
+      test('1c f.createElement #testElement1', function () {
+        var el = f.createElement('#testElement1');
+        return el.id === 'testElement1'
+          && el.tagName.toUpperCase() === 'DIV';
+      });
+      test('1c f.createElement div#testElement1', function () {
+        var el = f.createElement('div#testElement1');
+        return el.id === 'testElement1'
+          && el.tagName.toUpperCase() === 'DIV';
+      });
+      test('1c f.createElement span#testElement1', function () {
+        var el = f.createElement('span#testElement1');
+        return el.id === 'testElement1'
+          && el.tagName.toUpperCase() === 'SPAN';
+      });
+      test('1c f.createElement .testElement1', function () {
+        var el = f.createElement('.testElement1');
+        return el.className === 'testElement1'
+          && el.tagName.toUpperCase() === 'DIV';
+      });
+      test('1c f.createElement .testElement1....testElementN', function () {
+        var el = f.createElement('.testElement1.testElement2.testElement3');
+        return el.className === 'testElement1 testElement2 testElement3'
+          && el.tagName.toUpperCase() === 'DIV';
+      });
+      test('1c f.createElement span.testElement1....testElementN', function () {
+        var el = f.createElement('span.testElement1.testElement2.testElement3');
+        return el.className === 'testElement1 testElement2 testElement3'
+          && el.tagName.toUpperCase() === 'SPAN';
+      });
+      test('1c f.createElement span#testElement1.testElement1.testElement2', function () {
+        var el = f.createElement('span#testElement1.testElement1.testElement2');
+        return el.className === 'testElement1 testElement2'
+          && el.tagName.toUpperCase() === 'SPAN'
+          && el.id === 'testElement1';
+      });
+      test('1c f.createElement width attrs', function () {
+        var el = f.createElement('', {"data-set": 'abc', "id": 'testElement1'});
+        return el.getAttribute('data-set') === 'abc'
+          && el.tagName.toUpperCase() === 'DIV'
+          && el.id === 'testElement1';
+      });
+      test('1c f.createElement width attrs + style', function () {
+        var el = f.createElement('', {
+          "data-set": 'abc',
+          "id": 'testElement1',
+          "style": {
+            "left": '1px',
+            "top": '1px',
+            "position": "relative"
+          }});
+        return el.getAttribute('data-set') === 'abc'
+          && el.tagName.toUpperCase() === 'DIV'
+          && el.id === 'testElement1'
+          && el.style.left === '1px'
+          && el.style.top === '1px'
+          && el.style.position === 'relative'
+          ;
+      });
+      test('1c f.createElement width parent', function () {
+        var el = f.createElement('', null, document.getElementById('testBlock')), ret;
+        ret = el.parentNode === document.getElementById('testBlock')
+          && el.tagName.toUpperCase() === 'DIV';
+        document.getElementById('testBlock').removeChild(el);
+        return ret;
+      });
+      test('1c f.createElement full', function () {
+        var el = f.createElement(
+            'span#testElement1.testElement1.testElement2',
+            {
+              "data-set": 'abc',
+              "style": {
+                "left": '1px',
+                "top": '1px',
+                "position": "relative"
+              }
+            },
+            document.getElementById('testBlock')),
+          ret;
+        ret = el.parentNode === document.getElementById('testBlock')
+          && el.tagName.toUpperCase() === 'SPAN'
+          && el.className === 'testElement1 testElement2'
+          && el.id === 'testElement1'
+          && el.getAttribute('data-set') === 'abc'
+          && el.style.left === '1px'
+          && el.style.top === '1px'
+          && el.style.position === 'relative'
+        ;
+        document.getElementById('testBlock').removeChild(el);
+        return ret;
+      });
     }
   }
 }
