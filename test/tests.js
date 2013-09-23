@@ -257,6 +257,9 @@
         }
         break;
       case TEST_TYPE_USER:
+        if (typeof func === 'function') {
+          func();
+        }
         tName.appendChild(document.createTextNode(' ' + mess));
         tRes.innerHTML = '<button>Yes Да</button><button>No Нет</button>';
         tRes.childNodes[0].onclick = function () {
