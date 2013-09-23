@@ -1368,9 +1368,137 @@ class HSF
       @log "full complete at #{t -= start}ms"
     return t
 
-  #--------------------- END WINDOW FUNC ----------------------------
-  #--------------------- START EVENT FUNC ---------------------------
+  ###*
+   * AJAX запрос
+   * может принять необходимые аргументы, а может и объект, где:
+   * -  url: String собственно адрес
+   * -  scs: function(data) вызывается при успешном выполнении
+   * -  err: function(data) вызывается при неудачном выполнении
+   * -  data: String данные для POST метода
+   * -  method: String
+   * -  header: Object вида {header1Name: header1Value[, headerXName: headerXValue]...}
+   *
+   * @method load
+   * @param {String|Object} url к какому URL
+   * @param {Function} [func]
+   * @param {String} [data|err]
+   * @param {String} [data]
+   * @return String|XMLHttpRequest|ActiveXObject
+   ###
+  load: (url, func, err, data) ->
+    if typeof url is 'object'
+      func = url.scs if 'scs' of url
+      func = url.success if 'success' of url
+      err = url.err if 'err' of url
+      err = url.error if 'error' of url
+      data = url.data if 'data' of url
+      method = url.method if 'method' of url
+      header = url.header if 'header' of url
+      url = url.url
+    else if typeof err is 'object'
+      data = err
+    active = -1
+    i = 0
+    errorTex = ''
+    while i < @_rPool.length
+      if @_rPool[i]["state"] is 0
+        active = i
+        @_rPool[i]["state"] = 1
+        break
+      i++
+    if active < 0
+      active = @_rPool.length
+      @_rPool[active] =
+        ajax: null
+        state: 1
+        func: null
+        err: null
+    unless @_rPool[active].ajax
+      @_rPool[active].ajax = null
+      if @_debug
+        if 'XMLHttpRequest' of window
+          try
+            @_rPool[active].ajax = new XMLHttpRequest()
+          catch e
+            errorTex += "Cant't create XMLHttpRequest object, but XMLHttpRequest exists. Error: #{e.message}"
+            @log e.message
+        else if window.ActiveXObject
+          try
+            @_rPool[active].ajax = new ActiveXObject("Msxml2.XMLHTTP")
+          catch e
+            try
+              @_rPool[active].ajax = new ActiveXObject("Microsoft.XMLHTTP")
+            catch e
+              errorTex += "Cant't create ActiveXObject object, but ActiveXObject exists. Error: #{e.message}"
+              @log e.message
+      else
+        @_rPool[active].ajax = if 'XMLHttpRequest' of window then new XMLHttpRequest() else new ActiveXObject("Microsoft.XMLHTTP")
+      @_rPool[active].ajax.onreadystatechange = =>
+        xhr = null
+        `var xhr = this`
+        if xhr.readyState is 4
+          active = xhr["active"]
+          # для статуса "OK"
+          if 200 <= xhr.status < 300 || (xhr.status is 0 and xhr.responseText.length > 0) #в windows при открытии локальных файлов статус 0, но текст есть
+            if 'getAllResponseHeaders' of xhr
+              @_rPool[active].func xhr.responseText, xhr.getAllResponseHeaders(), xhr.status
+            else
+              @_rPool[active].func xhr.responseText, '', xhr.status
+          else
+            @_rPool[active].err xhr.statusText
+          @_rPool[active].state = 0
+#        try
+#        catch e
+#          @log e.message + "\n" + @toSource(e)
+        true
+    else if errorTex isnt ''
+      @_rPool[active]["state"] = 0
+      return errorTex
+    if @_rPool[active].ajax
+      @_rPool[active].func = func
+      @_rPool[active].err = if err then err else -> true
+      @_rPool[active].ajax["active"] = active
+      @_rPool[active].state = 1
+      unless data?
+        d = if @_counterEnabled then ((if url.indexOf("?") > 0 then '&' else '?') + 'cOuNtEr=' + @_counter++) else ''
+        @_rPool[active].ajax.open method || "GET", url + d, true
+        if header
+          for label, value of header
+            @_rPool[active].ajax.setRequestHeader label, value
+        @_rPool[active].ajax.send null
+      else
+        @_rPool[active].ajax.open method || "POST", url, true
+        @_rPool[active].ajax.setRequestHeader "Content-length", data.length
+        @_rPool[active].ajax.setRequestHeader "Content-type", "application/x-www-form-urlencoded"
+        if header
+          for label, value of header
+            @_rPool[active].ajax.setRequestHeader label, value
+        @_rPool[active].ajax.send data
+      return @_rPool[active].ajax
+    errorTex or "err"
 
+  ###*
+   * Получение ширины скроллбара. Взято из MooTools
+   *
+   * @method getScrollBarWidth
+   * @return Number
+   ###
+  getScrollBarWidth: ->
+    if @_scrollBarWidth < 0
+      @appendChild document.body, "<div id='__HSFscrollbar' style='position:absolute;top:0;left:0;visibility:hidden;width:200px;height:150px;overflow:hidden;'><p style='width:100%;height:200px'></p></div>"
+      outer = f.GBI('__HSFscrollbar')
+      inner = outer.children[0]
+
+      w1 = inner.offsetWidth
+      outer.style.overflow = "scroll"
+      w2 = inner.offsetWidth
+      w2 = outer.clientWidth  if w1 is w2
+      document.body.removeChild outer
+      @_scrollBarWidth = w1 - w2
+    @_scrollBarWidth
+
+  #--------------------- END WINDOW FUNC ----------------------------
+  #--------------------- START SELECT FUNC ---------------------------
   ###*
    * Синоним для document.getElementById: получает элемент по `id` или возвращает `null`.
    *
@@ -1388,7 +1516,7 @@ class HSF
    * @method GBC
    * @param {String} classname
    * @param {Element} [node] = document
-   * @return {Array|NodeList}
+   * @return Array|NodeList
    ###
   GBC: (classname, node = document) ->
     if 'getElementsByClassName' of node # use native implementation if available
@@ -1411,6 +1539,60 @@ class HSF
       ) classname, node
 
   ###*
+   * Замена jQuery селектору и универсализация querySelectorAll
+   *
+   * @method qsa
+   * @param   {String} queryString селектор
+   * @param   {Element} context = document контекст, в котором ищем
+   * @return  Array
+   ###
+  qsa: (queryString, context = document) ->
+    if 'querySelectorAll' of context
+      return [].take(context.querySelectorAll(queryString))
+    if 'jQuery' of window
+      return jQuery(queryString, context).get()
+    #ie 7 -- 8 (yes, ie 8 support querySelectorAll but ie 8 not support querySelectorAll XD
+    s = document.createStyleSheet()
+    r = queryString.replace(/\[for\b/gi, "[htmlFor").split(",")
+    window.hsfSelectorCollection = []
+    if @_scriptPath is ''
+      for script in @GBT('script')
+        if /hsf\.(min\.|dev\.)?js$/.test(script.src || '')
+          @_scriptPath = script.src.replace(/hsf\.(min\.|dev\.)?js$/, '')
+          break
+      if @_scriptPath is ''
+        @_scriptPath = false
+
+    if @_scriptPath is false
+      a = context.all
+      c = []
+      i = r.length
+      while i--
+        s.addRule r[i], "k:v"
+        j = a.length
+        while j--
+          a[j].currentStyle.k and c.push(a[j])
+        s.removeRule 0
+      return c
+    else
+      beh = @_scriptPath + '/ca.htc'
+      for selector in r
+        s.addRule selector, "behavior: url(#{beh})"
+        s.removeRule 0
+      s.owningElement.parentNode.removeChild(s.owningElement)
+      return window.hsfSelectorCollection
+
+  ###*
+   * alias for qsa
+   *
+   * @method QSA
+   * @param   {String} queryString селектор
+   * @param   {Element} context = document контекст, в котором ищем
+   * @return  Array
+   ###
+  QSA: (queryString, context = document) => @qsa queryString, context
+
+  ###*
    * синоним для node.getElementsByTagName: получает набор элнементов с именем тэга `tagName` внутри элемента `node`.
    * `node` по умолчанию `document`.
    *
@@ -1418,10 +1600,48 @@ class HSF
    * @param {String} tagName
    * @param {Node} [node] = document
    * @return NodeList
-   * @constructor
    ###
   GBT: (tagName, node = document) ->
     node.getElementsByTagName tagName
+
+  ###*
+   * Получить родителя по тэгу. GetParentById
+   *
+   * @method GPT
+   * @param   {Element} el
+   * @param   {String}  tagName
+   * @return  Element|Null
+   ###
+  GPT: (el, tagName) ->
+    return null if not tagName? or tagName is ''
+    tagName = tagName.toLowerCase()
+    return null if not el or not el.parentNode
+    while el?.parentNode?.tagName?
+      el = el.parentNode
+      return el if el.tagName.toLowerCase() is tagName
+    null
+
+  ###*
+   * Получить родителя по имени класса. GetParentByClassname
+   *
+   * @method @GPC
+   * @param   {Element} el
+   * @param   {String}  className
+   * @return  Element|Null
+   ###
+  GPC: (el, className) ->
+    return null if not el
+    if className isnt ''
+      while el?.parentNode?
+        el = el.parentNode
+        return el if @hasClassName(el, className)
+    else
+      while el?.parentNode?
+        el = el.parentNode
+        return el if not el.className
+    null
+
+
 
   getSelection: (el) ->
     start = 0
@@ -1855,113 +2075,6 @@ class HSF
       for func in collectByType
         func.enable = false if func.fn is fn
     true
-
-  ###*
-   * AJAX запрос
-   * может принять необходимые аргументы, а может и объект, где:
-   *   url: String собственно адрес
-   *   scs: function(data) вызывается при успешном выполнении
-   *   err: function(data) вызывается при неудачном выполнении
-   *   data: String данные для POST метода
-   *   method: String
-   *   header: Object вида {header1Name: header1Value[, headerXName: headerXValue]...}
-   * @param {String|Object} url к какому URL
-   * @param {Function} [func]
-   * @param {String} [data|err]
-   * @param {String} [data]
-   * @return String|XMLHttpRequest|ActiveXObject
-   ###
-  load: (url, func, err, data) ->
-    if typeof url is 'object'
-      func = url.scs if 'scs' of url
-      func = url.success if 'success' of url
-      err = url.err if 'err' of url
-      err = url.error if 'error' of url
-      data = url.data if 'data' of url
-      method = url.method if 'method' of url
-      header = url.header if 'header' of url
-      url = url.url
-    else if typeof err is 'object'
-      data = err
-    active = -1
-    i = 0
-    errorTex = ''
-    while i < @_rPool.length
-      if @_rPool[i]["state"] is 0
-        active = i
-        @_rPool[i]["state"] = 1
-        break
-      i++
-    if active < 0
-      active = @_rPool.length
-      @_rPool[active] =
-        ajax: null
-        state: 1
-        func: null
-        err: null
-    unless @_rPool[active].ajax
-      @_rPool[active].ajax = null
-      if @_debug
-        if 'XMLHttpRequest' of window
-          try
-            @_rPool[active].ajax = new XMLHttpRequest()
-          catch e
-            errorTex += "Cant't create XMLHttpRequest object, but XMLHttpRequest exists. Error: #{e.message}"
-            @log e.message
-        else if window.ActiveXObject
-          try
-            @_rPool[active].ajax = new ActiveXObject("Msxml2.XMLHTTP")
-          catch e
-            try
-              @_rPool[active].ajax = new ActiveXObject("Microsoft.XMLHTTP")
-            catch e
-              errorTex += "Cant't create ActiveXObject object, but ActiveXObject exists. Error: #{e.message}"
-              @log e.message
-      else
-        @_rPool[active].ajax = if 'XMLHttpRequest' of window then new XMLHttpRequest() else new ActiveXObject("Microsoft.XMLHTTP")
-      @_rPool[active].ajax.onreadystatechange = =>
-        xhr = null
-        `var xhr = this`
-        if xhr.readyState is 4
-          active = xhr["active"]
-          # для статуса "OK"
-          if 200 <= xhr.status < 300 || (xhr.status is 0 and xhr.responseText.length > 0) #в windows при открытии локальных файлов статус 0, но текст есть
-            if 'getAllResponseHeaders' of xhr
-              @_rPool[active].func xhr.responseText, xhr.getAllResponseHeaders(), xhr.status
-            else
-              @_rPool[active].func xhr.responseText, '', xhr.status
-          else
-            @_rPool[active].err xhr.statusText
-          @_rPool[active].state = 0
-#        try
-#        catch e
-#          @log e.message + "\n" + @toSource(e)
-        true
-    else if errorTex isnt ''
-      @_rPool[active]["state"] = 0
-      return errorTex
-    if @_rPool[active].ajax
-      @_rPool[active].func = func
-      @_rPool[active].err = if err then err else -> true
-      @_rPool[active].ajax["active"] = active
-      @_rPool[active].state = 1
-      unless data?
-        d = if @_counterEnabled then ((if url.indexOf("?") > 0 then '&' else '?') + 'cOuNtEr=' + @_counter++) else ''
-        @_rPool[active].ajax.open method || "GET", url + d, true
-        if header
-          for label, value of header
-            @_rPool[active].ajax.setRequestHeader label, value
-        @_rPool[active].ajax.send null
-      else
-        @_rPool[active].ajax.open method || "POST", url, true
-        @_rPool[active].ajax.setRequestHeader "Content-length", data.length
-        @_rPool[active].ajax.setRequestHeader "Content-type", "application/x-www-form-urlencoded"
-        if header
-          for label, value of header
-            @_rPool[active].ajax.setRequestHeader label, value
-        @_rPool[active].ajax.send data
-      return @_rPool[active].ajax
-    errorTex or "err"
 #------------------------------------------------    start bubble
   ###*
    * Создаём бабл в центре экрана с шириной w и высотой h, с содержимым html
@@ -2385,7 +2498,7 @@ class HSF
    * @param {Number} pos
    * @return Object
    ###
-  offOnResize: (pos) ->
+  retOnResize: (pos) ->
     col = @_onResizeCollection[pos]
     if col.type is 1
       col.action()
@@ -2436,39 +2549,6 @@ class HSF
    ###
   delClassName: (el, className) =>
     @removeClassName el, className
-#------------------------------------------------    end className
-  ###*
-   * Получить родителя по тэгу
-   * @param   {Element} el
-   * @param   {String}  tagName
-   * @return  Element|Null
-   ###
-  GPT: (el, tagName) ->
-    return null if not tagName? or tagName is ''
-    tagName = tagName.toLowerCase()
-    return null if not el or not el.parentNode
-    while el?.parentNode?.tagName?
-      el = el.parentNode
-      return el if el.tagName.toLowerCase() is tagName
-    null
-
-  ###*
-   * Получить родителя по имени класса
-   * @param   {Element} el
-   * @param   {String}  className
-   * @return  Element|Null
-   ###
-  GPC: (el, className) ->
-    return null if not el
-    if className isnt ''
-      while el?.parentNode?
-        el = el.parentNode
-        return el if @hasClassName(el, className)
-    else
-      while el?.parentNode?
-        el = el.parentNode
-        return el if not el.className
-    null
 
   ###*
    * Выводит лог на экран в виде линии событий и времён
@@ -2901,65 +2981,6 @@ class HSF
   insertBefore: (el, exist) ->
     exist.parentNode.insertBefore(el, exist)
     @
-
-  ###*
-     * Замена jQuery селектору и универсализация querySelectorAll
-     * @param   {String} queryString селектор
-     * @param   {Element} context = document контекст, в котором ищем
-     * @return  Array
-     ###
-  qsa: (queryString, context = document) ->
-    if 'querySelectorAll' of context
-      return [].take(context.querySelectorAll(queryString))
-    if 'jQuery' of window
-      return jQuery(queryString, context).get()
-    #ie 7 -- 8 (yes, ie 8 support querySelectorAll but ie 8 not support querySelectorAll XD
-    s = document.createStyleSheet()
-    r = queryString.replace(/\[for\b/gi, "[htmlFor").split(",")
-    window.hsfSelectorCollection = []
-    if @_scriptPath is ''
-      for script in @GBT('script')
-        if /hsf\.(min\.|dev\.)?js$/.test(script.src || '')
-          @_scriptPath = script.src.replace(/hsf\.(min\.|dev\.)?js$/, '')
-          break
-      if @_scriptPath is ''
-        @_scriptPath = false
-
-    if @_scriptPath is false
-      a = context.all
-      c = []
-      i = r.length
-      while i--
-        s.addRule r[i], "k:v"
-        j = a.length
-        while j--
-          a[j].currentStyle.k and c.push(a[j])
-        s.removeRule 0
-      return c
-    else
-      beh = @_scriptPath + '/ca.htc'
-      for selector in r
-        s.addRule selector, "behavior: url(#{beh})"
-        s.removeRule 0
-      s.owningElement.parentNode.removeChild(s.owningElement)
-      return window.hsfSelectorCollection
-  ###*
-   * Получение ширины скроллбара. Взято из MooTools
-   * @return  Number
-   ###
-  getScrollBarWidth: ->
-    if @_scrollBarWidth < 0
-      @appendChild document.body, "<div id='__HSFscrollbar' style='position:absolute;top:0;left:0;visibility:hidden;width:200px;height:150px;overflow:hidden;'><p style='width:100%;height:200px'></p></div>"
-      outer = f.GBI('__HSFscrollbar')
-      inner = outer.children[0]
-
-      w1 = inner.offsetWidth
-      outer.style.overflow = "scroll"
-      w2 = inner.offsetWidth
-      w2 = outer.clientWidth  if w1 is w2
-      document.body.removeChild outer
-      @_scrollBarWidth = w1 - w2
-    @_scrollBarWidth
 
   ###*
    * преобразует данные формы в строку. Нет типа файл из-за проблем с кроссбраузерностью
