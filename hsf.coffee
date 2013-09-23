@@ -383,6 +383,7 @@ class HSF
         func = head.func
         delete head.func
         func()
+        return
       if window.addEventListener # IE9+, другие браузеры
         window.addEventListener "message", onmessage, false
       if window.postMessage and @browser().name isnt 'msie' # ie go to setTimeout everythink, becous postMessage is inline
@@ -395,7 +396,7 @@ class HSF
           setTimeout(func, 0)
           return
 
-    @prepareOnDocumentReady()
+    prepareOnDocumentReady.call @
 
   # VARS MODULE: work width variables
 
@@ -587,7 +588,7 @@ class HSF
         else
           return parseInt(value, 10)|0
       else
-        return parseInt(value, 10)|0
+    return parseInt(value, 10)|0
 
   ###*
    * возвращает число с плавающей точкой или 0 (вместо NaN), так же может работать с числами вида 12.3768E+21
@@ -1231,7 +1232,7 @@ class HSF
     @_browser
 
   ###*
-   * Cоздаём окно по центру окрывая страницу по адресу `url` и `title`, шириной `width` и высотой `height`.
+   * Cоздаём окно по центру окрывая страницу по адресу `url` и с типом `title`, шириной `width` и высотой `height`.
    * По умолчанию окно создатся асинхронно, возвращает HSF. <br/>
    * Размеры, а так же различные элементы определяются отдельно. <br/>
    * Параметры `option`:
@@ -1328,6 +1329,47 @@ class HSF
     else if @_debug
       alert "#{type}: #{str}: #{message}"
     @
+
+  ###*
+   * Работает аналогично time в linux: считает кол-во мс, которое тратит на себя функция
+   *
+   * @method time
+   * @param   {Function} func функция, скорость которой проверяем
+   * @param   {Boolean} [render] = false проверять ли время отрисовки
+   * @param   {Boolean} [async] = false функция завершает выполнение асинхронно
+   * @param   {Function} [afterAsync] = null функция, в которую возвращается время окончания асинхронного выполнения
+   * @return  {Number} ms all process
+  ###
+  time: (func, render, async, afterAsync) ->
+    @log 'start time' if @_debug
+    start = (new Date()).getTime()
+    if async is true
+      timeEnd = =>
+        @log "async finish time at #{t = ((new Date()).getTime() - start)}ms"
+        if render is true
+          @log 'render start' if @_debug
+          startRender = (new Date()).getTime()
+          w = document.body.offsetWidth
+          @log "finish render at #{(t = (new Date()).getTime()) - startRender}ms"
+          @log "full complete at #{t -= start}ms"
+        if typeof afterAsync is "function"
+          afterAsync t
+        return
+      func(timeEnd)
+      @log "sync finish time at #{t = ((new Date()).getTime() - start)}ms"
+    else
+      func()
+      @log "finish time at #{t = ((new Date()).getTime() - start)}ms"
+    if render is true and async isnt true
+      @log 'render start' if @_debug
+      startRender = (new Date()).getTime()
+      w = document.body.offsetWidth
+      @log "finish render at #{(t = (new Date()).getTime()) - startRender}ms"
+      @log "full complete at #{t -= start}ms"
+    return t
+
+  #--------------------- END WINDOW FUNC ----------------------------
+  #--------------------- START EVENT FUNC ---------------------------
 
   ###*
    * Синоним для document.getElementById: получает элемент по `id` или возвращает `null`.
@@ -1764,6 +1806,7 @@ class HSF
                     oldURL: oldHref
                     newURL: elem.location.hash
                   )
+            return
           , 42)
       func = (e) =>
         e = e || window.event
@@ -2004,6 +2047,7 @@ class HSF
           if func isnt null
             func()
             @setMem bubble, "func", null
+          return
       },
       document.body)
       bubble.style.zIndex = zIndex + 1
@@ -2427,23 +2471,6 @@ class HSF
     null
 
   ###*
-     * Работает аналогично time в linux: считает кол-во мс, которое тратит на себя функция
-     * @param   {String}    message
-     * @return  Boolean
-     ###
-  time: (func, renderAfter) ->
-    @log 'start time'
-    start = (new Date()).getTime()
-    func()
-    @log "finish time at #{(new Date()).getTime() - start}ms"
-    if renderAfter is true
-      @log 'render start'
-      start = (new Date()).getTime()
-      t = document.body.offsetWidth
-      @log "finish render at #{(new Date()).getTime() - start}ms"
-    return
-
-  ###*
    * Выводит лог на экран в виде линии событий и времён
    * TODO: сделать наведение более логичным и не зависящим от общей длины шкалы времени
    * @return Boolean
@@ -2523,7 +2550,7 @@ class HSF
   ###*
    * блокирует выполнение действия по умолчанию в браузере, включая такие, как ctrl+s и др.
    * @param {Event} event
-   * @return Boolean
+   * @return {Boolean} false
    ###
   blockEvent: (event = window.event) ->
     if(event.stopPropagation)
@@ -2534,6 +2561,7 @@ class HSF
       event.preventDefault()
     else
       event.returnValue = false
+    false
 
   ###*
    * замещает input полем со стрелочками
@@ -2681,6 +2709,9 @@ class HSF
    * @return  Boolean
    ###
   onDomReady: (func) -> # функция добавления события
+    if @_ready is true
+      func()
+      return @
     oldonload = @_funcDomReady
     unless typeof @_funcDomReady is "function"
       @_funcDomReady = func
@@ -2688,31 +2719,32 @@ class HSF
       @_funcDomReady = ->
         oldonload()
         func()
-    true
+    @
 
   ###*
    * Запускает цепочку функций
    * @return *
    * @private
    ###
-  initOnDomReady: ->
+  initOnDomReady = ->
     # выходим, если функция уже выполнялась
     return  if @_ready
     # устанавливаем флаг, чтобы функция не исполнялась дважды
     @_ready = true
     @_funcDomReady()  if @_funcDomReady # вызываем всю цепочку обработчиков
+    return
 
   ###*
    * Подготавливает (расставляет слшателей событий) к загрузке документа
-   * @return Boolean
    ###
-  prepareOnDocumentReady: ->
+  prepareOnDocumentReady = ->
+    _t = @
     # для Mozilla/Firefox/Opera 9
-    if document.addEventListener
+    if 'addEventListener' of document
       document.addEventListener "DOMContentLoaded", =>
-        @initOnDomReady()
+        initOnDomReady.call(_t)
       , false
-    else if @browser().name is 'ie' # для Internet Explorer
+    else if _t.browser().name is 'ie' # для Internet Explorer
       `/*@cc_on @*/
       /*@if (@_win32)
        document.write("<script id=\"__ie_onload\" defer=\"defer\" src=\"javascript:void(0)\"><\/script>");
@@ -2722,16 +2754,16 @@ class HSF
        f.initOnDomReady();}; // вызываем обработчик для onload
        /*@end @*/`
     else if /WebKit/i.test(navigator.userAgent) # условие для Safari
-      _timer = setInterval(
-        ->
-          if /loaded|complete/.test(document.readyState)
-            clearInterval _timer
-            @initOnDomReady()
-        10)
+      _timer = setInterval(->
+        if /loaded|complete/.test(document.readyState)
+          clearInterval _timer
+          initOnDomReady.call(_t)
+        return
+      , 10)
     else # для остальных браузеров
       window.onload = =>
-        @initOnDomReady()
-    true
+        initOnDomReady.call(_t)
+    return
 
   ###*
    * Возможность перетаскивания объектов мышью.
@@ -3098,7 +3130,7 @@ class HSF
   ###*
    * Удалает CSS правило из системного styleSheet-та по селектору
    * @param {String} selector селектор, имена тегов в нижнем регистре. Иначе поведение непредопределено.
-   * @return  HSF
+   * @return {Object} HSF
    ###
   remCSS: (selector) ->
     return @ unless @_systemStyleSheet?
@@ -3130,6 +3162,15 @@ class HSF
       @_CSSCache.rules.del(i)
       delete @_CSSCache.index[sel]
     @
+
+  ###*
+   * alias for remCSS
+   *
+   * @method delCSS
+   * @param {String} selector
+   * @return {Object} HSF
+  ###
+  delCSS: (selector) => @remCSS selector
 
 
 
