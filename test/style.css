@@ -16,7 +16,7 @@ b {
     font-family: "Courier New", "Nimbus Mono L", monospace;
     font-size: 16px;
     overflow: hidden;
-    line-height: 20px;
+    line-height: 22px;
     cursor: default;
 }
 .testList > li:hover {
