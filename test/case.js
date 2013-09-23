@@ -6,6 +6,7 @@
  * To change this template use File | Settings | File Templates.
  */
 (function (window) {
+  window.f.log('start');
   var _h, dirs, i, l, dir, d,
     h = {},
     hash = function (prop) {
@@ -732,36 +733,43 @@
         return w != null && w === f.getCharWidth(16, 'Arial, "Helvetica CY", "Nimbus Sans L", sans-serif', 'Щ');
       });
       // f.dateToFormat
-      test('1c f.dateToFormat simple date width time', f.dateToFormat((new Date(2000, 0, 1)), '%d.%m.%y %h:%i:%s') === '01.01.2000 00:00:00');
-      test('1c f.dateToFormat simple date width time simpled', f.dateToFormat((new Date(2000, 0, 1)), '%D.%M.%Y %H:%I:%S') === '1.1.00 0:0:0');
-      test('1c f.dateToFormat masked percent', f.dateToFormat((new Date(2000, 0, 1)), "%%%d %% %%_") === "%01 % %_");
-      test('1c f.dateToFormat date width local names', f.dateToFormat((new Date(2000, 0, 1)), '%l, %d %f %y %h:%i:%s') === f._dateNames.weekShort[5] + ', 01 '+f._dateNames.monthShort[0]+' 2000 00:00:00');
-      test('1c f.dateToFormat other local names', f.dateToFormat((new Date(2000, 0, 1)), '%L %F %z %a %A') === f._dateNames.weekFull[5] + ' ' + f._dateNames.monthFull[0] + ' 1 am AM');
+      var baseDate = new Date(2000, 0, 1); //sometime this return 01.01.2000 03:00:00 It's bad, but not critical
+      baseDate.setHours(0);
+      baseDate.getNew = function () {
+        return new Date(this);
+      };
+      test('1c f.dateToFormat simple date width time'+f.dateToFormat(baseDate.getNew(), '%d.%m.%y %h:%i:%s'), f.dateToFormat(baseDate.getNew(), '%d.%m.%y %h:%i:%s') === '01.01.2000 00:00:00');
+      test('1c f.dateToFormat simple date width time simpled', f.dateToFormat(baseDate.getNew(), '%D.%M.%Y %H:%I:%S') === '1.1.00 0:0:0');
+      test('1c f.dateToFormat masked percent', f.dateToFormat(baseDate.getNew(), "%%%d %% %%_") === "%01 % %_");
+      test('1c f.dateToFormat date width local names', f.dateToFormat(baseDate.getNew(), '%l, %d %f %y %h:%i:%s') === f._dateNames.weekShort[5] + ', 01 '+f._dateNames.monthShort[0]+' 2000 00:00:00');
+      test('1c f.dateToFormat other local names', f.dateToFormat(baseDate.getNew(), '%L %F %z %a %A') === f._dateNames.weekFull[5] + ' ' + f._dateNames.monthFull[0] + ' 1 am AM');
       test('1c f.dataToFormat unix time', function () {
-        var t = parseInt(f.dateToFormat(new Date(2000, 0, 1, 15), '%u')),
-          t2 = parseInt(f.dateToFormat(new Date(2000, 0, 1, 15), '%U'));
+        var t0 = baseDate.getNew(), t, t2;
+        t0.setHours(15);
+          t = parseInt(f.dateToFormat(t0, '%u'));
+          t2 = parseInt(f.dateToFormat(t0, '%U'));
         return t2 / t === 1000;
       });
-      test('1c f.dateToFormat full test', f.dateToFormat((new Date(2000, 0, 1, 15)),
+      test('1c f.dateToFormat full test', f.dateToFormat((new Date(baseDate.getNew().setHours(15))),
         '%d %D %w %l %L %m %M %f %F %y %Y %a %A %g %G %h %H %i %I %s %S %p %P %z') ===
         '01 1 6 '+ f._dateNames.weekShort[5] + ' ' + f._dateNames.weekFull[5] + ' 01 1 ' + f._dateNames.monthShort[0] + ' ' + f._dateNames.monthFull[0] + ' 2000 00 pm PM 03 3 15 15 00 0 00 0 000 0 1');
       gEnd();
     }
     { // window
       group('window functions');
-      test('1c f.getSize', function () {
-        var s = f.getSize();
-        return s.w > 0 && s.h > 0 && s.s >= 0 && s.sl >= 0 && s.sh > 0 && s.sw > 0;
-      });
       test('3b f.browser', {
         type: TEST_TYPE_USER,
         mess: 'Browser: ' + f.browser().name + ', ver: ' + f.browser().version
       });
+      test('1c f.getSize', function () {
+        var s = f.getSize();
+        return s.w > 0 && s.h > 0 && s.s >= 0 && s.sl >= 0 && s.sh > 0 && s.sw > 0;
+      });
       test('3c f.openWin sync', function(cb) {
         var w  = f.openWin('second.html', '', 200, 200, {sync: true});
         if (w) {
-          cb(true);
           w.close();
+          cb(true);
         } else {
           cb(false);
         }
@@ -776,6 +784,93 @@
           }
         })
       });
+      test('3a f.log log', {
+        type: TEST_TYPE_USER,
+        mess: 'log fill message "log test"',
+        func: function () {
+          f.log('log test');
+        }
+      });
+      test('3a f.log warn', {
+        type: TEST_TYPE_USER,
+        mess: 'log fill warning "warn test"',
+        func: function () {
+          f.log('warn test', 'warn');
+        }
+      });
+      test('3a f.log warning', {
+        type: TEST_TYPE_USER,
+        mess: 'log fill warning "warning test"',
+        func: function () {
+          f.log('warning test', 'warning');
+        }
+      });
+      test('3a f.log info', {
+        type: TEST_TYPE_USER,
+        mess: 'log fill warning "info test"',
+        func: function () {
+          f.log('info test', 'info');
+        }
+      });
+      test('3a f.log err', {
+        type: TEST_TYPE_USER,
+        mess: 'log fill err "err test"',
+        func: function () {
+          try {
+            f.log('err test', 'err');
+          } catch (e) {}
+        }
+      });
+      test('3a f.log error', {
+        type: TEST_TYPE_USER,
+        mess: 'log fill error "error test"',
+        func: function () {
+          try {
+            f.log('error test', 'error');
+          } catch (e) {}
+        }
+      });
+      { // time
+        test ('3c f.time function only', function () {
+          var s = f.time(function () {
+            document.getElementById('testBlock');
+          });
+          return typeof s === 'number' && s >= 0
+        });
+        test ('3c f.time function + render', function () {
+          var s = f.time(function () {
+            var testBlock = document.getElementById('testBlock'), table, tr, r, c;
+            table = document.createElement('table');
+            for (r = 0; r < 100; r++) {
+              tr = document.createElement('tr');
+              for (c = 0; c < 100; c++) {
+                tr.appendChild(document.createElement('td'));
+              }
+              table.appendChild(tr);
+            }
+            testBlock.appendChild(table);
+          }, true);
+          return typeof s === 'number' && s >= 0
+        });
+        test ('3c f.time function async without render', function (cb) {
+          f.time(function (callback) {
+            window.setTimeout(function () {
+              callback();
+            }, 4);
+          }, false, true, function (time) {
+            cb (typeof time === 'number' && time >= 0)
+          });
+        });
+        test ('3c f.time function async with render', function (cb) {
+          f.time(function (callback) {
+            window.setTimeout(function () {
+              callback();
+            }, 4);
+          }, true, true, function (time) {
+            cb (typeof time === 'number' && time >= 0)
+          });
+        });
+      }
       { // ajax
         group('AJAX', !hash('ajax'));
         test('1c f.load GET classic', function(cb) {
@@ -957,6 +1052,9 @@
           });
         });
         gEnd();
+      }
+      {
+
       }
     }
   }
