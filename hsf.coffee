@@ -1662,11 +1662,14 @@ class HSF
       tagName = regRes[1] || 'div';
       el = document.createElement(tagName)
       el.id = regRes[3] if typeof regRes[3] is 'string'
-      el.className = regRes[5].replace(/[\.\s]/, ' ') if typeof regRes[5] is 'string'
+      el.className = regRes[5].replace(/[\.\s]+/g, ' ') if typeof regRes[5] is 'string'
     if 'style' of option
       for own key, val of option.style
         el.style[key] = val
       delete option.style
+    if 'innerHTML' of option
+      el.innerHTML = option.innerHTML
+      delete option.innerHTML
     el.setAttribute(key, val) for own key, val of option
     parent.appendChild(el) if parent
     el
