@@ -1624,7 +1624,7 @@ class HSF
   ###*
    * Получить родителя по имени класса. GetParentByClassname
    *
-   * @method @GPC
+   * @method GPC
    * @param   {Element} el
    * @param   {String}  className
    * @return  Element|Null
@@ -1641,7 +1641,90 @@ class HSF
         return el if not el.className
     null
 
+  #--------------------- START SELECT FUNC ---------------------------
+  #-------------------- START ELEMENTS FUNC --------------------------
 
+  ###*
+   * Создаёт элемент по шаблону tag с свойствами из option и прикрепляет в parent
+   * последовательность важна! Сначала тэг, потом ID и уже потом имена классов
+   *
+   * @method createElement
+   * @param {String} tag [tagName][#tagId][.tagClass1][.tagClass2][...]
+   * @param {Object} [option] attributes of element
+   * @param {Element} [parent]
+   * @return Element
+   ###
+  createElement: (tag, option = {}, parent) ->
+    if /^\w+$/.test tag
+      el = document.createElement(tag)
+    else
+      regRes = tag.match(/^(\w+)?(#(.*?))?(\.(.*))?$/)
+      tagName = regRes[1] || 'div';
+      el = document.createElement(tagName)
+      el.id = regRes[3] if typeof regRes[3] is 'string'
+      el.className = regRes[5].replace(/[\.\s]/, ' ') if typeof regRes[5] is 'string'
+    if 'style' of option
+      for own key, val of option.style
+        el.style[key] = val
+      delete option.style
+    el.setAttribute(key, val) for own key, val of option
+    parent.appendChild(el) if parent
+    el
+
+  ###*
+   * прикрепляет к parent ребёнка из дочерний элемент el
+   * Если el строка, то это равносильно parent.innerHTML += el, но не ломается DOM-модель
+   * @param {Element} parent
+   * @param {Element|String} el
+   * @return Array массив элементов
+   ###
+  appendChild: (parent, el) ->
+    if typeof el is 'string'
+      div = document.createElement('div')
+      div.innerHTML = el
+      elems = []
+      i = 0
+      l = div.childNodes.length
+      el = []
+      while i < l
+        el[el.length] = div.childNodes[0]
+        parent.appendChild(div.childNodes[0])
+        i++
+      div = null
+      return el
+    else if typeof el is 'object' and 'nodeType' of el
+      parent.appendChild el
+    else
+      throw new Error('el must be string or element')
+    [el]
+
+  ###*
+  * удаляет элемент el из общего DOM
+  * @param {Element} el
+  ###
+  removeElement: (el) ->
+    el.parentNode.removeChild(el)
+    @
+
+  ###*
+   * заменяет элемент el на newEl
+   * @param {Element} el
+   * @param {Element} newEl
+   ###
+  replaceElement: (el, newEl) ->
+    el.parentNode.replaceChild(newEl, el)
+    @
+
+  ###*
+   * Очищает элемент. Как оказалось innerHTML = '' довольно затратная операция
+   * @param {Element} el
+   ###
+  clearElement: (el) ->
+    childs = el.childNodes
+    i = childs.length
+    while i--
+      el.removeChild(childs[i])
+    @
 
   getSelection: (el) ->
     start = 0
@@ -2303,85 +2386,6 @@ class HSF
     option.resize = true
     @createBubble "<div class=\"alertBubble\"><span>#{text}</span><button onclick=\"#{@getThis()}.closeBubble();\">Ok</button></div>", 400, 60, option
 #------------------------------------------------    end bubble
-  ###*
-   * Создаёт элемент по шаблону tag с свойствами из option и прикрепляет в parent
-   * последовательность важна! Сначала тэг, потом ID и уже потом имена классов
-   * @param {String} tag [tagName][#tagId][.tagClass1][.tagClass2][...]
-   * @param {Object} [option] ограничение на вложенные свойство. Не распространяется на style
-   * @param {Element} [parent]
-   * @return Element
-   ###
-  createElement: (tag, option = {}, parent) ->
-    if /^\w+$/.test tag
-      el = document.createElement(tag)
-    else
-      regRes = tag.match(/^(\w+)?(#(.*?))?(\.(.*))?$/)
-      tagName = regRes[1] || 'div';
-      el = document.createElement(tagName)
-      el.id = regRes[3] if typeof regRes[3] is 'string'
-      el.className = regRes[5].replace(/[\.\s]/, ' ') if typeof regRes[5] is 'string'
-    if 'style' of option
-      for own key, val of option.style
-        el.style[key] = val
-      delete option.style
-    el[key] = val for own key, val of option
-    parent.appendChild(el) if parent
-    el
-
-  ###*
-   * прикрепляет к parent ребёнка из дочерний элемент el
-   * Если el строка, то это равносильно parent.innerHTML += el, но не ломается DOM-модель
-   * @param {Element} parent
-   * @param {Element|String} el
-   * @return Array массив элементов
-   ###
-  appendChild: (parent, el) ->
-    if typeof el is 'string'
-      div = document.createElement('div')
-      div.innerHTML = el
-      elems = []
-      i = 0
-      l = div.childNodes.length
-      el = []
-      while i < l
-        el[el.length] = div.childNodes[0]
-        parent.appendChild(div.childNodes[0])
-        i++
-      div = null
-      return el
-    else if typeof el is 'object' and 'nodeType' of el
-      parent.appendChild el
-    else
-      throw new Error('el must be string or element')
-    [el]
-
-  ###*
-  * удаляет элемент el из общего DOM
-  * @param {Element} el
-  ###
-  removeElement: (el) ->
-    el.parentNode.removeChild(el)
-    @
-
-  ###*
-   * заменяет элемент el на newEl
-   * @param {Element} el
-   * @param {Element} newEl
-   ###
-  replaceElement: (el, newEl) ->
-    el.parentNode.replaceChild(newEl, el)
-    @
-
-  ###*
-   * Очищает элемент. Как оказалось innerHTML = '' довольно затратная операция
-   * @param {Element} el
-   ###
-  clearElement: (el) ->
-    childs = el.childNodes
-    i = childs.length
-    while i--
-      el.removeChild(childs[i])
-    @
 
   ###*
    * Устанавливает стиль по имени вне зависимости от префиксов, если стиль вообще существует.
