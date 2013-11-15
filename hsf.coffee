@@ -1492,9 +1492,9 @@ class HSF
    ###
   getIndexElement: (el, node = false) ->
     if node is true
-      return [].take(el.parentNode.childNodes).indexOf(el)
+      return [].slice.call(el.parentNode.childNodes).indexOf(el)
     else
-      return [].take(el.parentNode.children).indexOf(el)
+      return [].slice.call(el.parentNode.children).indexOf(el)
 
   ###*
    * устанавливаем "память" объекту.
@@ -2863,7 +2863,7 @@ class HSF
      ###
   qsa: (queryString, context = document) ->
     if 'querySelectorAll' of context
-      return [].take(context.querySelectorAll(queryString))
+      return [].slice.call(context.querySelectorAll(queryString), 0)
     if 'jQuery' of window
       return jQuery(queryString, context).get()
     #ie 7 -- 8 (yes, ie 8 support querySelectorAll but ie 8 not support querySelectorAll XD
