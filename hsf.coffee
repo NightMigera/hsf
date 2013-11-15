@@ -1892,9 +1892,9 @@ class HSF
    ###
   getIndexElement: (el, node = false) ->
     if node is true
-      return [].take(el.parentNode.childNodes).indexOf(el)
+      return [].slice.call(el.parentNode.childNodes).indexOf(el)
     else
-      return [].take(el.parentNode.children).indexOf(el)
+      return [].slice.call(el.parentNode.children).indexOf(el)
 
   ###*
    * устанавливаем "память" объекту.
@@ -2988,6 +2988,65 @@ class HSF
   insertBefore: (el, exist) ->
     exist.parentNode.insertBefore(el, exist)
     @
+
+  ###*
+     * Замена jQuery селектору и универсализация querySelectorAll
+     * @param   {String} queryString селектор
+     * @param   {Element} context = document контекст, в котором ищем
+     * @return  Array
+     ###
+  qsa: (queryString, context = document) ->
+    if 'querySelectorAll' of context
+      return [].take(context.querySelectorAll(queryString))
+    if 'jQuery' of window
+      return jQuery(queryString, context).get()
+    #ie 7 -- 8 (yes, ie 8 support querySelectorAll but ie 8 not support querySelectorAll XD
+    s = document.createStyleSheet()
+    r = queryString.replace(/\[for\b/gi, "[htmlFor").split(",")
+    window.hsfSelectorCollection = []
+    if @_scriptPath is ''
+      for script in @GBT('script')
+        if /hsf\.(min\.|dev\.)?js$/.test(script.src || '')
+          @_scriptPath = script.src.replace(/hsf\.(min\.|dev\.)?js$/, '')
+          break
+      if @_scriptPath is ''
+        @_scriptPath = false
+
+    if @_scriptPath is false
+      a = context.all
+      c = []
+      i = r.length
+      while i--
+        s.addRule r[i], "k:v"
+        j = a.length
+        while j--
+          a[j].currentStyle.k and c.push(a[j])
+        s.removeRule 0
+      return c
+    else
+      beh = @_scriptPath + '/ca.htc'
+      for selector in r
+        s.addRule selector, "behavior: url(#{beh})"
+        s.removeRule 0
+      s.owningElement.parentNode.removeChild(s.owningElement)
+      return window.hsfSelectorCollection
+  ###*
+   * Получение ширины скроллбара. Взято из MooTools
+   * @return  Number
+   ###
+  getScrollBarWidth: ->
+    if @_scrollBarWidth < 0
+      @appendChild document.body, "<div id='__HSFscrollbar' style='position:absolute;top:0;left:0;visibility:hidden;width:200px;height:150px;overflow:hidden;'><p style='width:100%;height:200px'></p></div>"
+      outer = f.GBI('__HSFscrollbar')
+      inner = outer.children[0]
+
+      w1 = inner.offsetWidth
+      outer.style.overflow = "scroll"
+      w2 = inner.offsetWidth
+      w2 = outer.clientWidth  if w1 is w2
+      document.body.removeChild outer
+      @_scrollBarWidth = w1 - w2
+    @_scrollBarWidth
 
   ###*
    * преобразует данные формы в строку. Нет типа файл из-за проблем с кроссбраузерностью
