@@ -384,7 +384,7 @@
     */
 
 
-    HSF.prototype._scriptPath = '';
+    HSF.prototype._scriptPath = false;
 
     /**
      * Кэш правил
@@ -430,9 +430,12 @@
       this.GMP = __bind(this.GMP, this);
       this.QSA = __bind(this.QSA, this);
       this.getCharWidth = __bind(this.getCharWidth, this);
-      var ID, ajaxPoolLength, head, k, o, onmessage, s, tail, v, _i, _ref,
+      var ID, ajaxPoolLength, head, k, o, onmessage, path, s, scripts, tail, v, _i, _ref,
         _this = this;
 
+      scripts = document.getElementsByTagName('script');
+      path = scripts[scripts.length - 1].src.split('?')[0];
+      this._scriptPath = path.split('/').slice(0, -1).join('/');
       ajaxPoolLength = 'ajaxPoolLength' in options ? options.ajaxPoolLength : 5;
       for (_i = 0; 0 <= ajaxPoolLength ? _i <= ajaxPoolLength : _i >= ajaxPoolLength; 0 <= ajaxPoolLength ? _i++ : _i--) {
         this._rPool.push({
@@ -2138,12 +2141,64 @@
      *
      * @method GBI
      * @param {String} el
-     * @return {Element|NULL}
+     * @return Element|NULL
     */
 
 
     HSF.prototype.GBI = function(el) {
       return document.getElementById(el);
+    };
+
+    /**
+     * Кросс-браузерная версия querySelector для получения элемента совпадающего с
+     * селектором `queryString` внутри элемента `context`
+     * `context` по умолчанию `document`.
+     *
+     * @method QS
+     * @param {String} queryString
+     * @param {Element} [node] = document
+     * @return Element|NULL
+    */
+
+
+    HSF.prototype.QS = function(queryString, context) {
+      var a, beh, c, i, j, r, s, selector, _i, _len;
+
+      if (context == null) {
+        context = document;
+      }
+      if ('querySelector' in context) {
+        return context.querySelector(queryString);
+      }
+      if ('jQuery' in window) {
+        return jQuery(queryString, context).get(0);
+      }
+      s = document.createStyleSheet();
+      r = queryString.replace(/\[for\b/gi, "[htmlFor").split(",");
+      window.hsfSelectorCollection = [];
+      if (this._scriptPath === false) {
+        a = context.all;
+        c = [];
+        i = r.length;
+        while (i--) {
+          s.addRule(r[i], "k:v");
+          j = a.length;
+          while (j--) {
+            a[j].currentStyle.k && c.push(a[j]);
+          }
+          s.removeRule(0);
+        }
+        return c;
+      } else {
+        beh = this._scriptPath + '/ca.htc';
+        for (_i = 0, _len = r.length; _i < _len; _i++) {
+          selector = r[_i];
+          s.addRule(selector, "behavior: url(" + beh + ")");
+          s.removeRule(0);
+        }
+        s.owningElement.parentNode.removeChild(s.owningElement);
+        return window.hsfSelectorCollection[0] || null;
+      }
     };
 
     /**
@@ -2196,7 +2251,7 @@
 
 
     HSF.prototype.qsa = function(queryString, context) {
-      var a, beh, c, i, j, r, s, script, selector, _i, _j, _len, _len1, _ref;
+      var a, beh, c, i, j, r, s, selector, _i, _len;
 
       if (context == null) {
         context = document;
@@ -2210,19 +2265,6 @@
       s = document.createStyleSheet();
       r = queryString.replace(/\[for\b/gi, "[htmlFor").split(",");
       window.hsfSelectorCollection = [];
-      if (this._scriptPath === '') {
-        _ref = this.GBT('script');
-        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          script = _ref[_i];
-          if (/hsf\.(min\.|dev\.)?js$/.test(script.src || '')) {
-            this._scriptPath = script.src.replace(/hsf\.(min\.|dev\.)?js$/, '');
-            break;
-          }
-        }
-        if (this._scriptPath === '') {
-          this._scriptPath = false;
-        }
-      }
       if (this._scriptPath === false) {
         a = context.all;
         c = [];
@@ -2238,8 +2280,8 @@
         return c;
       } else {
         beh = this._scriptPath + '/ca.htc';
-        for (_j = 0, _len1 = r.length; _j < _len1; _j++) {
-          selector = r[_j];
+        for (_i = 0, _len = r.length; _i < _len; _i++) {
+          selector = r[_i];
           s.addRule(selector, "behavior: url(" + beh + ")");
           s.removeRule(0);
         }

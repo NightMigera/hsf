@@ -216,7 +216,7 @@ class HSF
    * @type {String}
    * @private
    ###
-  _scriptPath: ''
+  _scriptPath: false
 
   ###*
    * Кэш правил
@@ -249,6 +249,9 @@ class HSF
    * @constructor
    ###
   constructor: (options) ->
+    scripts= document.getElementsByTagName('script')
+    path= scripts[scripts.length-1].src.split('?')[0]
+    @_scriptPath= path.split('/').slice(0, -1).join('/')
     ajaxPoolLength = if 'ajaxPoolLength' of options then options.ajaxPoolLength else 5
     @_rPool.push({ajax: null,state: 0,func: null, err: null}) for [0..ajaxPoolLength]
     @_debug = true if 'debug' of options and options.debug is true
@@ -1504,10 +1507,48 @@ class HSF
    *
    * @method GBI
    * @param {String} el
-   * @return {Element|NULL}
+   * @return Element|NULL
    ###
   GBI: (el) ->
     document.getElementById el
+
+  ###*
+   * Кросс-браузерная версия querySelector для получения элемента совпадающего с
+   * селектором `queryString` внутри элемента `context`
+   * `context` по умолчанию `document`.
+   *
+   * @method QS
+   * @param {String} queryString
+   * @param {Element} [node] = document
+   * @return Element|NULL
+   ###
+  QS: (queryString, context = document) ->
+    if 'querySelector' of context
+      return context.querySelector(queryString)
+    if 'jQuery' of window
+      return jQuery(queryString, context).get(0)
+    # else
+    s = document.createStyleSheet()
+    r = queryString.replace(/\[for\b/gi, "[htmlFor").split(",")
+    window.hsfSelectorCollection = []
+    if @_scriptPath is false
+      a = context.all
+      c = []
+      i = r.length
+      while i--
+        s.addRule r[i], "k:v"
+        j = a.length
+        while j--
+          a[j].currentStyle.k and c.push(a[j])
+        s.removeRule 0
+      return c
+    else
+      beh = @_scriptPath + '/ca.htc'
+      for selector in r
+        s.addRule selector, "behavior: url(#{beh})"
+        s.removeRule 0
+      s.owningElement.parentNode.removeChild(s.owningElement)
+      return window.hsfSelectorCollection[0] or null
 
   ###*
    * Кросс-браузерная версия для получения элементов по имени класса `classname` внутри `node`.
@@ -1555,14 +1596,6 @@ class HSF
     s = document.createStyleSheet()
     r = queryString.replace(/\[for\b/gi, "[htmlFor").split(",")
     window.hsfSelectorCollection = []
-    if @_scriptPath is ''
-      for script in @GBT('script')
-        if /hsf\.(min\.|dev\.)?js$/.test(script.src || '')
-          @_scriptPath = script.src.replace(/hsf\.(min\.|dev\.)?js$/, '')
-          break
-      if @_scriptPath is ''
-        @_scriptPath = false
-
     if @_scriptPath is false
       a = context.all
       c = []

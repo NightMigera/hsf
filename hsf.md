@@ -1402,6 +1402,29 @@ HSF.GBI(el)
 **el**:  *String*,  
 
 
+**Returns**
+
+Element|NULL
+
+HSF.QS(queryString, \[node\])
+-----------------------------
+Кросс-браузерная версия querySelector для получения элемента совпадающего с
+селектором `queryString` внутри элемента `context`
+`context` по умолчанию `document`.
+
+
+
+**Parameters**
+
+**queryString**:  *String*,  
+
+
+**[node]**:  *Element*,  = document
+
+**Returns**
+
+Element|NULL
+
 HSF.GBC(classname, \[node\])
 ----------------------------
 Кросс-браузерная версия для получения элементов по имени класса `classname` внутри `node`.
