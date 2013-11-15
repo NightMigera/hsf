@@ -659,42 +659,42 @@
         return ret && o && s;
       });
       // f.zeroFill
-      test('1c f.zeroFill 001', f.zeroFill(1, 3) === '001');
-      test('1c f.zeroFill 100', f.zeroFill(100, 3) === '100');
-      test('1c f.zeroFill 100, 1', f.zeroFill(100, 1) === '100');
-      test('1c f.zeroFill 0.1', f.zeroFill(0.1, 4) === '00.1');
-      test('1c f.zeroFill 0.1', f.zeroFill(.1, 4) === '00.1');
-      test('1c f.zeroFill 0.01', f.zeroFill(.01, 4) === '0.01');
-      test('1c f.zeroFill 0.321312', f.zeroFill(.321312, 4) === '0.321312');
-      test('1c f.zeroFill 321', f.zeroFill(321, 5) === '00321');
+      test('2c f.zeroFill 001', f.zeroFill(1, 3) === '001');
+      test('2c f.zeroFill 100', f.zeroFill(100, 3) === '100');
+      test('2c f.zeroFill 100, 1', f.zeroFill(100, 1) === '100');
+      test('2c f.zeroFill 0.1', f.zeroFill(0.1, 4) === '00.1');
+      test('2c f.zeroFill 0.1', f.zeroFill(.1, 4) === '00.1');
+      test('2c f.zeroFill 0.01', f.zeroFill(.01, 4) === '0.01');
+      test('2c f.zeroFill 0.321312', f.zeroFill(.321312, 4) === '0.321312');
+      test('2c f.zeroFill 321', f.zeroFill(321, 5) === '00321');
       // f.truncateStringMin
-      test('1c f.truncateStringMin simple truncate', f.truncateStringMin('123456', 3) === '...');
-      test('1c f.truncateStringMin simple none truncate', f.truncateStringMin('123456', 6) === '123456');
-      test('1c f.truncateStringMin simple width truncate', f.truncateStringMin('1234567', 6) === '123...');
-      test('1c f.truncateStringMin custom after, none', f.truncateStringMin('1234567', 7, 'AAAA') === '1234567');
-      test('1c f.truncateStringMin custom after', f.truncateStringMin('123456', 5, 'AAAA') === '1AAAA');
+      test('2c f.truncateStringMin simple truncate', f.truncateStringMin('123456', 3) === '...');
+      test('2c f.truncateStringMin simple none truncate', f.truncateStringMin('123456', 6) === '123456');
+      test('2c f.truncateStringMin simple width truncate', f.truncateStringMin('1234567', 6) === '123...');
+      test('2c f.truncateStringMin custom after, none', f.truncateStringMin('1234567', 7, 'AAAA') === '1234567');
+      test('2c f.truncateStringMin custom after', f.truncateStringMin('123456', 5, 'AAAA') === '1AAAA');
       // f.truncateString
-      test('1c f.truncateString, simple', f.truncateString('abc', 3) === 'abc');
-      test('1c f.truncateString, simple2', f.truncateString('abc', 4) === 'abc');
-      test('1c f.truncateString, big string, after cleared', f.truncateString('abc', 2) === '..');
-      test('1c f.truncateString, big string, after full', f.truncateString('abcd', 3) === '...');
-      test('1c f.truncateString, ab| cd', f.truncateString('ab cd', 3, 5) === 'ab...');
-      test('1c f.truncateString, ab| cd_ef gh', f.truncateString('ab cd_ef gh', 5, 8) === 'ab...');
-      test('1c f.truncateString, ab cd| ef gh', f.truncateString('ab cd ef gh', 6, 8) === 'ab cd...');
-      test('1c f.truncateString, ab cd ef| gh', f.truncateString('ab cd ef gh', 10, 12) === 'ab cd ef...');
-      test('1c f.truncateString, ab cd| ef_gh', f.truncateString('ab cd ef_gh', 10, 12) === 'ab cd...');
-      test('1c f.truncateString, ab cd ef| gh', f.truncateString('ab cd ef gh', 10, 12) === 'ab cd ef...');
+      test('2c f.truncateString, simple', f.truncateString('abc', 3) === 'abc');
+      test('2c f.truncateString, simple2', f.truncateString('abc', 4) === 'abc');
+      test('2c f.truncateString, big string, after cleared', f.truncateString('abc', 2) === '..');
+      test('2c f.truncateString, big string, after full', f.truncateString('abcd', 3) === '...');
+      test('2c f.truncateString, ab| cd', f.truncateString('ab cd', 3, 5) === 'ab...');
+      test('2c f.truncateString, ab| cd_ef gh', f.truncateString('ab cd_ef gh', 5, 8) === 'ab...');
+      test('2c f.truncateString, ab cd| ef gh', f.truncateString('ab cd ef gh', 6, 8) === 'ab cd...');
+      test('2c f.truncateString, ab cd ef| gh', f.truncateString('ab cd ef gh', 10, 12) === 'ab cd ef...');
+      test('2c f.truncateString, ab cd| ef_gh', f.truncateString('ab cd ef_gh', 10, 12) === 'ab cd...');
+      test('2c f.truncateString, ab cd ef| gh', f.truncateString('ab cd ef gh', 10, 12) === 'ab cd ef...');
       // f.truncateString width change after
-      test('1c f.truncateString, width change after simple', f.truncateString('abc', 3, 3, 'aaa') === 'abc');
-      test('1c f.truncateString, width change after simple2', f.truncateString('abc', 4, 4, 'aaa') === 'abc');
-      test('1c f.truncateString, width change after big string, after cleared', f.truncateString('abc', 2, 2, 'aaa') === 'aa');
-      test('1c f.truncateString, width change after big string, after full', f.truncateString('abcd', 3, 3, 'aaa') === 'aaa');
-      test('1c f.truncateString, width change after ab| cd', f.truncateString('ab cd', 3, 5, 'aaa') === 'abaaa');
-      test('1c f.truncateString, width change after ab| cd_ef gh', f.truncateString('ab cd_ef gh', 5, 8, 'aaa') === 'abaaa');
-      test('1c f.truncateString, width change after ab cd| ef gh', f.truncateString('ab cd ef gh', 6, 8, 'aaa') === 'ab cdaaa');
-      test('1c f.truncateString, width change after ab cd ef| gh', f.truncateString('ab cd ef gh', 10, 12, 'aaa') === 'ab cd efaaa');
-      test('1c f.truncateString, width change after ab cd| ef_gh', f.truncateString('ab cd ef_gh', 10, 12, 'aaa') === 'ab cdaaa');
-      test('1c f.truncateString, width change after ab cd ef| gh', f.truncateString('ab cd ef gh', 10, 12, 'aaa') === 'ab cd efaaa');
+      test('2c f.truncateString, width change after simple', f.truncateString('abc', 3, 3, 'aaa') === 'abc');
+      test('2c f.truncateString, width change after simple2', f.truncateString('abc', 4, 4, 'aaa') === 'abc');
+      test('2c f.truncateString, width change after big string, after cleared', f.truncateString('abc', 2, 2, 'aaa') === 'aa');
+      test('2c f.truncateString, width change after big string, after full', f.truncateString('abcd', 3, 3, 'aaa') === 'aaa');
+      test('2c f.truncateString, width change after ab| cd', f.truncateString('ab cd', 3, 5, 'aaa') === 'abaaa');
+      test('2c f.truncateString, width change after ab| cd_ef gh', f.truncateString('ab cd_ef gh', 5, 8, 'aaa') === 'abaaa');
+      test('2c f.truncateString, width change after ab cd| ef gh', f.truncateString('ab cd ef gh', 6, 8, 'aaa') === 'ab cdaaa');
+      test('2c f.truncateString, width change after ab cd ef| gh', f.truncateString('ab cd ef gh', 10, 12, 'aaa') === 'ab cd efaaa');
+      test('2c f.truncateString, width change after ab cd| ef_gh', f.truncateString('ab cd ef_gh', 10, 12, 'aaa') === 'ab cdaaa');
+      test('2c f.truncateString, width change after ab cd ef| gh', f.truncateString('ab cd ef gh', 10, 12, 'aaa') === 'ab cd efaaa');
       // f.getCharWidthMax
       test('1c f.getCharWidthMax, no args', function () {
         var w = f.getCharWidthMax();
@@ -743,12 +743,12 @@
       baseDate.getNew = function () {
         return new Date(this);
       };
-      test('1c f.dateToFormat simple date width time'+f.dateToFormat(baseDate.getNew(), '%d.%m.%y %h:%i:%s'), f.dateToFormat(baseDate.getNew(), '%d.%m.%y %h:%i:%s') === '01.01.2000 00:00:00');
-      test('1c f.dateToFormat simple date width time simpled', f.dateToFormat(baseDate.getNew(), '%D.%M.%Y %H:%I:%S') === '1.1.00 0:0:0');
-      test('1c f.dateToFormat masked percent', f.dateToFormat(baseDate.getNew(), "%%%d %% %%_") === "%01 % %_");
-      test('1c f.dateToFormat date width local names', f.dateToFormat(baseDate.getNew(), '%l, %d %f %y %h:%i:%s') === f._dateNames.weekShort[5] + ', 01 '+f._dateNames.monthShort[0]+' 2000 00:00:00');
-      test('1c f.dateToFormat other local names', f.dateToFormat(baseDate.getNew(), '%L %F %z %a %A') === f._dateNames.weekFull[5] + ' ' + f._dateNames.monthFull[0] + ' 1 am AM');
-      test('1c f.dataToFormat unix time', function () {
+      test('2c f.dateToFormat simple date width time'+f.dateToFormat(baseDate.getNew(), '%d.%m.%y %h:%i:%s'), f.dateToFormat(baseDate.getNew(), '%d.%m.%y %h:%i:%s') === '01.01.2000 00:00:00');
+      test('2c f.dateToFormat simple date width time simpled', f.dateToFormat(baseDate.getNew(), '%D.%M.%Y %H:%I:%S') === '1.1.00 0:0:0');
+      test('2c f.dateToFormat masked percent', f.dateToFormat(baseDate.getNew(), "%%%d %% %%_") === "%01 % %_");
+      test('2c f.dateToFormat date width local names', f.dateToFormat(baseDate.getNew(), '%l, %d %f %y %h:%i:%s') === f._dateNames.weekShort[5] + ', 01 '+f._dateNames.monthShort[0]+' 2000 00:00:00');
+      test('2c f.dateToFormat other local names', f.dateToFormat(baseDate.getNew(), '%L %F %z %a %A') === f._dateNames.weekFull[5] + ' ' + f._dateNames.monthFull[0] + ' 1 am AM');
+      test('2c f.dataToFormat unix time', function () {
         var t0 = baseDate.getNew(), t, t2;
         t0.setHours(15);
           t = parseInt(f.dateToFormat(t0, '%u'));
@@ -766,7 +766,7 @@
         type: TEST_TYPE_USER,
         mess: 'Browser: ' + f.browser().name + ', ver: ' + f.browser().version
       });
-      test('1c f.getSize', function () {
+      test('3c f.getSize', function () {
         var s = f.getSize();
         return s.w > 0 && s.h > 0 && s.s >= 0 && s.sl >= 0 && s.sh > 0 && s.sw > 0;
       });
@@ -876,9 +876,21 @@
           });
         });
       }
+      { // getScrollBarWidth
+        test('3c f.getScrollBarWidth', function () {
+          var el = f.createElement('div', {innerHTML: '<div>test</div>', style: {overflow: 'scroll', width: '200px', height: '200px'}}, document.body);
+          var sw = f.getScrollBarWidth();
+          var ret = false;
+          if (sw === 200 - el.childNodes[0].offsetWidth) {
+            ret = true;
+          }
+          document.body.removeChild(el);
+          return ret;
+        });
+      }
       { // ajax
         group('AJAX', !hash('ajax'));
-        test('1c f.load GET classic', function(cb) {
+        test('3c f.load GET classic', function(cb) {
           f.load('load.html?get=1', function (data) {
             if (data === 'success') {
               cb(true);
@@ -889,7 +901,7 @@
             cb(false);
           });
         });
-        test('1c f.load GET modern', function(cb) {
+        test('3c f.load GET modern', function(cb) {
           f.load({
             url: 'load.html?get=1',
             method: 'GET',
@@ -905,7 +917,7 @@
             }
           });
         });
-        test('1c f.load GET error', function(cb) {
+        test('3c f.load GET error', function(cb) {
           f.load({
             url: 'load.html?get=2',
             method: 'GET',
@@ -921,7 +933,7 @@
             }
           });
         });
-        test('1c f.load POST classic', function(cb) {
+        test('3c f.load POST classic', function(cb) {
           f.load('load.html', function (data) {
             if (data === 'success') {
               cb(true);
@@ -932,7 +944,7 @@
             cb(false);
           }, 'post=1');
         });
-        test('1c f.load POST modern', function(cb) {
+        test('3c f.load POST modern', function(cb) {
           f.load({
             url: 'load.html',
             method: 'POST',
@@ -949,7 +961,7 @@
             }
           });
         });
-        test('1c f.load POST error', function(cb) {
+        test('3c f.load POST error', function(cb) {
           f.load({
             url: 'load.html',
             method: 'POST',
@@ -966,7 +978,7 @@
             }
           });
         });
-        test('1c f.load PUT', function(cb) {
+        test('3c f.load PUT', function(cb) {
           f.load({
             url: 'load.html',
             method: 'PUT',
@@ -983,7 +995,7 @@
             }
           });
         });
-        test('1c f.load PUT error', function(cb) {
+        test('3c f.load PUT error', function(cb) {
           f.load({
             url: 'load.html',
             method: 'PUT',
@@ -1000,7 +1012,7 @@
             }
           });
         });
-        test('1c f.load HEAD', function(cb) {
+        test('3c f.load HEAD', function(cb) {
           f.load({
             url: 'load.html',
             method: 'HEAD',
@@ -1028,7 +1040,7 @@
             }
           });
         });
-        test('1c f.load HEAD error', function(cb) {
+        test('3c f.load HEAD error', function(cb) {
           f.load({
             url: 'load.html',
             method: 'HEAD',
@@ -1058,22 +1070,11 @@
         });
         gEnd();
       }
-      { // getScrollBarWidth
-        test('1c f.getScrollBarWidth', function () {
-          var el = f.createElement('div', {innerHTML: '<div>test</div>', style: {overflow: 'scroll', width: '200px', height: '200px'}}, document.body);
-          var sw = f.getScrollBarWidth();
-          var ret = false;
-          if (sw === 200 - el.childNodes[0].offsetWidth) {
-            ret = true;
-          }
-          document.body.removeChild(el);
-          return ret;
-        });
-      }
       gEnd();
     }
     { // elements func
       group('elements');
+      // f .createElement
       test('1c f.createElement clear => div', f.createElement('').tagName.toUpperCase() === 'DIV');
       test('1c f.createElement div', f.createElement('').tagName.toUpperCase() === 'DIV');
       test('1c f.createElement span', f.createElement('span').tagName.toUpperCase() === 'SPAN');
@@ -1114,14 +1115,14 @@
           && el.id === 'testElement1';
       });
       test('1c f.createElement width attrs', function () {
-        var el = f.createElement('', {"data-set": 'abc', "id": 'testElement1'});
+        var el = f.createElement('', {"_data-set": 'abc', "id": 'testElement1'});
         return el.getAttribute('data-set') === 'abc'
           && el.tagName.toUpperCase() === 'DIV'
           && el.id === 'testElement1';
       });
       test('1c f.createElement width attrs + style', function () {
         var el = f.createElement('', {
-          "data-set": 'abc',
+          "_data-set": 'abc',
           "id": 'testElement1',
           "style": {
             "left": '1px',
@@ -1147,7 +1148,7 @@
         var el = f.createElement(
             'span#testElement1.testElement1.testElement2',
             {
-              "data-set": 'abc',
+              "_data-set": 'abc',
               "style": {
                 "left": '1px',
                 "top": '1px',
@@ -1168,17 +1169,61 @@
         document.getElementById('testBlock').removeChild(el);
         return ret;
       });
+      test('1c f.createElement error on create', {
+        type: TEST_TYPE_ERROR,
+        mess: 'tag incorrect, check format. Error tag: div.class#id',
+        func: function () {
+          f.createElement('div.class#id');
+          return false;
+        }
+      });
+      // f.appendChild
+      test('1c f.appendChild append element', function () {
+        var el = document.createElement('div'),
+          parent = document.getElementById('testBlock'),
+          res,
+          ret;
+        res = f.appendChild(parent, el);
+        ret = res.length === 1 && res[0] === el && el.parentNode === parent && [].take(parent.childNodes).indexOf(el) !== -1;
+        parent.removeChild(el);
+        return ret;
+      });
+      test('1c f.appendChild append string', function () {
+        var el = '<div class="cascade"></div>Петрозаводск',
+          parent = document.getElementById('testBlock'),
+          res,
+          ret;
+        res = f.appendChild(parent, el);
+        ret = res.length === 2
+          && res[0].className === 'cascade'
+          && res[1].nodeValue === 'Петрозаводск'
+          && res[0].parentNode === parent
+          && res[1].parentNode === parent
+          && [].take(parent.childNodes).indexOf(res[0]) !== -1
+          && [].take(parent.childNodes).indexOf(res[1]) !== -1;
+        parent.removeChild(res[0]);
+        parent.removeChild(res[1]);
+        return ret;
+      });
+      test('1c f.appendChild error', {
+        type: TEST_TYPE_ERROR,
+        mess: 'el must be string or element',
+        func: function () {
+          var el = {a: 'b'},
+            res,
+            parent = document.getElementById('testBlock');
+          res = f.appendChild(parent, el);
+          parent.removeChild(res[0]);
+          return false;
+        }
+      });
+      // f.insertAfter
+      test('1c f.insertAfter after first', function () {
+
+      });
     }
   }
 }
-
-
-
-
-
-
-
-
 
 
 

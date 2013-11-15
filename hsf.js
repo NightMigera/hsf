@@ -71,13 +71,20 @@
 
   HSF = (function() {
     /**
+     * Внутренние функции
+    */
+
+    var initOnDomReady, prepareOnDocumentReady, utf8_encode, _charWidth;
+
+    HSF.prototype._i = 0;
+
+    /**
      * Сбор объектов для запросов.
      * Необходим для использования установившихся соединений и для образ-я новых
      * @type {Array}
      * @private
     */
 
-    var utf8_encode, _charWidth;
 
     HSF.prototype._rPool = [];
 
@@ -418,11 +425,14 @@
 
 
     function HSF(options) {
+      this.delCSS = __bind(this.delCSS, this);
       this.delClassName = __bind(this.delClassName, this);
       this.GMP = __bind(this.GMP, this);
+      this.QSA = __bind(this.QSA, this);
       this.getCharWidth = __bind(this.getCharWidth, this);
       var ID, ajaxPoolLength, head, k, o, onmessage, s, tail, v, _i, _ref,
         _this = this;
+
       ajaxPoolLength = 'ajaxPoolLength' in options ? options.ajaxPoolLength : 5;
       for (_i = 0; 0 <= ajaxPoolLength ? _i <= ajaxPoolLength : _i >= ajaxPoolLength; 0 <= ajaxPoolLength ? _i++ : _i--) {
         this._rPool.push({
@@ -451,6 +461,7 @@
       this.onDomReady(function() {
         return document.onkeypress = document.onkeydown = function(e) {
           var list, result, shortcut, _j, _len, _ref1;
+
           e = e || window.event;
           result = true;
           list = _this._keyListMap[e.keyCode] || [];
@@ -485,6 +496,7 @@
       if (!('bind' in Function.prototype)) {
         Function.prototype.bind = function(oThis) {
           var aArgs, fBound, fNOP, fToBind;
+
           if (typeof this !== "function") {
             throw new TypeError("Function.prototype.bind - what is trying to be bound is not callable");
           }
@@ -576,6 +588,7 @@
 
         Array.prototype.indexOf = function(item, startIndex) {
           var i, l;
+
           if (startIndex == null) {
             startIndex = 0;
           }
@@ -596,13 +609,14 @@
         ID = (Math.random() * 10000000 | 0) + '';
         onmessage = function(e) {
           var func;
+
           if (e.data !== ID) {
             return;
           }
           head = head.next;
           func = head.func;
           delete head.func;
-          return func();
+          func();
         };
         if (window.addEventListener) {
           window.addEventListener("message", onmessage, false);
@@ -620,7 +634,7 @@
           };
         }
       }
-      this.prepareOnDocumentReady();
+      prepareOnDocumentReady.call(this);
     }
 
     /**
@@ -647,6 +661,7 @@
 
     HSF.prototype.toSource = function(o, level) {
       var i, isArray, source, space, val, _i, _len;
+
       if (level == null) {
         level = 0;
       }
@@ -719,6 +734,7 @@
 
     HSF.prototype.oSize = function(o) {
       var k, s;
+
       if (o instanceof String || typeof o === 'string') {
         return o.length;
       }
@@ -747,6 +763,7 @@
 
     HSF.prototype.oKeys = function(o) {
       var k, res;
+
       if (o instanceof String || typeof o === 'string') {
         return this.oKeys([].take(o));
       }
@@ -778,6 +795,7 @@
 
     HSF.prototype.merge = function(to, from) {
       var e, p;
+
       for (p in from) {
         if (!__hasProp.call(from, p)) continue;
         try {
@@ -821,6 +839,7 @@
 
     HSF.prototype.varToJSON = function(o) {
       var el, i, _a, _i, _len, _ret, _ret2;
+
       if ("JSON" in window && "stringify" in JSON) {
         return JSON.stringify(o);
       }
@@ -902,9 +921,8 @@
             return parseInt(value, 10) | 0;
           }
           break;
-        default:
-          return parseInt(value, 10) | 0;
       }
+      return parseInt(value, 10) | 0;
     };
 
     /**
@@ -918,6 +936,7 @@
 
     HSF.prototype.toFloat = function(value) {
       var r;
+
       switch (typeof value) {
         case 'boolean':
           return +value;
@@ -966,11 +985,13 @@
 
     HSF.prototype.md5 = function(str) {
       var AA, AddUnsigned, BB, CC, ConvertToWordArray, DD, F, FF, G, GG, H, HH, I, II, RotateLeft, S11, S12, S13, S14, S21, S22, S23, S24, S31, S32, S33, S34, S41, S42, S43, S44, WordToHex, a, b, c, d, k, temp, x;
+
       RotateLeft = function(lValue, iShiftBits) {
         return (lValue << iShiftBits) | (lValue >>> (32 - iShiftBits));
       };
       AddUnsigned = function(lX, lY) {
         var lResult, lX4, lX8, lY4, lY8;
+
         lX8 = lX & 0x80000000;
         lY8 = lY & 0x80000000;
         lX4 = lX & 0x40000000;
@@ -1019,6 +1040,7 @@
       };
       ConvertToWordArray = function(str) {
         var lByteCount, lBytePosition, lMessageLength, lNumberOfWords, lNumberOfWords_temp1, lNumberOfWords_temp2, lWordArray, lWordCount;
+
         lMessageLength = str.length;
         lNumberOfWords_temp1 = lMessageLength + 8;
         lNumberOfWords_temp2 = (lNumberOfWords_temp1 - (lNumberOfWords_temp1 % 64)) / 64;
@@ -1041,6 +1063,7 @@
       };
       WordToHex = function(lValue) {
         var WordToHexValue, WordToHexValue_temp, lByte, lCount;
+
         WordToHexValue = "";
         WordToHexValue_temp = "";
         lCount = 0;
@@ -1156,6 +1179,7 @@
 
     utf8_encode = function(str_data) {
       var c, n, utftext;
+
       str_data = str_data.replace(/\r\n/g, "\n");
       utftext = "";
       n = 0;
@@ -1196,7 +1220,7 @@
      * @method zeroFill
      * @param   {Number}  number
      * @param   {Number}  width
-     * @return  {String}
+     * @return  {String} string length >= width
     */
 
 
@@ -1246,6 +1270,7 @@
 
     HSF.prototype.truncateString = function(str, dMax, uMax, after) {
       var criticalMinChars, dSpace, i, j, minChars, newStr, p, uSpace;
+
       if (uMax == null) {
         uMax = dMax;
       }
@@ -1321,12 +1346,13 @@
      * @param   {Number} [fs] =  11
      * @param   {String} [ff] =  "Tahoma"
      * @param   {String} [c]  =  "W"
-     * @return  {Number}
+     * @return  {Number} width of char
     */
 
 
     HSF.prototype.getCharWidthMax = function(fs, ff, c) {
       var charEl;
+
       if (c == null) {
         c = 'W';
       }
@@ -1366,7 +1392,7 @@
      * @param   {Number} [fs] =  11
      * @param   {String} [ff] =  "Tahoma"
      * @param   {String} [c]  =  "W"
-     * @return  {Number}
+     * @return  {Number} width of char
     */
 
 
@@ -1420,6 +1446,7 @@
 
     HSF.prototype.dateToFormat = function(date, format) {
       var p, percentEcran, t, tmp;
+
       percentEcran = false;
       if (/%%/.test(format)) {
         percentEcran = true;
@@ -1605,6 +1632,7 @@
 
     HSF.prototype.getSize = function() {
       var ret;
+
       ret = {
         w: 0,
         h: 0,
@@ -1652,6 +1680,7 @@
 
     HSF.prototype.browser = function() {
       var chrome, nav, safari, start, v;
+
       if (this._browser.version !== 0) {
         return this._browser;
       }
@@ -1695,7 +1724,7 @@
     };
 
     /**
-     * Cоздаём окно по центру окрывая страницу по адресу `url` и `title`, шириной `width` и высотой `height`.
+     * Cоздаём окно по центру окрывая страницу по адресу `url` и с типом `title`, шириной `width` и высотой `height`.
      * По умолчанию окно создатся асинхронно, возвращает HSF. <br/>
      * Размеры, а так же различные элементы определяются отдельно. <br/>
      * Параметры `option`:
@@ -1720,6 +1749,7 @@
     HSF.prototype.openWin = function(url, title, width, height, option, callback) {
       var err, left, link, map, name, open, top, _i, _len, _ref,
         _this = this;
+
       if (title == null) {
         title = '';
       }
@@ -1750,6 +1780,7 @@
         }
         open = function() {
           var w;
+
           w = window.open(url, title, link);
           w.activated = false;
           w.onfocus = function() {
@@ -1782,6 +1813,327 @@
     };
 
     /**
+     * Добавление сообщения `message` с типом `type` в лог,
+     * универсальная прослойка для console, для старых браузеров. <br />
+     * Возможные значения type:
+     * - `log` простое добавление сообщения
+     * - `info` сообщение информационное
+     * - `warn` важное сообщение
+     * - `warning` то же, что и `warn`
+     * - `err` сообщение об ошибке
+     * - `error` то же, что и `err`
+     * - `debug` сообщение для отладки
+     *
+     * @method log
+     * @param   {String}    message
+     * @param   {String}    [type] = 'log'
+     * @return  {Object} HSF
+    */
+
+
+    HSF.prototype.log = function(message, type) {
+      var console, func, str;
+
+      if (type == null) {
+        type = 'log';
+      }
+      str = ((new Date()).getTime() - this._startLogDate).toString();
+      this._stackLog[this._stackLog.length] = {
+        time: str,
+        mess: "" + type + ": " + message
+      };
+      if ("console" in window) {
+        console = window.console;
+        switch (type) {
+          case 'log':
+            func = console.log;
+            break;
+          case 'info':
+            if ('info' in console) {
+              func = console.info;
+            } else {
+              str = 'INFO: ' + str;
+            }
+            break;
+          case 'err':
+          case 'error':
+            if ('error' in console) {
+              func = console.error;
+            } else {
+              str = "ERROR: " + str;
+            }
+            break;
+          case 'warn':
+          case 'warning':
+            if ('warn' in console) {
+              func = console.warn;
+            } else {
+              str = "WARN: " + str;
+            }
+            break;
+          case 'debug':
+            if ('debug' in console) {
+              func = console.debug;
+            } else {
+              str = "DEBUG: " + str;
+            }
+            break;
+          default:
+            str = "" + type + ": " + str;
+        }
+        if (!func) {
+          func = console.log;
+        }
+        if (typeof func !== "function") {
+          func(str + (": " + message));
+        } else {
+          func.call(console, str + (": " + message));
+        }
+      } else if (this._debug) {
+        alert("" + type + ": " + str + ": " + message);
+      }
+      return this;
+    };
+
+    /**
+     * Работает аналогично time в linux: считает кол-во мс, которое тратит на себя функция
+     *
+     * @method time
+     * @param   {Function} func функция, скорость которой проверяем
+     * @param   {Boolean} [render] = false проверять ли время отрисовки
+     * @param   {Boolean} [async] = false функция завершает выполнение асинхронно
+     * @param   {Function} [afterAsync] = null функция, в которую возвращается время окончания асинхронного выполнения
+     * @return  {Number} ms all process
+    */
+
+
+    HSF.prototype.time = function(func, render, async, afterAsync) {
+      var start, startRender, t, timeEnd, w,
+        _this = this;
+
+      if (this._debug) {
+        this.log('start time');
+      }
+      start = (new Date()).getTime();
+      if (async === true) {
+        timeEnd = function() {
+          var startRender, t, w;
+
+          _this.log("async finish time at " + (t = (new Date()).getTime() - start) + "ms");
+          if (render === true) {
+            if (_this._debug) {
+              _this.log('render start');
+            }
+            startRender = (new Date()).getTime();
+            w = document.body.offsetWidth;
+            _this.log("finish render at " + ((t = (new Date()).getTime()) - startRender) + "ms");
+            _this.log("full complete at " + (t -= start) + "ms");
+          }
+          if (typeof afterAsync === "function") {
+            afterAsync(t);
+          }
+        };
+        func(timeEnd);
+        this.log("sync finish time at " + (t = (new Date()).getTime() - start) + "ms");
+      } else {
+        func();
+        this.log("finish time at " + (t = (new Date()).getTime() - start) + "ms");
+      }
+      if (render === true && async !== true) {
+        if (this._debug) {
+          this.log('render start');
+        }
+        startRender = (new Date()).getTime();
+        w = document.body.offsetWidth;
+        this.log("finish render at " + ((t = (new Date()).getTime()) - startRender) + "ms");
+        this.log("full complete at " + (t -= start) + "ms");
+      }
+      return t;
+    };
+
+    /**
+     * AJAX запрос
+     * может принять необходимые аргументы, а может и объект, где:
+     * -  url: String собственно адрес
+     * -  scs: function(data) вызывается при успешном выполнении
+     * -  err: function(data) вызывается при неудачном выполнении
+     * -  data: String данные для POST метода
+     * -  method: String
+     * -  header: Object вида {header1Name: header1Value[, headerXName: headerXValue]...}
+     *
+     * @method load
+     * @param {String|Object} url к какому URL
+     * @param {Function} [func]
+     * @param {String} [data|err]
+     * @param {String} [data]
+     * @return String|XMLHttpRequest|ActiveXObject
+    */
+
+
+    HSF.prototype.load = function(url, func, err, data) {
+      var active, d, e, errorTex, header, i, label, method, value,
+        _this = this;
+
+      if (typeof url === 'object') {
+        if ('scs' in url) {
+          func = url.scs;
+        }
+        if ('success' in url) {
+          func = url.success;
+        }
+        if ('err' in url) {
+          err = url.err;
+        }
+        if ('error' in url) {
+          err = url.error;
+        }
+        if ('data' in url) {
+          data = url.data;
+        }
+        if ('method' in url) {
+          method = url.method;
+        }
+        if ('header' in url) {
+          header = url.header;
+        }
+        url = url.url;
+      } else if (typeof err === 'object') {
+        data = err;
+      }
+      active = -1;
+      i = 0;
+      errorTex = '';
+      while (i < this._rPool.length) {
+        if (this._rPool[i]["state"] === 0) {
+          active = i;
+          this._rPool[i]["state"] = 1;
+          break;
+        }
+        i++;
+      }
+      if (active < 0) {
+        active = this._rPool.length;
+        this._rPool[active] = {
+          ajax: null,
+          state: 1,
+          func: null,
+          err: null
+        };
+      }
+      if (!this._rPool[active].ajax) {
+        this._rPool[active].ajax = null;
+        if (this._debug) {
+          if ('XMLHttpRequest' in window) {
+            try {
+              this._rPool[active].ajax = new XMLHttpRequest();
+            } catch (_error) {
+              e = _error;
+              errorTex += "Cant't create XMLHttpRequest object, but XMLHttpRequest exists. Error: " + e.message;
+              this.log(e.message);
+            }
+          } else if (window.ActiveXObject) {
+            try {
+              this._rPool[active].ajax = new ActiveXObject("Msxml2.XMLHTTP");
+            } catch (_error) {
+              e = _error;
+              try {
+                this._rPool[active].ajax = new ActiveXObject("Microsoft.XMLHTTP");
+              } catch (_error) {
+                e = _error;
+                errorTex += "Cant't create ActiveXObject object, but ActiveXObject exists. Error: " + e.message;
+                this.log(e.message);
+              }
+            }
+          }
+        } else {
+          this._rPool[active].ajax = 'XMLHttpRequest' in window ? new XMLHttpRequest() : new ActiveXObject("Microsoft.XMLHTTP");
+        }
+        this._rPool[active].ajax.onreadystatechange = function() {
+          var xhr, _ref;
+
+          xhr = null;
+          var xhr = this;
+          if (xhr.readyState === 4) {
+            active = xhr["active"];
+            if ((200 <= (_ref = xhr.status) && _ref < 300) || (xhr.status === 0 && xhr.responseText.length > 0)) {
+              if ('getAllResponseHeaders' in xhr) {
+                _this._rPool[active].func(xhr.responseText, xhr.getAllResponseHeaders(), xhr.status);
+              } else {
+                _this._rPool[active].func(xhr.responseText, '', xhr.status);
+              }
+            } else {
+              _this._rPool[active].err(xhr.statusText);
+            }
+            _this._rPool[active].state = 0;
+          }
+          return true;
+        };
+      } else if (errorTex !== '') {
+        this._rPool[active]["state"] = 0;
+        return errorTex;
+      }
+      if (this._rPool[active].ajax) {
+        this._rPool[active].func = func;
+        this._rPool[active].err = err ? err : function() {
+          return true;
+        };
+        this._rPool[active].ajax["active"] = active;
+        this._rPool[active].state = 1;
+        if (data == null) {
+          d = this._counterEnabled ? (url.indexOf("?") > 0 ? '&' : '?') + 'cOuNtEr=' + this._counter++ : '';
+          this._rPool[active].ajax.open(method || "GET", url + d, true);
+          if (header) {
+            for (label in header) {
+              value = header[label];
+              this._rPool[active].ajax.setRequestHeader(label, value);
+            }
+          }
+          this._rPool[active].ajax.send(null);
+        } else {
+          this._rPool[active].ajax.open(method || "POST", url, true);
+          this._rPool[active].ajax.setRequestHeader("Content-length", data.length);
+          this._rPool[active].ajax.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+          if (header) {
+            for (label in header) {
+              value = header[label];
+              this._rPool[active].ajax.setRequestHeader(label, value);
+            }
+          }
+          this._rPool[active].ajax.send(data);
+        }
+        return this._rPool[active].ajax;
+      }
+      return errorTex || "err";
+    };
+
+    /**
+     * Получение ширины скроллбара. Взято из MooTools
+     *
+     * @method getScrollBarWidth
+     * @return Number
+    */
+
+
+    HSF.prototype.getScrollBarWidth = function() {
+      var inner, outer, w1, w2;
+
+      if (this._scrollBarWidth < 0) {
+        this.appendChild(document.body, "<div id='__HSFscrollbar' style='position:absolute;top:0;left:0;visibility:hidden;width:200px;height:150px;overflow:hidden;'><p style='width:100%;height:200px'></p></div>");
+        outer = f.GBI('__HSFscrollbar');
+        inner = outer.children[0];
+        w1 = inner.offsetWidth;
+        outer.style.overflow = "scroll";
+        w2 = inner.offsetWidth;
+        if (w1 === w2) {
+          w2 = outer.clientWidth;
+        }
+        document.body.removeChild(outer);
+        this._scrollBarWidth = w1 - w2;
+      }
+      return this._scrollBarWidth;
+    };
+
+    /**
      * Синоним для document.getElementById: получает элемент по `id` или возвращает `null`.
      *
      * @method GBI
@@ -1801,7 +2153,7 @@
      * @method GBC
      * @param {String} classname
      * @param {Element} [node] = document
-     * @return {Array|NodeList}
+     * @return Array|NodeList
     */
 
 
@@ -1814,6 +2166,7 @@
       } else {
         return (function(searchClass, node) {
           var classElements, els, elsLen, i, j, pattern;
+
           classElements = [];
           els = node.getElementsByTagName("*");
           elsLen = els.length;
@@ -1833,6 +2186,86 @@
     };
 
     /**
+     * Замена jQuery селектору и универсализация querySelectorAll
+     *
+     * @method qsa
+     * @param   {String} queryString селектор
+     * @param   {Element} context = document контекст, в котором ищем
+     * @return  Array
+    */
+
+
+    HSF.prototype.qsa = function(queryString, context) {
+      var a, beh, c, i, j, r, s, script, selector, _i, _j, _len, _len1, _ref;
+
+      if (context == null) {
+        context = document;
+      }
+      if ('querySelectorAll' in context) {
+        return [].take(context.querySelectorAll(queryString));
+      }
+      if ('jQuery' in window) {
+        return jQuery(queryString, context).get();
+      }
+      s = document.createStyleSheet();
+      r = queryString.replace(/\[for\b/gi, "[htmlFor").split(",");
+      window.hsfSelectorCollection = [];
+      if (this._scriptPath === '') {
+        _ref = this.GBT('script');
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          script = _ref[_i];
+          if (/hsf\.(min\.|dev\.)?js$/.test(script.src || '')) {
+            this._scriptPath = script.src.replace(/hsf\.(min\.|dev\.)?js$/, '');
+            break;
+          }
+        }
+        if (this._scriptPath === '') {
+          this._scriptPath = false;
+        }
+      }
+      if (this._scriptPath === false) {
+        a = context.all;
+        c = [];
+        i = r.length;
+        while (i--) {
+          s.addRule(r[i], "k:v");
+          j = a.length;
+          while (j--) {
+            a[j].currentStyle.k && c.push(a[j]);
+          }
+          s.removeRule(0);
+        }
+        return c;
+      } else {
+        beh = this._scriptPath + '/ca.htc';
+        for (_j = 0, _len1 = r.length; _j < _len1; _j++) {
+          selector = r[_j];
+          s.addRule(selector, "behavior: url(" + beh + ")");
+          s.removeRule(0);
+        }
+        s.owningElement.parentNode.removeChild(s.owningElement);
+        return window.hsfSelectorCollection;
+      }
+    };
+
+    /**
+     * alias for qsa
+     *
+     * @method QSA
+     * @param   {String} queryString селектор
+     * @param   {Element} context = document контекст, в котором ищем
+     * @return  Array
+    */
+
+
+    HSF.prototype.QSA = function(queryString, context) {
+      if (context == null) {
+        context = document;
+      }
+      return this.qsa(queryString, context);
+    };
+
+    /**
      * синоним для node.getElementsByTagName: получает набор элнементов с именем тэга `tagName` внутри элемента `node`.
      * `node` по умолчанию `document`.
      *
@@ -1840,7 +2273,6 @@
      * @param {String} tagName
      * @param {Node} [node] = document
      * @return NodeList
-     * @constructor
     */
 
 
@@ -1851,8 +2283,199 @@
       return node.getElementsByTagName(tagName);
     };
 
+    /**
+     * Получить родителя по тэгу. GetParentById
+     *
+     * @method GPT
+     * @param   {Element} el
+     * @param   {String}  tagName
+     * @return  Element|Null
+    */
+
+
+    HSF.prototype.GPT = function(el, tagName) {
+      var _ref;
+
+      if ((tagName == null) || tagName === '') {
+        return null;
+      }
+      tagName = tagName.toLowerCase();
+      if (!el || !el.parentNode) {
+        return null;
+      }
+      while ((el != null ? (_ref = el.parentNode) != null ? _ref.tagName : void 0 : void 0) != null) {
+        el = el.parentNode;
+        if (el.tagName.toLowerCase() === tagName) {
+          return el;
+        }
+      }
+      return null;
+    };
+
+    /**
+     * Получить родителя по имени класса. GetParentByClassname
+     *
+     * @method GPC
+     * @param   {Element} el
+     * @param   {String}  className
+     * @return  Element|Null
+    */
+
+
+    HSF.prototype.GPC = function(el, className) {
+      if (!el) {
+        return null;
+      }
+      if (className !== '') {
+        while ((el != null ? el.parentNode : void 0) != null) {
+          el = el.parentNode;
+          if (this.hasClassName(el, className)) {
+            return el;
+          }
+        }
+      } else {
+        while ((el != null ? el.parentNode : void 0) != null) {
+          el = el.parentNode;
+          if (!el.className) {
+            return el;
+          }
+        }
+      }
+      return null;
+    };
+
+    /**
+     * Создаёт элемент по шаблону tag с свойствами из option и прикрепляет в parent
+     * последовательность важна! Сначала тэг, потом ID и уже потом имена классов
+     *
+     * @method createElement
+     * @param {String} tag [tagName][#tagId][.tagClass1][.tagClass2][...]
+     * @param {Object} [option] attributes of element
+     * @param {Element} [parent]
+     * @return Element
+    */
+
+
+    HSF.prototype.createElement = function(tag, option, parent) {
+      var el, key, regRes, tagName, val, _ref;
+
+      if (option == null) {
+        option = {};
+      }
+      if (/^\w+$/.test(tag)) {
+        el = document.createElement(tag);
+      } else {
+        regRes = tag.match(/^(\w+)?(#(.*?))?(\.(.*))?$/);
+        tagName = regRes[1] || 'div';
+        el = document.createElement(tagName);
+        if (typeof regRes[3] === 'string') {
+          el.id = regRes[3];
+        }
+        if (typeof regRes[5] === 'string') {
+          el.className = regRes[5].replace(/[\.\s]+/g, ' ');
+        }
+      }
+      if ('style' in option) {
+        _ref = option.style;
+        for (key in _ref) {
+          if (!__hasProp.call(_ref, key)) continue;
+          val = _ref[key];
+          el.style[key] = val;
+        }
+        delete option.style;
+      }
+      if ('innerHTML' in option) {
+        el.innerHTML = option.innerHTML;
+        delete option.innerHTML;
+      }
+      for (key in option) {
+        if (!__hasProp.call(option, key)) continue;
+        val = option[key];
+        el.setAttribute(key, val);
+      }
+      if (parent) {
+        parent.appendChild(el);
+      }
+      return el;
+    };
+
+    /**
+     * прикрепляет к parent ребёнка из дочерний элемент el
+     * Если el строка, то это равносильно parent.innerHTML += el, но не ломается DOM-модель
+     * @param {Element} parent
+     * @param {Element|String} el
+     * @return Array массив элементов
+    */
+
+
+    HSF.prototype.appendChild = function(parent, el) {
+      var div, elems, i, l;
+
+      if (typeof el === 'string') {
+        div = document.createElement('div');
+        div.innerHTML = el;
+        elems = [];
+        i = 0;
+        l = div.childNodes.length;
+        el = [];
+        while (i < l) {
+          el[el.length] = div.childNodes[0];
+          parent.appendChild(div.childNodes[0]);
+          i++;
+        }
+        div = null;
+        return el;
+      } else if (typeof el === 'object' && 'nodeType' in el) {
+        parent.appendChild(el);
+      } else {
+        throw new Error('el must be string or element');
+      }
+      return [el];
+    };
+
+    /**
+    * удаляет элемент el из общего DOM
+    * @param {Element} el
+    */
+
+
+    HSF.prototype.removeElement = function(el) {
+      el.parentNode.removeChild(el);
+      return this;
+    };
+
+    /**
+     * заменяет элемент el на newEl
+     * @param {Element} el
+     * @param {Element} newEl
+    */
+
+
+    HSF.prototype.replaceElement = function(el, newEl) {
+      el.parentNode.replaceChild(newEl, el);
+      return this;
+    };
+
+    /**
+     * Очищает элемент. Как оказалось innerHTML = '' довольно затратная операция
+     * @param {Element} el
+    */
+
+
+    HSF.prototype.clearElement = function(el) {
+      var childs, i;
+
+      childs = el.childNodes;
+      i = childs.length;
+      while (i--) {
+        el.removeChild(childs[i]);
+      }
+      return this;
+    };
+
     HSF.prototype.getSelection = function(el) {
       var end, endRange, len, normalizedValue, range, start, textInputRange;
+
       start = 0;
       end = 0;
       if (typeof el.selectionStart === "number" && typeof el.selectionEnd === "number") {
@@ -1897,6 +2520,7 @@
 
     HSF.prototype.getPos = function(el, parent) {
       var body, box, clientLeft, clientTop, docElem, left, s, scrollLeft, scrollTop, top;
+
       if (parent == null) {
         parent = document.body;
       }
@@ -1958,6 +2582,7 @@
 
     HSF.prototype.getMousePos = function(e) {
       var posx, posy;
+
       if (!e) {
         throw new Error('event is empty');
       }
@@ -1996,6 +2621,7 @@
 
     HSF.prototype.getScreenPos = function(el) {
       var body, box, clientLeft, clientTop, docElem, s, scrollLeft, scrollTop;
+
       s = {
         x: 0,
         y: 0
@@ -2028,6 +2654,7 @@
 
     HSF.prototype.getStyle = function(el, styleName) {
       var ret;
+
       if (this.browser().name === "msie") {
         if (styleName in el.currentStyle) {
           return el.currentStyle[styleName];
@@ -2051,6 +2678,7 @@
 
     HSF.prototype.setStyle = function(el, style) {
       var k, s;
+
       switch (typeof style) {
         case 'string':
           el.style.cssText += ";" + style;
@@ -2078,9 +2706,9 @@
         node = false;
       }
       if (node === true) {
-        return [].take(el.parentNode.childNodes).indexOf(el);
+        return [].slice.call(el.parentNode.childNodes).indexOf(el);
       } else {
-        return [].take(el.parentNode.children).indexOf(el);
+        return [].slice.call(el.parentNode.children).indexOf(el);
       }
     };
 
@@ -2190,6 +2818,7 @@
     HSF.prototype.buttonClick = function(el, props, opt) {
       var md, mu,
         _this = this;
+
       if (opt == null) {
         opt = {};
       }
@@ -2230,11 +2859,13 @@
     HSF.prototype.hover = function(el, props, opt) {
       var mout, mover,
         _this = this;
+
       if (opt == null) {
         opt = {};
       }
       mover = function(e) {
         var src;
+
         e = e || window.event;
         src = e.toElement || document.body;
         if (e.type !== 'mouseenter' && _this.hasElement(el, src) && _this.getMem(el, 'hover')) {
@@ -2249,6 +2880,7 @@
       };
       mout = function(e) {
         var src;
+
         e = e || window.event;
         src = e.toElement || document.body;
         if (e.type !== 'mouseleave' && _this.hasElement(el, src) && el !== src) {
@@ -2302,6 +2934,7 @@
 
     HSF.prototype.setTempStyle = function(el, props, state) {
       var k, oldState, touch, v;
+
       touch = this.getMem(el, 'touch');
       if (!touch) {
         oldState = 'originStyle';
@@ -2332,6 +2965,7 @@
 
     HSF.prototype.retTempStyle = function(el, state) {
       var index, k, oldState, oldStyle, props, touch, v, _ref;
+
       props = this.getMemList(el, "oldStyle" + state);
       if (!props) {
         return this;
@@ -2383,6 +3017,7 @@
     HSF.prototype.addEvent = function(elem, evType, fn) {
       var bVersion, collectByType, eventElem, func, hashChangeCorrect, oldHash, oldHref, onEvType,
         _this = this;
+
       evType = evType.replace(/^on/, '');
       if ('addEventListener' in elem) {
         elem.addEventListener(evType, fn, false);
@@ -2429,7 +3064,7 @@
                   oldHash = elem.location.hash;
                   oldHref = elem.location.href;
                   if (typeof elem.onhashchange === 'function') {
-                    return elem.onhashchange.call(elem, {
+                    elem.onhashchange.call(elem, {
                       target: elem,
                       timestamp: new Date().getTime(),
                       oldURL: oldHref,
@@ -2443,6 +3078,7 @@
         }
         func = function(e) {
           var _i, _len, _ref;
+
           e = e || window.event;
           e.target = e.target || e.srcElement;
           _ref = _this.getMem(elem, evType, 'eventsListener');
@@ -2496,6 +3132,7 @@
 
     HSF.prototype.removeEvent = function(elem, evType, fn) {
       var collectByType, fns, func, nfns, val, _i, _j, _len, _len1;
+
       evType = evType.replace(/^on/, '');
       if (elem.addEventListener) {
         elem.removeEventListener(evType, fn, false);
@@ -2523,157 +3160,6 @@
     };
 
     /**
-     * AJAX запрос
-     * может принять необходимые аргументы, а может и объект, где:
-     *   url: String собственно адрес
-     *   scs: function(data) вызывается при успешном выполнении
-     *   err: function(data) вызывается при неудачном выполнении
-     *   data: String данные для POST метода
-     *   method: String
-     *   header: Object вида {header1Name: header1Value[, headerXName: headerXValue]...}
-     * @param {String|Object} url к какому URL
-     * @param {Function} [func]
-     * @param {String} [data|err]
-     * @param {String} [data]
-     * @return String|XMLHttpRequest|ActiveXObject
-    */
-
-
-    HSF.prototype.load = function(url, func, err, data) {
-      var active, d, e, errorTex, header, i, label, method, value,
-        _this = this;
-      if (typeof url === 'object') {
-        if ('scs' in url) {
-          func = url.scs;
-        }
-        if ('success' in url) {
-          func = url.success;
-        }
-        if ('err' in url) {
-          err = url.err;
-        }
-        if ('error' in url) {
-          err = url.error;
-        }
-        if ('data' in url) {
-          data = url.data;
-        }
-        if ('method' in url) {
-          method = url.method;
-        }
-        if ('header' in url) {
-          header = url.header;
-        }
-        url = url.url;
-      } else if (typeof err === 'object') {
-        data = err;
-      }
-      active = -1;
-      i = 0;
-      errorTex = '';
-      while (i < this._rPool.length) {
-        if (this._rPool[i]["state"] === 0) {
-          active = i;
-          this._rPool[i]["state"] = 1;
-          break;
-        }
-        i++;
-      }
-      if (active < 0) {
-        active = this._rPool.length;
-        this._rPool[active] = {
-          ajax: null,
-          state: 1,
-          func: null,
-          err: null
-        };
-      }
-      if (!this._rPool[active].ajax) {
-        this._rPool[active].ajax = null;
-        if (this._debug) {
-          if ('XMLHttpRequest' in window) {
-            try {
-              this._rPool[active].ajax = new XMLHttpRequest();
-            } catch (_error) {
-              e = _error;
-              errorTex += "Cant't create XMLHttpRequest object, but XMLHttpRequest exists. Error: " + e.message;
-              this.log(e.message);
-            }
-          } else if (window.ActiveXObject) {
-            try {
-              this._rPool[active].ajax = new ActiveXObject("Msxml2.XMLHTTP");
-            } catch (_error) {
-              e = _error;
-              try {
-                this._rPool[active].ajax = new ActiveXObject("Microsoft.XMLHTTP");
-              } catch (_error) {
-                e = _error;
-                errorTex += "Cant't create ActiveXObject object, but ActiveXObject exists. Error: " + e.message;
-                this.log(e.message);
-              }
-            }
-          }
-        } else {
-          this._rPool[active].ajax = 'XMLHttpRequest' in window ? new XMLHttpRequest() : new ActiveXObject("Microsoft.XMLHTTP");
-        }
-        this._rPool[active].ajax.onreadystatechange = function() {
-          var xhr, _ref;
-          xhr = null;
-          var xhr = this;
-          if (xhr.readyState === 4) {
-            active = xhr["active"];
-            if ((200 <= (_ref = xhr.status) && _ref < 300) || (xhr.status === 0 && xhr.responseText.length > 0)) {
-              if ('getAllResponseHeaders' in xhr) {
-                _this._rPool[active].func(xhr.responseText, xhr.getAllResponseHeaders(), xhr.status);
-              } else {
-                _this._rPool[active].func(xhr.responseText, '', xhr.status);
-              }
-            } else {
-              _this._rPool[active].err(xhr.statusText);
-            }
-            _this._rPool[active].state = 0;
-          }
-          return true;
-        };
-      } else if (errorTex !== '') {
-        this._rPool[active]["state"] = 0;
-        return errorTex;
-      }
-      if (this._rPool[active].ajax) {
-        this._rPool[active].func = func;
-        this._rPool[active].err = err ? err : function() {
-          return true;
-        };
-        this._rPool[active].ajax["active"] = active;
-        this._rPool[active].state = 1;
-        if (data == null) {
-          d = this._counterEnabled ? (url.indexOf("?") > 0 ? '&' : '?') + 'cOuNtEr=' + this._counter++ : '';
-          this._rPool[active].ajax.open(method || "GET", url + d, true);
-          if (header) {
-            for (label in header) {
-              value = header[label];
-              this._rPool[active].ajax.setRequestHeader(label, value);
-            }
-          }
-          this._rPool[active].ajax.send(null);
-        } else {
-          this._rPool[active].ajax.open(method || "POST", url, true);
-          this._rPool[active].ajax.setRequestHeader("Content-length", data.length);
-          this._rPool[active].ajax.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-          if (header) {
-            for (label in header) {
-              value = header[label];
-              this._rPool[active].ajax.setRequestHeader(label, value);
-            }
-          }
-          this._rPool[active].ajax.send(data);
-        }
-        return this._rPool[active].ajax;
-      }
-      return errorTex || "err";
-    };
-
-    /**
      * Создаём бабл в центре экрана с шириной w и высотой h, с содержимым html
      * В опции можно передать:
      *   close: function наступает при закрытии окна
@@ -2690,6 +3176,7 @@
     HSF.prototype.createBubble = function(html, w, h, options) {
       var bc, bg, bgh, bodyChildrens, bubble, bubbleContainer, closeBtn, height, hght, i, img, l, t, top, ws, zIndex, zi,
         _this = this;
+
       if (w == null) {
         w = 300;
       }
@@ -2760,13 +3247,14 @@
           },
           close: function() {
             var func;
+
             bg.style.display = "none";
             bubble.style.display = "none";
             _this.clearElement(bubbleContainer);
             func = _this.getMem(bubble, "func");
             if (func !== null) {
               func();
-              return _this.setMem(bubble, "func", null);
+              _this.setMem(bubble, "func", null);
             }
           }
         }, document.body);
@@ -2779,6 +3267,7 @@
         bubbleContainer = this.createElement(".bubbleContainer", {}, bubble);
         this.setOnResize(bg, function() {
           var l, t;
+
           ws = _this.getSize();
           l = (ws.w - parseInt(bubble.style.width)) / 2;
           t = (ws.h - parseInt(bubble.style.height)) / 2 + _this.getMem(bubble, 's');
@@ -2918,6 +3407,7 @@
 
     HSF.prototype.createLoaderBubble = function(img) {
       var el;
+
       if (img == null) {
         img = this._defaultLoader;
       }
@@ -2956,126 +3446,6 @@
     };
 
     /**
-     * Создаёт элемент по шаблону tag с свойствами из option и прикрепляет в parent
-     * последовательность важна! Сначала тэг, потом ID и уже потом имена классов
-     * @param {String} tag [tagName][#tagId][.tagClass1][.tagClass2][...]
-     * @param {Object} [option] ограничение на вложенные свойство. Не распространяется на style
-     * @param {Element} [parent]
-     * @return Element
-    */
-
-
-    HSF.prototype.createElement = function(tag, option, parent) {
-      var el, key, regRes, tagName, val, _ref;
-      if (option == null) {
-        option = {};
-      }
-      if (/^\w+$/.test(tag)) {
-        el = document.createElement(tag);
-      } else {
-        regRes = tag.match(/^(\w+)?(#(.*?))?(\.(.*))?$/);
-        tagName = regRes[1] || 'div';
-        el = document.createElement(tagName);
-        if (typeof regRes[3] === 'string') {
-          el.id = regRes[3];
-        }
-        if (typeof regRes[5] === 'string') {
-          el.className = regRes[5].replace(/[\.\s]/, ' ');
-        }
-      }
-      if ('style' in option) {
-        _ref = option.style;
-        for (key in _ref) {
-          if (!__hasProp.call(_ref, key)) continue;
-          val = _ref[key];
-          el.style[key] = val;
-        }
-        delete option.style;
-      }
-      for (key in option) {
-        if (!__hasProp.call(option, key)) continue;
-        val = option[key];
-        el[key] = val;
-      }
-      if (parent) {
-        parent.appendChild(el);
-      }
-      return el;
-    };
-
-    /**
-     * прикрепляет к parent ребёнка из дочерний элемент el
-     * Если el строка, то это равносильно parent.innerHTML += el, но не ломается DOM-модель
-     * @param {Element} parent
-     * @param {Element|String} el
-     * @return Array массив элементов
-    */
-
-
-    HSF.prototype.appendChild = function(parent, el) {
-      var div, elems, i, l;
-      if (typeof el === 'string') {
-        div = document.createElement('div');
-        div.innerHTML = el;
-        elems = [];
-        i = 0;
-        l = div.childNodes.length;
-        el = [];
-        while (i < l) {
-          el[el.length] = div.childNodes[0];
-          parent.appendChild(div.childNodes[0]);
-          i++;
-        }
-        div = null;
-        return el;
-      } else if (typeof el === 'object' && 'nodeType' in el) {
-        parent.appendChild(el);
-      } else {
-        throw new Error('el must be string or element');
-      }
-      return [el];
-    };
-
-    /**
-    * удаляет элемент el из общего DOM
-    * @param {Element} el
-    */
-
-
-    HSF.prototype.removeElement = function(el) {
-      el.parentNode.removeChild(el);
-      return this;
-    };
-
-    /**
-     * заменяет элемент el на newEl
-     * @param {Element} el
-     * @param {Element} newEl
-    */
-
-
-    HSF.prototype.replaceElement = function(el, newEl) {
-      el.parentNode.replaceChild(newEl, el);
-      return this;
-    };
-
-    /**
-     * Очищает элемент. Как оказалось innerHTML = '' довольно затратная операция
-     * @param {Element} el
-    */
-
-
-    HSF.prototype.clearElement = function(el) {
-      var childs, i;
-      childs = el.childNodes;
-      i = childs.length;
-      while (i--) {
-        el.removeChild(childs[i]);
-      }
-      return this;
-    };
-
-    /**
      * Устанавливает стиль по имени вне зависимости от префиксов, если стиль вообще существует.
      * имя стилей следует преобразовывать в CamelCase c маленькой буквы
      * @param   {Element}           el
@@ -3087,6 +3457,7 @@
 
     HSF.prototype.setUniversalStyle = function(el, name, value) {
       var index, style, styleName, webkitName, _i, _len, _ref, _ref1;
+
       name = name.toLowerCase();
       if (!(name in this._setUniversalStyleCascade)) {
         this._setUniversalStyleCascade[name] = [];
@@ -3128,6 +3499,7 @@
 
     HSF.prototype.hasElement = function(el, child, childOnly) {
       var e, html, parent;
+
       if (childOnly == null) {
         childOnly = false;
       }
@@ -3174,6 +3546,7 @@
     HSF.prototype.setOnResize = function(el, funcName) {
       var col, pos,
         _this = this;
+
       pos = this.getMem(el, "resizePos");
       if (pos !== null) {
         col = this._onResizeCollection[pos];
@@ -3227,6 +3600,7 @@
 
     HSF.prototype.resizeObjects = function() {
       var el, oh, ow, position, _i, _len, _ref;
+
       _ref = this._onResizeArray;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         position = _ref[_i];
@@ -3249,8 +3623,9 @@
     */
 
 
-    HSF.prototype.offOnResize = function(pos) {
+    HSF.prototype.retOnResize = function(pos) {
       var col, na, position, _i, _len, _ref;
+
       col = this._onResizeCollection[pos];
       if (col.type === 1) {
         col.action();
@@ -3326,154 +3701,6 @@
     };
 
     /**
-     * Получить родителя по тэгу
-     * @param   {Element} el
-     * @param   {String}  tagName
-     * @return  Element|Null
-    */
-
-
-    HSF.prototype.GPT = function(el, tagName) {
-      var _ref;
-      if ((tagName == null) || tagName === '') {
-        return null;
-      }
-      tagName = tagName.toLowerCase();
-      if (!el || !el.parentNode) {
-        return null;
-      }
-      while ((el != null ? (_ref = el.parentNode) != null ? _ref.tagName : void 0 : void 0) != null) {
-        el = el.parentNode;
-        if (el.tagName.toLowerCase() === tagName) {
-          return el;
-        }
-      }
-      return null;
-    };
-
-    /**
-     * Получить родителя по имени класса
-     * @param   {Element} el
-     * @param   {String}  className
-     * @return  Element|Null
-    */
-
-
-    HSF.prototype.GPC = function(el, className) {
-      if (!el) {
-        return null;
-      }
-      if (className !== '') {
-        while ((el != null ? el.parentNode : void 0) != null) {
-          el = el.parentNode;
-          if (this.hasClassName(el, className)) {
-            return el;
-          }
-        }
-      } else {
-        while ((el != null ? el.parentNode : void 0) != null) {
-          el = el.parentNode;
-          if (!el.className) {
-            return el;
-          }
-        }
-      }
-      return null;
-    };
-
-    /**
-     * Добавление сообщения в лог
-     * @param   {String}    message
-     * @param   {String}    [type] = 'log'
-     * @return  Boolean
-    */
-
-
-    HSF.prototype.log = function(message, type) {
-      var console, func, str;
-      if (type == null) {
-        type = 'log';
-      }
-      str = ((new Date()).getTime() - this._startLogDate).toString();
-      this._stackLog[this._stackLog.length] = {
-        time: str,
-        mess: "" + type + ": " + message
-      };
-      if ("console" in window) {
-        console = window.console;
-        switch (type) {
-          case 'log':
-            func = console.log;
-            break;
-          case 'info':
-            if ('info' in console) {
-              func = console.info;
-            } else {
-              str = 'INFO: ' + str;
-            }
-            break;
-          case 'err':
-          case 'error':
-            if ('error' in console) {
-              func = console.error;
-            } else {
-              str = "ERROR: " + str;
-            }
-            break;
-          case 'warn':
-          case 'warning':
-            if ('warn' in console) {
-              func = console.warn;
-            } else {
-              str = "WARN: " + str;
-            }
-            break;
-          case 'debug':
-            if ('debug' in console) {
-              func = console.debug;
-            } else {
-              str = "DEBUG: " + str;
-            }
-            break;
-          default:
-            str = "" + type + ": " + str;
-        }
-        if (!func) {
-          func = console.log;
-        }
-        if (typeof func !== "function") {
-          func(str + (": " + message));
-        } else {
-          func.call(console, str + (": " + message));
-        }
-      } else if (this._debug) {
-        alert("" + type + ": " + str + ": " + message);
-      }
-      return true;
-    };
-
-    /**
-       * Работает аналогично time в linux: считает кол-во мс, которое тратит на себя функция
-       * @param   {String}    message
-       * @return  Boolean
-    */
-
-
-    HSF.prototype.time = function(func, renderAfter) {
-      var start, t;
-      this.log('start time');
-      start = (new Date()).getTime();
-      func();
-      this.log("finish time at " + ((new Date()).getTime() - start) + "ms");
-      if (renderAfter === true) {
-        this.log('render start');
-        start = (new Date()).getTime();
-        t = document.body.offsetWidth;
-        this.log("finish render at " + ((new Date()).getTime() - start) + "ms");
-      }
-    };
-
-    /**
      * Выводит лог на экран в виде линии событий и времён
      * TODO: сделать наведение более логичным и не зависящим от общей длины шкалы времени
      * @return Boolean
@@ -3482,6 +3709,7 @@
 
     HSF.prototype.printLog = function() {
       var height, html, lenTime, n, str, time, timeString, tl, tl0, _i, _j, _len, _ref, _ref1;
+
       lenTime = 8;
       html = '<table id="printLog" cellpadding="0" cellspacing="0" style="border:0;"><tr><td valign="top" align="left" style="width:40px">';
       tl = '';
@@ -3517,6 +3745,7 @@
 
     HSF.prototype.selectLogPoint = function(el) {
       var res, secEl;
+
       res = el.id.match(/(.*)LogPoint(.*)/);
       if (!res) {
         return false;
@@ -3547,6 +3776,7 @@
 
     HSF.prototype.unselectLogPoint = function(el) {
       var res, secEl;
+
       res = el.id.match(/(.*)LogPoint(.*)/);
       if (!res) {
         return false;
@@ -3581,7 +3811,7 @@
     /**
      * блокирует выполнение действия по умолчанию в браузере, включая такие, как ctrl+s и др.
      * @param {Event} event
-     * @return Boolean
+     * @return {Boolean} false
     */
 
 
@@ -3595,10 +3825,11 @@
         event.cancelBubble = true;
       }
       if (event.preventDefault) {
-        return event.preventDefault();
+        event.preventDefault();
       } else {
-        return event.returnValue = false;
+        event.returnValue = false;
       }
+      return false;
     };
 
     /**
@@ -3616,6 +3847,7 @@
     HSF.prototype.numberInputReplace = function(el, opt) {
       var check, down, height, inputWrapperReplase, ndn, nup, parent, up, wheel, width,
         _this = this;
+
       if (opt == null) {
         opt = {};
       }
@@ -3643,6 +3875,7 @@
       }
       up = function() {
         var value;
+
         value = _this.toInt(el.value);
         if ('max' in opt && opt.max < value + opt.step) {
           el.value = opt.max;
@@ -3653,6 +3886,7 @@
       };
       down = function() {
         var value;
+
         value = _this.toInt(el.value);
         if ('min' in opt && opt.min > value - opt.step) {
           el.value = opt.min;
@@ -3663,6 +3897,7 @@
       };
       check = function() {
         var value;
+
         value = _this.toInt(el.value);
         if ('max' in opt && opt.max < value) {
           el.value = opt.max;
@@ -3692,6 +3927,7 @@
       }
       wheel = function(e) {
         var num, wheelDelta, _i;
+
         if (e == null) {
           e = window.event;
         }
@@ -3738,6 +3974,7 @@
 
     HSF.prototype.keyListener = function(key, func, ctrl, shift, alt) {
       var keyCode, second;
+
       if (ctrl == null) {
         ctrl = false;
       }
@@ -3842,6 +4079,11 @@
 
     HSF.prototype.onDomReady = function(func) {
       var oldonload;
+
+      if (this._ready === true) {
+        func();
+        return this;
+      }
       oldonload = this._funcDomReady;
       if (typeof this._funcDomReady !== "function") {
         this._funcDomReady = func;
@@ -3851,7 +4093,7 @@
           return func();
         };
       }
-      return true;
+      return this;
     };
 
     /**
@@ -3861,30 +4103,31 @@
     */
 
 
-    HSF.prototype.initOnDomReady = function() {
+    initOnDomReady = function() {
       if (this._ready) {
         return;
       }
       this._ready = true;
       if (this._funcDomReady) {
-        return this._funcDomReady();
+        this._funcDomReady();
       }
     };
 
     /**
      * Подготавливает (расставляет слшателей событий) к загрузке документа
-     * @return Boolean
     */
 
 
-    HSF.prototype.prepareOnDocumentReady = function() {
-      var _timer,
+    prepareOnDocumentReady = function() {
+      var _t, _timer,
         _this = this;
-      if (document.addEventListener) {
+
+      _t = this;
+      if ('addEventListener' in document) {
         document.addEventListener("DOMContentLoaded", function() {
-          return _this.initOnDomReady();
+          return initOnDomReady.call(_t);
         }, false);
-      } else if (this.browser().name === 'ie') {
+      } else if (_t.browser().name === 'ie') {
         /*@cc_on @*/
       /*@if (@_win32)
        document.write("<script id=\"__ie_onload\" defer=\"defer\" src=\"javascript:void(0)\"><\/script>");
@@ -3897,15 +4140,14 @@
         _timer = setInterval(function() {
           if (/loaded|complete/.test(document.readyState)) {
             clearInterval(_timer);
-            return this.initOnDomReady();
+            initOnDomReady.call(_t);
           }
         }, 10);
       } else {
         window.onload = function() {
-          return _this.initOnDomReady();
+          return initOnDomReady.call(_t);
         };
       }
-      return true;
     };
 
     /**
@@ -3923,6 +4165,7 @@
     HSF.prototype.setDrag = function(element, opt) {
       var empty, msie, oldOver, sl, st, sx, sy, xy,
         _this = this;
+
       empty = function() {
         return true;
       };
@@ -3974,6 +4217,7 @@
       };
       element.onmousedown = function(e) {
         var position, stl, stt, target, touchEnd, touchMove;
+
         e = e || window.event;
         if (opt.onDragStart(element, e, opt) === false) {
           return false;
@@ -4009,6 +4253,7 @@
         sl = sl === 'auto' || sl === '' ? stl : _this.toInt(sl);
         document.onmousemove = function(ev) {
           var elOver, x, y;
+
           if (!ev) {
             ev = window.event;
           }
@@ -4040,6 +4285,7 @@
         } catch (_error) {}
         document.onmouseup = function(eu) {
           var elOver;
+
           if (!eu) {
             eu = window.event;
           }
@@ -4082,6 +4328,7 @@
 
     HSF.prototype.insertAfter = function(el, exist) {
       var next, parent;
+
       parent = exist.parentNode;
       next = exist.nextSibling;
       if (next) {
@@ -4106,90 +4353,6 @@
     };
 
     /**
-       * Замена jQuery селектору и универсализация querySelectorAll
-       * @param   {String} queryString селектор
-       * @param   {Element} context = document контекст, в котором ищем
-       * @return  Array
-    */
-
-
-    HSF.prototype.qsa = function(queryString, context) {
-      var a, beh, c, i, j, r, s, script, selector, _i, _j, _len, _len1, _ref;
-      if (context == null) {
-        context = document;
-      }
-      if ('querySelectorAll' in context) {
-        return [].take(context.querySelectorAll(queryString));
-      }
-      if ('jQuery' in window) {
-        return jQuery(queryString, context).get();
-      }
-      s = document.createStyleSheet();
-      r = queryString.replace(/\[for\b/gi, "[htmlFor").split(",");
-      window.hsfSelectorCollection = [];
-      if (this._scriptPath === '') {
-        _ref = this.GBT('script');
-        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          script = _ref[_i];
-          if (/hsf\.(min\.|dev\.)?js$/.test(script.src || '')) {
-            this._scriptPath = script.src.replace(/hsf\.(min\.|dev\.)?js$/, '');
-            break;
-          }
-        }
-        if (this._scriptPath === '') {
-          this._scriptPath = false;
-        }
-      }
-      if (this._scriptPath === false) {
-        a = context.all;
-        c = [];
-        i = r.length;
-        while (i--) {
-          s.addRule(r[i], "k:v");
-          j = a.length;
-          while (j--) {
-            a[j].currentStyle.k && c.push(a[j]);
-          }
-          s.removeRule(0);
-        }
-        return c;
-      } else {
-        beh = this._scriptPath + '/ca.htc';
-        for (_j = 0, _len1 = r.length; _j < _len1; _j++) {
-          selector = r[_j];
-          s.addRule(selector, "behavior: url(" + beh + ")");
-          s.removeRule(0);
-        }
-        s.owningElement.parentNode.removeChild(s.owningElement);
-        return window.hsfSelectorCollection;
-      }
-    };
-
-    /**
-     * Получение ширины скроллбара. Взято из MooTools
-     * @return  Number
-    */
-
-
-    HSF.prototype.getScrollBarWidth = function() {
-      var inner, outer, w1, w2;
-      if (this._scrollBarWidth < 0) {
-        this.appendChild(document.body, "<div id='__HSFscrollbar' style='position:absolute;top:0;left:0;visibility:hidden;width:200px;height:150px;overflow:hidden;'><p style='width:100%;height:200px'></p></div>");
-        outer = f.GBI('__HSFscrollbar');
-        inner = outer.children[0];
-        w1 = inner.offsetWidth;
-        outer.style.overflow = "scroll";
-        w2 = inner.offsetWidth;
-        if (w1 === w2) {
-          w2 = outer.clientWidth;
-        }
-        document.body.removeChild(outer);
-        this._scrollBarWidth = w1 - w2;
-      }
-      return this._scrollBarWidth;
-    };
-
-    /**
      * преобразует данные формы в строку. Нет типа файл из-за проблем с кроссбраузерностью
      * @param {HTMLFormElement} form форма
      * @param {Boolean} isGet является ли запрос get-запросом
@@ -4199,10 +4362,12 @@
 
     HSF.prototype.formToData = function(form, isGet) {
       var el, encodeEl, p, q, _i, _len, _ref;
+
       q = '';
       p = isGet ? '?' : '';
       encodeEl = function(el) {
         var r;
+
         r = p + encodeURI(el.name) + '=' + encodeURI(el.value);
         p = '&';
         return r;
@@ -4241,6 +4406,7 @@
 
     HSF.prototype.createStyleSheet = function() {
       var ss;
+
       if (this._systemStyleSheet != null) {
         return this;
       }
@@ -4271,6 +4437,7 @@
 
     HSF.prototype.updateStyleSheetIndex = function() {
       var cssText, i, indexStyle, mode, p, part, rule, rules, selectorText, sumaryStyle, _i, _j, _k, _len, _len1, _len2, _ref;
+
       sumaryStyle = [];
       indexStyle = {};
       mode = -1;
@@ -4336,6 +4503,7 @@
 
     HSF.prototype.setCSS = function(selector, prop, value) {
       var eProps, i, newIndex, p, pp, props, reIndexed, rule, rules, sel, selectors, strProps, v, _i, _j, _len, _len1;
+
       selectors = selector.split(',');
       props = {};
       switch (typeof prop) {
@@ -4437,12 +4605,13 @@
     /**
      * Удалает CSS правило из системного styleSheet-та по селектору
      * @param {String} selector селектор, имена тегов в нижнем регистре. Иначе поведение непредопределено.
-     * @return  HSF
+     * @return {Object} HSF
     */
 
 
     HSF.prototype.remCSS = function(selector) {
       var i, reIndexed, rule, rules, sel, selectors, _i, _j, _len, _len1;
+
       if (this._systemStyleSheet == null) {
         return this;
       }
@@ -4486,6 +4655,19 @@
       return this;
     };
 
+    /**
+     * alias for remCSS
+     *
+     * @method delCSS
+     * @param {String} selector
+     * @return {Object} HSF
+    */
+
+
+    HSF.prototype.delCSS = function(selector) {
+      return this.remCSS(selector);
+    };
+
     return HSF;
 
   })();
@@ -4493,6 +4675,7 @@
   if ('localStorage' in window) {
     HSF.prototype.setLS = function(key, val) {
       var e;
+
       try {
         localStorage.setItem(key, val);
       } catch (_error) {
@@ -4540,6 +4723,7 @@
     };
     HSF.prototype.clearLS = function() {
       var v, _i, _len, _ref;
+
       _ref = this._storage.XMLDocument.documentElement.attributes;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         v = _ref[_i];

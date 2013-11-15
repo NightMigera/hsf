@@ -117,6 +117,57 @@ indexOf(item, \[startIndex\])
 
 Number
 
+appendChild(parent, el)
+-----------------------
+прикрепляет к parent ребёнка из дочерний элемент el
+Если el строка, то это равносильно parent.innerHTML += el, но не ломается DOM-модель
+
+
+**Parameters**
+
+**parent**:  *Element*,  
+
+
+**el**:  *Element|String*,  
+
+
+**Returns**
+
+Array массив элементов
+
+removeElement(el)
+-----------------
+удаляет элемент el из общего DOM
+
+
+**Parameters**
+
+**el**:  *Element*,  
+
+
+replaceElement(el, newEl)
+-------------------------
+заменяет элемент el на newEl
+
+
+**Parameters**
+
+**el**:  *Element*,  
+
+
+**newEl**:  *Element*,  
+
+
+clearElement(el)
+----------------
+Очищает элемент. Как оказалось innerHTML = '' довольно затратная операция
+
+
+**Parameters**
+
+**el**:  *Element*,  
+
+
 getPos(el, parent=document)
 ---------------------------
 получается позиция объекта в документе. Некоторые баги в ИЕ
@@ -406,35 +457,6 @@ removeEvent(elem, evType, fn)
 
 Boolean
 
-load(url, \[func\], \[data|err\], \[data\])
--------------------------------------------
-AJAX запрос
-может принять необходимые аргументы, а может и объект, где:
-url: String собственно адрес
-scs: function(data) вызывается при успешном выполнении
-err: function(data) вызывается при неудачном выполнении
-data: String данные для POST метода
-method: String
-header: Object вида {header1Name: header1Value[, headerXName: headerXValue]...}
-
-
-**Parameters**
-
-**url**:  *String|Object*,  к какому URL
-
-**[func]**:  *Function*,  
-
-
-**[data|err]**:  *String*,  
-
-
-**[data]**:  *String*,  
-
-
-**Returns**
-
-String|XMLHttpRequest|ActiveXObject
-
 createBubble(html, \[w\], \[h\], \[options\])
 ---------------------------------------------
 Создаём бабл в центре экрана с шириной w и высотой h, с содержимым html
@@ -501,76 +523,6 @@ createAlertBubble(text)
 
 Boolean|HSF
 
-createElement(tag, \[option\], \[parent\])
-------------------------------------------
-Создаёт элемент по шаблону tag с свойствами из option и прикрепляет в parent
-последовательность важна! Сначала тэг, потом ID и уже потом имена классов
-
-
-**Parameters**
-
-**tag**:  *String*,  [tagName][#tagId][.tagClass1][.tagClass2][...]
-
-**[option]**:  *Object*,  ограничение на вложенные свойство. Не распространяется на style
-
-**[parent]**:  *Element*,  
-
-
-**Returns**
-
-Element
-
-appendChild(parent, el)
------------------------
-прикрепляет к parent ребёнка из дочерний элемент el
-Если el строка, то это равносильно parent.innerHTML += el, но не ломается DOM-модель
-
-
-**Parameters**
-
-**parent**:  *Element*,  
-
-
-**el**:  *Element|String*,  
-
-
-**Returns**
-
-Array массив элементов
-
-removeElement(el)
------------------
-удаляет элемент el из общего DOM
-
-
-**Parameters**
-
-**el**:  *Element*,  
-
-
-replaceElement(el, newEl)
--------------------------
-заменяет элемент el на newEl
-
-
-**Parameters**
-
-**el**:  *Element*,  
-
-
-**newEl**:  *Element*,  
-
-
-clearElement(el)
-----------------
-Очищает элемент. Как оказалось innerHTML = '' довольно затратная операция
-
-
-**Parameters**
-
-**el**:  *Element*,  
-
-
 setUniversalStyle(el, name, value)
 ----------------------------------
 Устанавливает стиль по имени вне зависимости от префиксов, если стиль вообще существует.
@@ -630,7 +582,7 @@ resizeObjects()
 Таймер отслеживает изменения по номерам позиции.
 
 
-offOnResize(pos)
+retOnResize(pos)
 ----------------
 Выключает таймер по позиции, которая возвращалась в setOnResize
 
@@ -712,70 +664,6 @@ delClassName(el, className)
 
 Element
 
-GPT(el, tagName)
-----------------
-Получить родителя по тэгу
-
-
-**Parameters**
-
-**el**:  *Element*,  
-
-
-**tagName**:  *String*,  
-
-
-**Returns**
-
-Element|Null
-
-GPC(el, className)
-------------------
-Получить родителя по имени класса
-
-
-**Parameters**
-
-**el**:  *Element*,  
-
-
-**className**:  *String*,  
-
-
-**Returns**
-
-Element|Null
-
-log(message, \[type\])
-----------------------
-Добавление сообщения в лог
-
-
-**Parameters**
-
-**message**:  *String*,  
-
-
-**[type]**:  *String*,  = 'log'
-
-**Returns**
-
-Boolean
-
-time(message)
--------------
-Работает аналогично time в linux: считает кол-во мс, которое тратит на себя функция
-
-
-**Parameters**
-
-**message**:  *String*,  
-
-
-**Returns**
-
-Boolean
-
 printLog()
 ----------
 Выводит лог на экран в виде линии событий и времён
@@ -840,7 +728,7 @@ blockEvent(event)
 
 **Returns**
 
-Boolean
+*Boolean*,  false
 
 numberInputReplace(el, opt)
 ---------------------------
@@ -911,10 +799,6 @@ prepareOnDocumentReady()
 Подготавливает (расставляет слшателей событий) к загрузке документа
 
 
-**Returns**
-
-Boolean
-
 setDrag(element, funcChecker, funcDragStart, funcDragStop)
 ----------------------------------------------------------
 Возможность перетаскивания объектов мышью.
@@ -966,30 +850,6 @@ insertBefore(el, exist)
 **Returns**
 
 Node
-
-qsa(queryString, context)
--------------------------
-Замена jQuery селектору и универсализация querySelectorAll
-
-
-**Parameters**
-
-**queryString**:  *String*,  селектор
-
-**context**:  *Element*,  = document контекст, в котором ищем
-
-**Returns**
-
-Array
-
-getScrollBarWidth()
--------------------
-Получение ширины скроллбара. Взято из MooTools
-
-
-**Returns**
-
-Number
 
 formToData(form, isGet)
 -----------------------
@@ -1056,7 +916,7 @@ remCSS(selector)
 
 **Returns**
 
-HSF
+*Object*,  HSF
 
 class HSF
 ---------
@@ -1250,6 +1110,10 @@ HSF.zeroFill(number, width)
 **width**:  *Number*,  
 
 
+**Returns**
+
+*String*,  string length >= width
+
 HSF.truncateStringMin(str, length, \[after\])
 ---------------------------------------------
 Обрезает строку `str`, если она больше `length` и прибавляет к ней `after` так, чтобы итоговая длина строки была равна `length`.
@@ -1310,6 +1174,10 @@ HSF.getCharWidthMax(\[fs\], \[ff\], \[c\])
 
 **[c]**:  *String*,  =  "W"
 
+**Returns**
+
+*Number*,  width of char
+
 HSF.getCharWidth(\[fs\], \[ff\], \[c\])
 ---------------------------------------
 Alias getCharWidthMax
@@ -1323,6 +1191,10 @@ Alias getCharWidthMax
 **[ff]**:  *String*,  =  "Tahoma"
 
 **[c]**:  *String*,  =  "W"
+
+**Returns**
+
+*Number*,  width of char
 
 HSF.dateToFormat(date, format)
 ------------------------------
@@ -1400,7 +1272,7 @@ HSF.browser()
 
 HSF.openWin(url, \[title\], \[width\], \[height\], \[option\], \[callback\])
 ----------------------------------------------------------------------------
-Cоздаём окно по центру окрывая страницу по адресу `url` и `title`, шириной `width` и высотой `height`.
+Cоздаём окно по центру окрывая страницу по адресу `url` и с типом `title`, шириной `width` и высотой `height`.
 По умолчанию окно создатся асинхронно, возвращает HSF. <br/>
 Размеры, а так же различные элементы определяются отдельно. <br/>
 Параметры `option`:
@@ -1433,6 +1305,92 @@ Cоздаём окно по центру окрывая страницу по а
 
 *Object*,  HSF|window
 
+HSF.log(message, \[type\])
+--------------------------
+Добавление сообщения `message` с типом `type` в лог,
+универсальная прослойка для console, для старых браузеров. <br />
+Возможные значения type:
+- `log` простое добавление сообщения
+- `info` сообщение информационное
+- `warn` важное сообщение
+- `warning` то же, что и `warn`
+- `err` сообщение об ошибке
+- `error` то же, что и `err`
+- `debug` сообщение для отладки
+
+
+
+**Parameters**
+
+**message**:  *String*,  
+
+
+**[type]**:  *String*,  = 'log'
+
+**Returns**
+
+*Object*,  HSF
+
+HSF.time(func, \[render\], \[async\], \[afterAsync\])
+-----------------------------------------------------
+Работает аналогично time в linux: считает кол-во мс, которое тратит на себя функция
+
+
+
+**Parameters**
+
+**func**:  *Function*,  функция, скорость которой проверяем
+
+**[render]**:  *Boolean*,  = false проверять ли время отрисовки
+
+**[async]**:  *Boolean*,  = false функция завершает выполнение асинхронно
+
+**[afterAsync]**:  *Function*,  = null функция, в которую возвращается время окончания асинхронного выполнения
+
+**Returns**
+
+*Number*,  ms all process
+
+HSF.load(url, \[func\], \[data|err\], \[data\])
+-----------------------------------------------
+AJAX запрос
+может принять необходимые аргументы, а может и объект, где:
+-  url: String собственно адрес
+-  scs: function(data) вызывается при успешном выполнении
+-  err: function(data) вызывается при неудачном выполнении
+-  data: String данные для POST метода
+-  method: String
+-  header: Object вида {header1Name: header1Value[, headerXName: headerXValue]...}
+
+
+
+**Parameters**
+
+**url**:  *String|Object*,  к какому URL
+
+**[func]**:  *Function*,  
+
+
+**[data|err]**:  *String*,  
+
+
+**[data]**:  *String*,  
+
+
+**Returns**
+
+String|XMLHttpRequest|ActiveXObject
+
+HSF.getScrollBarWidth()
+-----------------------
+Получение ширины скроллбара. Взято из MooTools
+
+
+
+**Returns**
+
+Number
+
 HSF.GBI(el)
 -----------
 Синоним для document.getElementById: получает элемент по `id` или возвращает `null`.
@@ -1458,6 +1416,42 @@ HSF.GBC(classname, \[node\])
 
 **[node]**:  *Element*,  = document
 
+**Returns**
+
+Array|NodeList
+
+HSF.qsa(queryString, context)
+-----------------------------
+Замена jQuery селектору и универсализация querySelectorAll
+
+
+
+**Parameters**
+
+**queryString**:  *String*,  селектор
+
+**context**:  *Element*,  = document контекст, в котором ищем
+
+**Returns**
+
+Array
+
+HSF.QSA(queryString, context)
+-----------------------------
+alias for qsa
+
+
+
+**Parameters**
+
+**queryString**:  *String*,  селектор
+
+**context**:  *Element*,  = document контекст, в котором ищем
+
+**Returns**
+
+Array
+
 HSF.GBT(tagName, \[node\])
 --------------------------
 синоним для node.getElementsByTagName: получает набор элнементов с именем тэга `tagName` внутри элемента `node`.
@@ -1475,4 +1469,75 @@ HSF.GBT(tagName, \[node\])
 **Returns**
 
 NodeList
+
+HSF.GPT(el, tagName)
+--------------------
+Получить родителя по тэгу. GetParentById
+
+
+
+**Parameters**
+
+**el**:  *Element*,  
+
+
+**tagName**:  *String*,  
+
+
+**Returns**
+
+Element|Null
+
+HSF.GPC(el, className)
+----------------------
+Получить родителя по имени класса. GetParentByClassname
+
+
+
+**Parameters**
+
+**el**:  *Element*,  
+
+
+**className**:  *String*,  
+
+
+**Returns**
+
+Element|Null
+
+HSF.createElement(tag, \[option\], \[parent\])
+----------------------------------------------
+Создаёт элемент по шаблону tag с свойствами из option и прикрепляет в parent
+последовательность важна! Сначала тэг, потом ID и уже потом имена классов
+
+
+
+**Parameters**
+
+**tag**:  *String*,  [tagName][#tagId][.tagClass1][.tagClass2][...]
+
+**[option]**:  *Object*,  attributes of element
+
+**[parent]**:  *Element*,  
+
+
+**Returns**
+
+Element
+
+HSF.delCSS(selector)
+--------------------
+alias for remCSS
+
+
+
+**Parameters**
+
+**selector**:  *String*,  
+
+
+**Returns**
+
+*Object*,  HSF
 
